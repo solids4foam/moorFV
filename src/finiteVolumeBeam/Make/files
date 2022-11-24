@@ -1,0 +1,3 @@
+finiteVolumeBeam.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeam
