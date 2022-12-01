@@ -1,0 +1,5 @@
+beamModels/beamModel/beamModel.C
+
+beamModels/coupledTotalLagNewtonRaphsonBeam/coupledTotalLagNewtonRaphsonBeam.C
+
+LIB = $(FOAM_USER_LIBBIN)/libwireBunchingModels
