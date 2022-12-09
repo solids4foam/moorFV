@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "finiteVolumeBeam.C": "cpp",
+        "beamModel.C": "cpp",
+        "coupledTotalLagNewtonRaphsonBeam.C": "cpp"
+    }
+}
