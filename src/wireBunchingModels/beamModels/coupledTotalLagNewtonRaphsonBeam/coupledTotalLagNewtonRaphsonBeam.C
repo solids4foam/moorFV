@@ -2024,13 +2024,15 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
             dimensionedVector("R0", dimLength, vector::zero)
         );
         R0 = mesh.C() + refW_ + W_;
-        R0.boundaryField().evaluateCoupled();
+        Warning
+            << "Disabled R0.boundaryField().evaluateCoupled()" << endl;
+        //R0.boundaryField().evaluateCoupled();
         surfaceVectorField curTangents = fvc::snGrad(R0);
         curTangents /= mag(curTangents);
 
         if (curTangents.boundaryField()[startPatchIndex()].size())
         {
-            curTangents.boundaryField()[startPatchIndex()] *= -1;
+            curTangents.boundaryFieldRef()[startPatchIndex()] *= -1;
         }
         else
         {
@@ -2044,13 +2046,13 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
 
                     if (fc[0] == 0)
                     {
-                        curTangents.boundaryField()[patchI] *= -1;
+                        curTangents.boundaryFieldRef()[patchI] *= -1;
                     }
                 }
             }
         }
 
-        tCurrentTangents() = this->beamPointData(curTangents);
+        tCurrentTangents.ref() = this->beamPointData(curTangents);
 
         return tCurrentTangents;
     }
@@ -2078,7 +2080,9 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
             dimensionedVector("R0", dimLength, vector::zero)
         );
         R0 = mesh.C() + refW_ + W_;
-        R0.boundaryField().evaluateCoupled();
+        Warning
+            << "Disabled R0.boundaryField().evaluateCoupled()" << endl;
+        //R0.boundaryField().evaluateCoupled();
         surfaceVectorField curTangents = fvc::snGrad(R0);
         curTangents /= mag(curTangents);
 
@@ -2086,7 +2090,7 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
 
         if (curTangents.boundaryField()[startPatchIndex(bI)].size())
         {
-            curTangents.boundaryField()[startPatchIndex(bI)] *= -1;
+            curTangents.boundaryFieldRef()[startPatchIndex(bI)] *= -1;
         }
         else
         {
@@ -2104,7 +2108,7 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
                         {
                             if (fc[fI] <= min(cz))
                             {
-                                curTangents.boundaryField()[patchI][fI] *= -1;
+                                curTangents.boundaryFieldRef()[patchI][fI] *= -1;
                             }
                         }
                     }
@@ -2112,7 +2116,7 @@ tmp<vectorField> coupledTotalLagNewtonRaphsonBeam::currentBeamTangents
             }
         }
 
-        tCurrentTangents() = this->beamPointData(curTangents, bI);
+        tCurrentTangents.ref() = this->beamPointData(curTangents, bI);
 
         return tCurrentTangents;
     }
