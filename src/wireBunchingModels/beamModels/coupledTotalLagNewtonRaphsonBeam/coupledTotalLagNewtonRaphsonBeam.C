@@ -2666,7 +2666,7 @@ currentDisplacementIncrement() const
     (
         new vectorField(nPoints, vector::zero)
     );
-    vectorField& DW = tDW();
+    vectorField& DW = tDW.ref();
 
     const surfaceVectorField DWf =
         fvc::interpolate(W_)
@@ -2693,7 +2693,7 @@ currentRotationIncrement() const
     (
         new tensorField(nPoints, tensor::zero)
     );
-    tensorField& DLambda = tDLambda();
+    tensorField& DLambda = tDLambda.ref();
 
     const surfaceTensorField DLambdaf = (Lambda_ & inv(Lambda_.oldTime()));
 
