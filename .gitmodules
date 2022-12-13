@@ -1,0 +1,3 @@
+[submodule "src/bali-beamSolver"]
+	path = src/bali-beamSolver
+	url = git@github.com:Seevanibali/bali-beamSolver.git

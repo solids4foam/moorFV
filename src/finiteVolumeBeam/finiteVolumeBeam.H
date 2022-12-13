@@ -1,30 +1,28 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | www.openfoam.com
-     \\/     M anipulation  |
--------------------------------------------------------------------------------
-    Copyright (C) 2011-2013 OpenFOAM Foundation
+  \\      /  F ield         | foam-extend: Open Source CFD
+   \\    /   O peration     | Version:     4.1
+    \\  /    A nd           | Web:         http://www.foam-extend.org
+     \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
 License
-    This file is part of OpenFOAM.
+    This file is part of foam-extend.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    foam-extend is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation, either version 3 of the License, or (at your
+    option) any later version.
 
-    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
+    foam-extend is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam
+    Foam::finiteVolumeBeam
 
 Description
     sixDoFRigidBodyMotionRestraints model.  Finite volume beam solver based on
@@ -35,54 +33,37 @@ Description
     beams with arbitrary initial curvatures. Int J Numer Methods Eng. 2022;
     123( 17): 3950– 3973. doi:10.1002/nme.6994
 
-SourceFiles
-    finiteVolumeBeam.C
-
 Author
     Amirhossein Taran, UCD.
     Philip Cardiff, UCD.
+
+SourceFiles
+    finiteVolumeBeam.C
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef finiteVolumeBeam_H
 #define finiteVolumeBeam_H
 
-#include "sixDoFRigidBodyMotionRestraint.H"
-#include "point.H"
+#include "combinedRestraint.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-namespace sixDoFRigidBodyMotionRestraints
-{
-
 /*---------------------------------------------------------------------------*\
-                          Class finiteVolumeBeam Declaration
+                   Class finiteVolumeBeam Declaration
 \*---------------------------------------------------------------------------*/
 
 class finiteVolumeBeam
 :
-    public sixDoFRigidBodyMotionRestraint
+    public combinedRestraint
 {
-    // Private data
+    // Private Data
 
-        //- Anchor point, where the spring is attached to an immovable
-        //  object
-        point anchor_;
-
-        //- Reference point of attachment to the solid body
-        point refAttachmentPt_;
-
-        //- Spring stiffness coefficient (N/m)
-        scalar stiffness_;
-
-        //- Damping coefficient (Ns/m)
-        scalar damping_;
-
-        //- Rest length - length of spring when no forces are applied to it
-        scalar restLength_;
+        //- Beam inputs: to be added
+        //dimensionedScalar coeff_;
 
 
 public:
@@ -93,50 +74,54 @@ public:
 
     // Constructors
 
-        //- Construct from components
+        //- Construct from dictionary
         finiteVolumeBeam
         (
             const word& name,
-            const dictionary& sDoFRBMRDict
+            const dictionary& dict,
+            const sixDOFODE& sixDOF
         );
 
         //- Construct and return a clone
-        virtual autoPtr<sixDoFRigidBodyMotionRestraint> clone() const
-        {
-            return autoPtr<sixDoFRigidBodyMotionRestraint>
-            (
-                new finiteVolumeBeam(*this)
-            );
-        }
+        virtual autoPtr<combinedRestraint> clone() const;
 
 
-    //- Destructor
-    virtual ~finiteVolumeBeam();
+    // Destructor
+
+        virtual ~finiteVolumeBeam();
 
 
     // Member Functions
 
-        //- Calculate the restraint position, force and moment.
-        //  Global reference frame vectors.
-        virtual void restrain
-        (
-            const sixDoFRigidBodyMotion& motion,
-            vector& restraintPosition,
-            vector& restraintForce,
-            vector& restraintMoment
-        ) const;
+        // Restraint specific functions
 
-        //- Update properties from given dictionary
-        virtual bool read(const dictionary& sDoFRBMRCoeff);
+            //- Return restraining force (in the global coordinate system)
+            virtual vector restrainingForce
+            (
+                const scalar t,
+                const tensor& toRelative,
+                const vector& x,
+                const vector& u
+            ) const;
 
-        //- Write
-        virtual void write(Ostream&) const;
+            //- Return restraining moment (in the local coordinate system)
+            virtual vector restrainingMoment
+            (
+                const scalar t,
+                const tensor& toRelative,
+	        const vector& omega
+            ) const;
+
+
+    // I-O Functions and Operators
+
+        //- Virtual write function
+        virtual void write(Ostream& os) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace solidBodyMotionFunctions
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
