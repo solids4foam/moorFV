@@ -46,6 +46,7 @@ SourceFiles
 #define finiteVolumeBeam_H
 
 #include "combinedRestraint.H"
+#include "coupledTotalLagNewtonRaphsonBeam.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,8 +63,8 @@ class finiteVolumeBeam
 {
     // Private Data
 
-        //- Beam inputs: to be added
-        //dimensionedScalar coeff_;
+        //- Beam model
+        mutable autoPtr<beamModels::coupledTotalLagNewtonRaphsonBeam> beamPtr_;
 
 
 public:

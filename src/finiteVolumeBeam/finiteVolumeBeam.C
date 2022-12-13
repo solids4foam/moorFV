@@ -25,6 +25,7 @@ License
 
 #include "finiteVolumeBeam.H"
 #include "addToRunTimeSelectionTable.H"
+#include "sixDOFODE.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -48,9 +49,21 @@ Foam::finiteVolumeBeam::finiteVolumeBeam
     const sixDOFODE& sixDOF
 )
 :
-    combinedRestraint(name, dict, sixDOF) //,
-    // coeff_(dict.lookup("coeff"))
-{}
+    combinedRestraint(name, dict, sixDOF),
+    beamPtr_()
+{
+    // Create beam model
+    // Why does the beamModel need non-const access to time?
+    beamPtr_.set
+    (
+        new beamModels::coupledTotalLagNewtonRaphsonBeam
+        (
+            const_cast<Time&>(sixDOF.dict().time())
+        )
+    );
+
+    // Do we need to do anything else here to initialise the beam correctly?
+}
 
 
 Foam::autoPtr<Foam::combinedRestraint>
@@ -73,13 +86,25 @@ Foam::finiteVolumeBeam::~finiteVolumeBeam()
 
 Foam::vector Foam::finiteVolumeBeam::restrainingForce
 (
-    const scalar,
-    const tensor&,
+    const scalar t,
+    const tensor& toRelative,
     const vector& x,
     const vector& u
 ) const
 {
-    //return - (linSpringCoeffs_ & x) - (linDampingCoeffs_ & u);
+    // 1. Set the boundary conditions on the beam using the inputs above
+    //    1a. Set the displacement condition at the attachment point using the
+    //        new position 'x'
+    //    1b. Set the rotation condition at the attachment point: we have two
+    //        options (can be set at start; no need to update):
+    //            - Option 1: set zero rotation
+    //            - Option 2: set zero moment (seems more physical)
+
+    // 2. Call the beam evolve function to solve the beam equations, i.e.
+    beamPtr_().evolve();
+
+    // 3. Retrieve and return the force at the attachment point
+
     WarningIn("restrainingMoment")
         << "Force set to zero" << endl;
 
