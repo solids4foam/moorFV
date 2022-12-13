@@ -100,15 +100,41 @@ Foam::vector Foam::finiteVolumeBeam::restrainingForce
     //            - Option 1: set zero rotation
     //            - Option 2: set zero moment (seems more physical)
 
+    // Lookup the displacement increment field
+    volVectorField& DW = const_cast<volVectorField&>
+    (
+        sixDOF().dict().time().lookupObject<volVectorField>("DW")
+    );
+
+    // Find the attachment patch index
+    const fvMesh& mesh = DW.mesh();
+    const label patchID =
+        mesh.boundaryMesh().findPatchID("name_of_beam_attachment_patch");
+
+    if (patchID == -1)
+    {
+        FatalErrorIn("Foam::finiteVolumeBeam::restrainingForce(...)")
+            << "Attachment patch not found!" << abort(FatalError);
+    }
+
+    // Set the value of DW on the patch
+    // To-do: calculate what this should be as a function of the inputs above
+    // and maybe mesh.boundary()[patchID].Cf()[0] and maybe use W.oldTime()
+    DW.boundaryField()[patchID] == vector(1, 2, 3);
+
     // 2. Call the beam evolve function to solve the beam equations, i.e.
     beamPtr_().evolve();
 
     // 3. Retrieve and return the force at the attachment point
+    // Lookup some force or stress field available within the beam model and
+    // extract the value on the attachment patch, e.g. use lookupObject for the
+    // force (maybe it is the surfaceVectorField "Q")
+    const vector force = vector(1, 2, 3);
 
-    WarningIn("restrainingMoment")
+    WarningIn("restrainingForce")
         << "Force set to zero" << endl;
 
-    return vector::zero;
+    return force;
 }
 
 
