@@ -1,3 +1,12 @@
-finiteVolumeBeam.C
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionNew.C
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionNewIO.C
+
+sDoFRBMR = sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionRestraintNew
+
+$(sDoFRBMR)/sixDoFRigidBodyMotionRestraintNew/sixDoFRigidBodyMotionRestraintNew.C
+$(sDoFRBMR)/sixDoFRigidBodyMotionRestraintNew/newSixDoFRigidBodyMotionRestraintNew.C
+$(sDoFRBMR)/finiteVolumeBeam/finiteVolumeBeamRestraint.C
+
+finiteVolumeBeamDisplacementPointPatchVectorField/finiteVolumeBeamDisplacementPointPatchVectorField.C
 
 LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeam

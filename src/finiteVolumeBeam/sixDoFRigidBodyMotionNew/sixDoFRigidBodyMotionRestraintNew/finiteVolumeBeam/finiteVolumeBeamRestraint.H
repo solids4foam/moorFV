@@ -22,107 +22,109 @@ License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::finiteVolumeBeam
+    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint
 
 Description
-    sixDoFRigidBodyMotionRestraints model.  Finite volume beam solver based on
-    Simo–Reissner theory.
-
-    See Bali, S, Tuković, Ž, Cardiff, P, Ivanković, A, Pakrashi, V. A cell-
-    centered finite volume formulation of geometrically exact Simo–Reissner
-    beams with arbitrary initial curvatures. Int J Numer Methods Eng. 2022;
-    123( 17): 3950– 3973. doi:10.1002/nme.6994
-
-Author
-    Amirhossein Taran, UCD.
-    Philip Cardiff, UCD.
+    sixDoFRigidBodyMotionRestraints model.  Linear spring.
 
 SourceFiles
-    finiteVolumeBeam.C
+    finiteVolumeBeamRestraint.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef finiteVolumeBeam_H
-#define finiteVolumeBeam_H
+#ifndef finiteVolumeBeamRestraint_H
+#define finiteVolumeBeamRestraint_H
 
-#include "combinedRestraint.H"
-#include "coupledTotalLagNewtonRaphsonBeam.H"
+#include "sixDoFRigidBodyMotionRestraintNew.H"
+#include "point.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+namespace sixDoFRigidBodyMotionRestraints
+{
+
 /*---------------------------------------------------------------------------*\
-                   Class finiteVolumeBeam Declaration
+                          Class finiteVolumeBeamRestraint Declaration
 \*---------------------------------------------------------------------------*/
 
-class finiteVolumeBeam
+class finiteVolumeBeamRestraint
 :
-    public combinedRestraint
+    public sixDoFRigidBodyMotionRestraintNew
 {
-    // Private Data
+    // Private data
 
-        //- Beam model
-        mutable autoPtr<beamModels::coupledTotalLagNewtonRaphsonBeam> beamPtr_;
+        //- Anchor point, where the spring is attached to an immovable
+        //  object
+        point anchor_;
+
+        //- Reference point of attachment to the solid body
+        point refAttachmentPt_;
+
+        //- Spring stiffness coefficient (N/m)
+        scalar stiffness_;
+
+        //- Damping coefficient (Ns/m)
+        scalar damping_;
+
+        //- Rest length - length of spring when no forces are applied to it
+        scalar restLength_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("finiteVolumeBeam");
+    TypeName("finiteVolumeBeamRestraint");
 
 
     // Constructors
 
-        //- Construct from dictionary
-        finiteVolumeBeam
+        //- Construct from components
+        finiteVolumeBeamRestraint
         (
-            const word& name,
-            const dictionary& dict,
-            const sixDOFODE& sixDOF
+            const dictionary& sDoFRBMRDict, const Time& time
         );
 
         //- Construct and return a clone
-        virtual autoPtr<combinedRestraint> clone() const;
+        virtual autoPtr<sixDoFRigidBodyMotionRestraintNew> clone() const
+        {
+            return autoPtr<sixDoFRigidBodyMotionRestraintNew>
+            (
+                new finiteVolumeBeamRestraint(*this)
+            );
+        }
 
 
     // Destructor
 
-        virtual ~finiteVolumeBeam();
+        virtual ~finiteVolumeBeamRestraint();
 
 
     // Member Functions
 
-        // Restraint specific functions
+        //- Calculate the restraint position, force and moment.
+        //  Global reference frame vectors.
+        virtual void restrain
+        (
+            const sixDoFRigidBodyMotionNew& motion,
+            vector& restraintPosition,
+            vector& restraintForce,
+            vector& restraintMoment
+        ) const;
 
-            //- Return restraining force (in the global coordinate system)
-            virtual vector restrainingForce
-            (
-                const scalar t,
-                const tensor& toRelative,
-                const vector& x,
-                const vector& u
-            ) const;
+        //- Update properties from given dictionary
+        virtual bool read(const dictionary& sDoFRBMRCoeff);
 
-            //- Return restraining moment (in the local coordinate system)
-            virtual vector restrainingMoment
-            (
-                const scalar t,
-                const tensor& toRelative,
-	        const vector& omega
-            ) const;
-
-
-    // I-O Functions and Operators
-
-        //- Virtual write function
-        virtual void write(Ostream& os) const;
+        //- Write
+        virtual void write(Ostream&) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace solidBodyMotionFunctions
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
