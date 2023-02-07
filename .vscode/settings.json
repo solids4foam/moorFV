@@ -3,6 +3,11 @@
         "finiteVolumeBeam.C": "cpp",
         "beamModel.C": "cpp",
         "coupledTotalLagNewtonRaphsonBeam.C": "cpp",
-        "beamModelTemplates.C": "cpp"
+        "beamModelTemplates.C": "cpp",
+        "moorDynR1.C": "cpp",
+        "linearSpringDamper.C": "cpp",
+        "finiteVolumeBeam_old.C": "cpp",
+        "finiteVolumeBeamDisplacementPointPatchVectorField.C": "cpp",
+        "finiteVolumeBeamRestraint.C": "cpp"
     }
 }

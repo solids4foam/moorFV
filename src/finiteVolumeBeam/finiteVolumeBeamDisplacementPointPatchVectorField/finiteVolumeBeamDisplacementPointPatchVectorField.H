@@ -25,12 +25,12 @@ Class
     Foam::finiteVolumeBeamDisplacementPointPatchVectorField
 
 Description
-    Amirhossein: add description
-
+    Custom Boundary condition for finiteVolumeBeam
     Based on sixDoFRigidBodyDisplacementPointPatchVectorField
 
 Authors
-    Amirhossein: add authors
+    Amirhossein Taran, UCD
+    Philip Cardiff, UCD
 
 \*---------------------------------------------------------------------------*/
 

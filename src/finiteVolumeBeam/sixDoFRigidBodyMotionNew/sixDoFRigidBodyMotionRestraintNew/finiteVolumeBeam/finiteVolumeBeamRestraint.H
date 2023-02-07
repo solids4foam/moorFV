@@ -22,13 +22,19 @@ License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint
-
+    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam
 Description
-    sixDoFRigidBodyMotionRestraints model.  Linear spring.
-
+    sixDoFRigidBodyMotionRestraints model.  Finite volume beam solver based on
+    Simo–Reissner theory.
+    See: Bali, S, Tuković, Ž, Cardiff, P, Ivanković, A, Pakrashi, V. A cell-
+    centered finite volume formulation of geometrically exact Simo–Reissner
+    beams with arbitrary initial curvatures. Int J Numer Methods Eng. 2022;
+    123( 17): 3950– 3973. doi:10.1002/nme.6994
 SourceFiles
-    finiteVolumeBeamRestraint.C
+    finiteVolumeBeam.C
+Author
+    Amirhossein Taran, UCD.
+    Philip Cardiff, UCD.
 
 \*---------------------------------------------------------------------------*/
 

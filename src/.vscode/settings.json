@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "linearSpring.C": "cpp",
+        "finiteVolumeBeam.C": "cpp",
+        "finiteVolumeBeam_old.C": "cpp",
+        "finiteVolumeBeam.H": "cpp"
+    }
+}
