@@ -42,6 +42,7 @@ Author
 #define finiteVolumeBeamRestraint_H
 
 #include "sixDoFRigidBodyMotionRestraintNew.H"
+#include "OutputControlDictionary.H"
 #include "point.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -61,24 +62,8 @@ class finiteVolumeBeamRestraint
     public sixDoFRigidBodyMotionRestraintNew
 {
     // Private data
-
-        //- Anchor point, where the spring is attached to an immovable
-        //  object
-        point anchor_;
-
         //- Reference point of attachment to the solid body
         point refAttachmentPt_;
-
-        //- Spring stiffness coefficient (N/m)
-        scalar stiffness_;
-
-        //- Damping coefficient (Ns/m)
-        scalar damping_;
-
-        //- Rest length - length of spring when no forces are applied to it
-        scalar restLength_;
-
-
 public:
 
     //- Runtime type information
@@ -112,6 +97,9 @@ public:
 
         //- Calculate the restraint position, force and moment.
         //  Global reference frame vectors.
+
+        //const OutputControlDictionary<finiteVolumeBeamRestraint>& dict() const;
+        
         virtual void restrain
         (
             const sixDoFRigidBodyMotionNew& motion,

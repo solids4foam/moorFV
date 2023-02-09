@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "finiteVolumeBeamRestraint.H"
+#include "OutputControlDictionary.H" 
 #include "addToRunTimeSelectionTable.H"
 #include "sixDoFRigidBodyMotionNew.H"
 #include "beamModel.H"
@@ -50,14 +51,11 @@ namespace sixDoFRigidBodyMotionRestraints
 Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::finiteVolumeBeamRestraint
 (
     const dictionary& sDoFRBMRDict, const Time& time
+    //,const IOobject& io   Q.Here?
 )
 :
     sixDoFRigidBodyMotionRestraintNew(sDoFRBMRDict, time),
-    anchor_(),
-    refAttachmentPt_(),
-    stiffness_(),
-    damping_(),
-    restLength_()
+    refAttachmentPt_()
 {
     read(sDoFRBMRDict);
 
@@ -67,13 +65,6 @@ Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::finiteVolumeBe
             const_cast<Time&>(time) , Foam::dynamicFvMesh::defaultRegion
         );
 
-    // beamPtr
-    // (
-    //     new beamModels::coupledTotalLagNewtonRaphsonBeam
-    //     (
-    //         const_cast<Time&>(time)
-    //     )
-    // );
 }
 
 
@@ -95,23 +86,23 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
 {
     restraintPosition = motion.currentPosition(refAttachmentPt_);
 
-    vector r = restraintPosition - anchor_;
-
-    scalar magR = mag(r);
-
-    // r is now the r unit vector
-    r /= (magR + VSMALL);
-
-    vector v = motion.currentVelocity(restraintPosition);
-
-    restraintForce = -stiffness_*(magR - restLength_)*r - damping_*(r & v)*r;
-
-    restraintMoment = vector::zero;
+    // volVectorField& DW = const_cast<volVectorField&>
+    // (
+    //     dict().lookupObject<volVectorField>("DW")
+    // );
+    //const fvMesh& mesh = DW.mesh();
+    // const label patchID =
+    //     mesh.boundaryMesh().findPatchID("right"); //manualy
+    //     //("name_of_beam_attachment_patch");
+    // if (patchID == -1)
+    // {
+    //     FatalErrorIn("Foam::finiteVolumeBeam::restrainingForce(...)")
+    //         << "Attachment patch not found!" << abort(FatalError);
+    // }
 
     if (motion.report())
     {
-        Info<< " spring length " << magR
-            << " force " << restraintForce
+        Info<< " force " << restraintForce
             << " moment " << restraintMoment
             << endl;
     }
@@ -123,17 +114,11 @@ bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::read
     const dictionary& sDoFRBMRDict
 )
 {
+    
     sixDoFRigidBodyMotionRestraintNew::read(sDoFRBMRDict);
 
-    sDoFRBMRCoeffs_.lookup("anchor") >> anchor_;
 
     sDoFRBMRCoeffs_.lookup("refAttachmentPt") >> refAttachmentPt_;
-
-    sDoFRBMRCoeffs_.lookup("stiffness") >> stiffness_;
-
-    sDoFRBMRCoeffs_.lookup("damping") >> damping_;
-
-    sDoFRBMRCoeffs_.lookup("restLength") >> restLength_;
 
     return true;
 }
@@ -144,20 +129,10 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::write
     Ostream& os
 ) const
 {
-    os.writeKeyword("anchor")
-        << anchor_ << token::END_STATEMENT << nl;
 
     os.writeKeyword("refAttachmentPt")
         << refAttachmentPt_ << token::END_STATEMENT << nl;
 
-    os.writeKeyword("stiffness")
-        << stiffness_ << token::END_STATEMENT << nl;
-
-    os.writeKeyword("damping")
-        << damping_ << token::END_STATEMENT << nl;
-
-    os.writeKeyword("restLength")
-        << restLength_ << token::END_STATEMENT << nl;
 }
 
 // ************************************************************************* //
