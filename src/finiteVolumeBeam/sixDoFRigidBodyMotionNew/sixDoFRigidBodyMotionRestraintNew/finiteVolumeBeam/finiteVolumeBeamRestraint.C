@@ -27,7 +27,6 @@ License
 #include "OutputControlDictionary.H" 
 #include "addToRunTimeSelectionTable.H"
 #include "sixDoFRigidBodyMotionNew.H"
-#include "beamModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -50,21 +49,30 @@ namespace sixDoFRigidBodyMotionRestraints
 
 Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::finiteVolumeBeamRestraint
 (
-    const dictionary& sDoFRBMRDict, const Time& time
-    //,const IOobject& io   Q.Here?
+    const dictionary& sDoFRBMRDict,
+    const Time& time
 )
 :
     sixDoFRigidBodyMotionRestraintNew(sDoFRBMRDict, time),
-    refAttachmentPt_()
+    beam_(beamModel::New(const_cast<Time&>(time) , "beam")),
+    refAttachmentPt_(sDoFRBMRCoeffs_.lookup("refAttachmentPt")),
+    patchID_(-1)
 {
+    // Call base class read function
     read(sDoFRBMRDict);
 
-    Foam::autoPtr<Foam::beamModel> beam =
-        Foam::beamModel::New
+    // Find attachment patch
+    patchID_ =
+        beam_->mesh().boundaryMesh().findPatchID
         (
-            const_cast<Time&>(time) , Foam::dynamicFvMesh::defaultRegion
+            sDoFRBMRDict.lookup("attachmentPatch")
         );
 
+    if (patchID_ == -1)
+    {
+        FatalErrorIn("Foam::finiteVolumeBeam::finiteVolumeBeam(...)")
+            << "Attachment patch not found!" << abort(FatalError);
+    }
 }
 
 
@@ -84,22 +92,36 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
     vector& restraintMoment
 ) const
 {
+    // 1. Calculate attachment displacement from the motion object
+
     restraintPosition = motion.currentPosition(refAttachmentPt_);
 
-    // volVectorField& DW = const_cast<volVectorField&>
-    // (
-    //     dict().lookupObject<volVectorField>("DW")
-    // );
-    //const fvMesh& mesh = DW.mesh();
-    // const label patchID =
-    //     mesh.boundaryMesh().findPatchID("right"); //manualy
-    //     //("name_of_beam_attachment_patch");
-    // if (patchID == -1)
-    // {
-    //     FatalErrorIn("Foam::finiteVolumeBeam::restrainingForce(...)")
-    //         << "Attachment patch not found!" << abort(FatalError);
-    // }
+    const vector attachmentDisp = vector(0.1, 0.1, 0.1);
 
+    // 2. Set this displacement condition on the attachment patch
+    // Note: W is the total displacement
+
+    volVectorField& W = beam_->solutionW();
+    W.boundaryField()[patchID_] == attachmentDisp;
+    
+    // 3. Solve the beam model
+    const_cast<finiteVolumeBeamRestraint&>(*this).beam().evolve();
+
+    // 4. Extract the force from the beam attachment
+    const surfaceVectorField& Q =
+        beam_->mesh().lookupObject<surfaceVectorField>("Q");
+
+    if (Q.boundaryField()[patchID_].size() != 1)
+    {
+        FatalError
+            << "Q.boundaryField()[patchID_].size() != 1: "
+            << "this needs to be parallelised" << abort(FatalError);
+    }
+
+    const vector attachmentForce = Q.boundaryField()[patchID_][0];
+
+    Info<< "attachment force = " << attachmentForce << endl;
+    
     if (motion.report())
     {
         Info<< " force " << restraintForce
@@ -109,19 +131,19 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
 }
 
 
-bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::read
-(
-    const dictionary& sDoFRBMRDict
-)
-{
+// bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::read
+// (
+//     const dictionary& sDoFRBMRDict
+// )
+// {
     
-    sixDoFRigidBodyMotionRestraintNew::read(sDoFRBMRDict);
+//     sixDoFRigidBodyMotionRestraintNew::read(sDoFRBMRDict);
 
 
-    sDoFRBMRCoeffs_.lookup("refAttachmentPt") >> refAttachmentPt_;
+//     sDoFRBMRCoeffs_.lookup("refAttachmentPt") >> refAttachmentPt_;
 
-    return true;
-}
+//     return true;
+// }
 
 
 void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::write

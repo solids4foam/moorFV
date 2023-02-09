@@ -44,6 +44,9 @@ Author
 #include "sixDoFRigidBodyMotionRestraintNew.H"
 #include "OutputControlDictionary.H"
 #include "point.H"
+#include "foamTime.H"
+#include "fvMesh.H"
+#include "beamModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,8 +65,16 @@ class finiteVolumeBeamRestraint
     public sixDoFRigidBodyMotionRestraintNew
 {
     // Private data
+
+        //- Beam model
+        autoPtr<Foam::beamModel> beam_;
+
         //- Reference point of attachment to the solid body
         point refAttachmentPt_;
+
+        //- Patch index for the beam attachment
+        label patchID_;
+
 public:
 
     //- Runtime type information
@@ -95,6 +106,12 @@ public:
 
     // Member Functions
 
+        //- Returns non-const access to the beam model
+        Foam::beamModel& beam()
+        {
+            return beam_();
+        }
+
         //- Calculate the restraint position, force and moment.
         //  Global reference frame vectors.
 
@@ -109,7 +126,7 @@ public:
         ) const;
 
         //- Update properties from given dictionary
-        virtual bool read(const dictionary& sDoFRBMRCoeff);
+        // virtual bool read(const dictionary& sDoFRBMRCoeff);
 
         //- Write
         virtual void write(Ostream&) const;
