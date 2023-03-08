@@ -15,31 +15,25 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-4
+3
 (
     left
     {
-        type            wall;
+        type            patch;
         nFaces          1;
-        startFace       24;
+        startFace       4;
     }
     right
     {
-        type            wall;
+        type            patch;
         nFaces          1;
-        startFace       25;
+        startFace       5;
     }
-    frontAndBack
+    beam
     {
         type            empty;
-        nFaces          50;
-        startFace       26;
-    }
-    topAndBottom
-    {
-        type            empty;
-        nFaces          50;
-        startFace       76;
+        nFaces          160;
+        startFace       6;
     }
 )
 

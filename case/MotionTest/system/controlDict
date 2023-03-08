@@ -15,8 +15,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//libs ( "libfiniteVolumeBeam.so" );
-libs ("libforces.so" "libwireBunchingModels.so");
+libs ( "libforces.so" "libfiniteVolumeBeam.so" );
+//libs ( "libwireBunchingModels.so");
+
 application     pimpleDyMFoam;
 
 startFrom       latestTime;
