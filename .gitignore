@@ -60,7 +60,8 @@ solids4foam/ThirdParty/eigen3
 *.orig[0-9][0-9]
 \#*\#
 .DS_Store
-
+GA: (G*A) [1 1 -2 0 0 0 0] 5000.000029
+Segmentation fault
 # file-browser settings - anywhere
 .directory
 
@@ -151,5 +152,5 @@ PlyParser_FoamFileParser_parsetab.py
 # ignore .tags in the main directory
 /.tags
 #ignore vscode introductory files
-*.vscode
+.vscode
 # end-of-file
