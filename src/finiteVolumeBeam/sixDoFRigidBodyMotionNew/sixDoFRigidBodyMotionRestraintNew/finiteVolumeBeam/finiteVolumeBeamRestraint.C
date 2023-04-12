@@ -96,13 +96,16 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
 
     restraintPosition = motion.currentPosition(refAttachmentPt_);
 
-    const vector attachmentDisp = vector(0.1, 0.1, 0.1);
+    const vector attachmentDisp = restraintPosition;
+    Info << "RestraintPosition=" << restraintPosition << endl;
 
     // 2. Set this displacement condition on the attachment patch
     // Note: W is the total displacement
-
+    
     volVectorField& W = beam_->solutionW();
+    Info << "w1=" << W << endl;
     W.boundaryField()[patchID_] == attachmentDisp;
+    Info << "w2=" <<W << endl;
     
     // 3. Solve the beam model
     const_cast<finiteVolumeBeamRestraint&>(*this).beam().evolve();
@@ -118,9 +121,10 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
             << "this needs to be parallelised" << abort(FatalError);
     }
 
-    const vector attachmentForce = Q.boundaryField()[patchID_][0];
-
-    Info<< "attachment force = " << attachmentForce << endl;
+//const vector attachmentForce = Q.boundaryField()[patchID_][0];
+    restraintForce = Q.boundaryField()[patchID_][0];
+    restraintMoment = vector::zero;
+//Info<< "attachment force = " << attachmentForce << endl;
     
     if (motion.report())
     {
