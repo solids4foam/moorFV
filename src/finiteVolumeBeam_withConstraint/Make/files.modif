@@ -1,0 +1,3 @@
+finiteVolumeBeamDisplacementPointPatchVectorField/finiteVolumeBeamDisplacementPointPatchVectorField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeam

@@ -1,0 +1,145 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | foam-extend: Open Source CFD
+   \\    /   O peration     | Version:     4.1
+    \\  /    A nd           | Web:         http://www.foam-extend.org
+     \\/     M anipulation  | For copyright notice see file Copyright
+-------------------------------------------------------------------------------
+License
+    This file is part of foam-extend.
+
+    foam-extend is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation, either version 3 of the License, or (at your
+    option) any later version.
+
+    foam-extend is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam
+Description
+    sixDoFRigidBodyMotionRestraints model.  Finite volume beam solver based on
+    Simo–Reissner theory.
+    See: Bali, S, Tuković, Ž, Cardiff, P, Ivanković, A, Pakrashi, V. A cell-
+    centered finite volume formulation of geometrically exact Simo–Reissner
+    beams with arbitrary initial curvatures. Int J Numer Methods Eng. 2022;
+    123( 17): 3950– 3973. doi:10.1002/nme.6994
+SourceFiles
+    finiteVolumeBeam.C
+Author
+    Amirhossein Taran, UCD.
+    Philip Cardiff, UCD.
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef finiteVolumeBeamRestraint_H
+#define finiteVolumeBeamRestraint_H
+
+#include "sixDoFRigidBodyMotionRestraintNew.H"
+#include "OutputControlDictionary.H"
+#include "point.H"
+#include "foamTime.H"
+#include "fvMesh.H"
+#include "beamModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
+namespace sixDoFRigidBodyMotionRestraints
+{
+
+/*---------------------------------------------------------------------------*\
+                          Class finiteVolumeBeamRestraint Declaration
+\*---------------------------------------------------------------------------*/
+
+class finiteVolumeBeamRestraint
+:
+    public sixDoFRigidBodyMotionRestraintNew
+{
+    // Private data
+
+        //- Beam model
+        autoPtr<Foam::beamModel> beam_;
+
+        //- Reference point of attachment to the solid body
+        point refAttachmentPt_;
+
+        //- Patch index for the beam attachment
+        label patchID_;
+
+public:
+
+    //- Runtime type information
+    TypeName("finiteVolumeBeamRestraint");
+
+
+    // Constructors
+
+        //- Construct from components
+        finiteVolumeBeamRestraint
+        (
+            const dictionary& sDoFRBMRDict, const Time& time
+        );
+
+        //- Construct and return a clone
+        virtual autoPtr<sixDoFRigidBodyMotionRestraintNew> clone() const
+        {
+            return autoPtr<sixDoFRigidBodyMotionRestraintNew>
+            (
+                new finiteVolumeBeamRestraint(*this)
+            );
+        }
+
+
+    // Destructor
+
+        virtual ~finiteVolumeBeamRestraint();
+
+
+    // Member Functions
+
+        //- Returns non-const access to the beam model
+        Foam::beamModel& beam()
+        {
+            return beam_();
+        }
+
+        //- Calculate the restraint position, force and moment.
+        //  Global reference frame vectors.
+
+        //const OutputControlDictionary<finiteVolumeBeamRestraint>& dict() const;
+        
+        virtual void restrain
+        (
+            const sixDoFRigidBodyMotionNew& motion,
+            vector& restraintPosition,
+            vector& restraintForce,
+            vector& restraintMoment
+        ) const;
+
+        //- Update properties from given dictionary
+        // virtual bool read(const dictionary& sDoFRBMRCoeff);
+
+        //- Write
+        virtual void write(Ostream&) const;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace solidBodyMotionFunctions
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //

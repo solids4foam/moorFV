@@ -1,0 +1,18 @@
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionNew.C
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionNewIO.C
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionState.C
+sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionStateIO.C
+sDoFRBMR = sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionRestraintNew
+sDoFRBMC = sixDoFRigidBodyMotionNew/sixDoFRigidBodyMotionConstraintNew
+
+$(sDoFRBMR)/sixDoFRigidBodyMotionRestraintNew/sixDoFRigidBodyMotionRestraintNew.C
+$(sDoFRBMR)/sixDoFRigidBodyMotionRestraintNew/newSixDoFRigidBodyMotionRestraintNew.C
+$(sDoFRBMR)/finiteVolumeBeam/finiteVolumeBeamRestraint.C
+
+$(sDoFRBMC)/sixDoFRigidBodyMotionConstraintNew/sixDoFRigidBodyMotionConstraintNew.C
+$(sDoFRBMC)/sixDoFRigidBodyMotionConstraintNew/newSixDoFRigidBodyMotionConstraintNew.C
+
+
+finiteVolumeBeamDisplacementPointPatchVectorField/finiteVolumeBeamDisplacementPointPatchVectorField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeam
