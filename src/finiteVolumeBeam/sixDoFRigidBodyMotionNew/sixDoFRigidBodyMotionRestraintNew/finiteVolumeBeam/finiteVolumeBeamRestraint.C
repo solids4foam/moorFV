@@ -96,19 +96,29 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
 
     restraintPosition = motion.currentPosition(refAttachmentPt_);
 
-    const vector attachmentDisp = restraintPosition;
+    const vector attachmentDisp = restraintPosition - refAttachmentPt_;
+    Info << "**********************************"<<endl;
     Info << "RestraintPosition=" << restraintPosition << endl;
-
+	Info << "attachmentDisp="<<attachmentDisp<<endl;
+	Info << "RefValue="<<refAttachmentPt_<<endl;
+	Info << "COM="<<motion.centreOfMass()<<endl;
+	Info << "**********************************"<<endl;
     // 2. Set this displacement condition on the attachment patch
     // Note: W is the total displacement
     
     volVectorField& W = beam_->solutionW();
+    Info << "**********************************"<<endl;
     Info << "w1=" << W << endl;
+    Info << "**********************************"<<endl;
     W.boundaryField()[patchID_] == attachmentDisp;
+    Info << "**********************************"<<endl;
     Info << "w2=" <<W << endl;
+    Info << "**********************************"<<endl;
     
     // 3. Solve the beam model
     const_cast<finiteVolumeBeamRestraint&>(*this).beam().evolve();
+    const_cast<finiteVolumeBeamRestraint&>(*this).beam().updateTotalFields();
+    const_cast<finiteVolumeBeamRestraint&>(*this).beam().writeFields();
 
     // 4. Extract the force from the beam attachment
     const surfaceVectorField& Q =
@@ -121,10 +131,10 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeamRestraint::restrain
             << "this needs to be parallelised" << abort(FatalError);
     }
 
-//const vector attachmentForce = Q.boundaryField()[patchID_][0];
-    restraintForce = Q.boundaryField()[patchID_][0];
+	const vector attachmentForce = Q.boundaryField()[patchID_][0];
+    restraintForce = attachmentForce;//Q.boundaryField()[patchID_][0]; //change this to attch force
     restraintMoment = vector::zero;
-//Info<< "attachment force = " << attachmentForce << endl;
+	Info<< "attachment force = " << attachmentForce << endl;
     
     if (motion.report())
     {

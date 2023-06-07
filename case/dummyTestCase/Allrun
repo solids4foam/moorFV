@@ -100,23 +100,19 @@ makeMeshByCellSet()
 
 runApplicationAndReportOnError blockMesh
 cp -r 0.org 0 
-### activate valgrind
-#valgrind --leak-check=yes --log-file=valgrind.log createCircularBeamMesh 
-######
-createCircularBeamMesh > log.createCircularBeamMesh
+createCircularBeamMesh -region beam || true
 makeMeshByCellSet 1 2
-runApplicationAndReportOnError subsetMesh -overwrite c0 -patch floatingObject
-# #cp -r 0.org/* 0 > /dev/null 2>&1
-runApplicationAndReportOnError setFields
+runApplicationAndReportOnError subsetMesh -overwrite c0 -patch floatingObject || true
 mv constant/polyMesh/blockMeshDict constant/blockMeshDict
 rm -rf constant/polyMesh
 mv constant/setSubset/polyMesh constant/
 mv constant/blockMeshDict constant/polyMesh/blockMeshDict
 rm -rf constant/setSubset 0/setSubset
-cp -r 0.org/* 0 > /dev/null 2>&1
-#runApplicationAndReportOnError setFields
-#createMultipleBeamMesh > log.createMultipleBeamMesh
-#transformPoints -rotateAlongVector '(0 1 0) 90' > log.rotatePoints
+runApplicationAndReportOnError setFields || true
+transformPoints -region beam -rotateAlongVector '(0 1 0) 90' || true
+setInitialPositionBeam -cellZone beam -region beam -translate '(0 0 0)' -rotate "((1 0 0) (0.52849 0.52849 0.66438))" || true
+
+
 #runApplicationAndReportOnError $application
 
 # -----------------------------------------------------------------------------

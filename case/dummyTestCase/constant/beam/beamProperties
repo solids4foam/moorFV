@@ -18,8 +18,8 @@ FoamFile
 beamModel coupledTotalLagNewtonRaphsonBeam;
 
 nBeams 1;
-R R [0 1 0 0 0 0 0] 0.01; //5.70732;
-L L [0 1 0 0 0 0 0] 0.5//10;
+R R [0 1 0 0 0 0 0] 0.001; //5.70732;
+L L [0 1 0 0 0 0 0] 0.66;//0.66226;//10;
 nSegments 5;
 
 

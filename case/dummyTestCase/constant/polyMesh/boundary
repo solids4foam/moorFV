@@ -17,23 +17,23 @@ FoamFile
 
 3
 (
-    left
+    stationaryWalls
+    {
+        type            wall;
+        nFaces          11200;
+        startFace       277808;
+    }
+    atmosphere
     {
         type            patch;
-        nFaces          1;
-        startFace       4;
+        nFaces          1600;
+        startFace       289008;
     }
-    right
+    floatingObject
     {
-        type            patch;
-        nFaces          1;
-        startFace       5;
-    }
-    beam
-    {
-        type            empty;
-        nFaces          160;
-        startFace       6;
+        type            wall;
+        nFaces          672;
+        startFace       290608;
     }
 )
 

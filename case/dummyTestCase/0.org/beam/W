@@ -41,8 +41,17 @@ boundaryField
     
          right
      {
-        type fixedValue;
+        type fixedDisplacement;
         value uniform (0 0 0);
+        
+        //value  uniform (-0.0164442523327 -0.0184724786946 0.00357024504488);
+        
+        //displacementSeries
+       // {
+          //   fileName        "$FOAM_CASE/constant/beam/timeVsDisplacement";
+        // outOfBounds     clamp;
+       // }
+    // }
      }
      
 

@@ -37,10 +37,10 @@ boundaryField
         value           uniform (0 0 0);
          type            finiteVolumeBeamDisplacement;
          centreOfMass    (0.5 0.5 0.5);
-         momentOfInertia (0.08622222 0.08622222 0.144);
-         mass            9.6;
-         rhoInf          1;
-         report          on;
+        momentOfInertia (0.08622222 0.08622222 0.144);
+        mass            9.6;
+        rhoInf          1;
+        report          on;
 	 constraints
          {
 
@@ -54,7 +54,7 @@ boundaryField
 
                   finiteVolumeBeamRestraintCoeffs
                   {
-                 refAttachmentPt (0 0 0);
+                 refAttachmentPt (0.35 0.35 0.44);
                
                   }
              }
