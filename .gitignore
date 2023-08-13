@@ -60,7 +60,6 @@ solids4foam/ThirdParty/eigen3
 *.orig[0-9][0-9]
 \#*\#
 .DS_Store
-
 # file-browser settings - anywhere
 .directory
 
