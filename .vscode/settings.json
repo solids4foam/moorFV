@@ -8,6 +8,7 @@
         "linearSpringDamper.C": "cpp",
         "finiteVolumeBeam_old.C": "cpp",
         "finiteVolumeBeamDisplacementPointPatchVectorField.C": "cpp",
-        "finiteVolumeBeamRestraint.C": "cpp"
+        "finiteVolumeBeamRestraint.C": "cpp",
+        "sixDoFRigidBodyMotionNew.C": "cpp"
     }
 }
