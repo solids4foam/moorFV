@@ -62,6 +62,11 @@ class finiteVolumeBeam
         //- Attachment point
         point refAttachmentPt_;
 
+	//- Attachment patch
+	word attachmentPatch_;
+
+	label patchID_;
+
 
 public:
 

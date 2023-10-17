@@ -59,11 +59,19 @@ Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::finiteVolumeBeam
     const dictionary& sDoFRBMRDict
 )
 :
-    sixDoFRigidBodyMotionRestraint(name, sDoFRBMRDict),
-    beamPtr_(),
-    refAttachmentPt_()
+	sixDoFRigidBodyMotionRestraint(name, sDoFRBMRDict),
+	beamPtr_(),
+	refAttachmentPt_(),
+	attachmentPatch_(),
+	patchID_(-1)
+
 {
     read(sDoFRBMRDict);
+    patchID_ =
+        beamPtr_->mesh().boundaryMesh().findPatchID
+        (
+            attachmentPatch_
+	);
 }
 
 
@@ -100,28 +108,44 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
     // Take a reference to the beam model
     beamModel& beam = beamPtr_();
 
-    // Calculate new attachment point position
-    //restraintPosition = motion.transform(refAttachmentPt_);
+    restraintPosition = motion.transform(refAttachmentPt_);
 
-    // Update the beam solver boundary conditions: set the displacement on the
-    // attachment point boundary condition
-    // Lookup the W or DW (displacement) field and then find the attachment end
-    // boundary condition. Then update the displacement on this boundary
-    // condition.
+    const vector attachmentDisp = restraintPosition - refAttachmentPt_;
 
-    // Solve the beam equation
+    volVectorField& W = beam.solutionW();
+
     beam.evolve();
 
-    // Extract the beam end forces and moments
+    beam.updateTotalFields();
+
+    beam.writeFields();
+
+    const surfaceVectorField& Q =
+	    beam.mesh().lookupObject<surfaceVectorField>("Q");
+
+    if (Q.boundaryField()[patchID_].size() != 1)
+    {
+        FatalError
+            << "Q.boundaryField()[patchID_].size() != 1: "
+            << "this needs to be parallelised" << abort(FatalError);
+    }
+
+    const vector attachmentForce = Q.boundaryField()[patchID_][0];
+
+    restraintForce = attachmentForce;
+
+    restraintMoment = vector::zero;
+
+    Info<< "attachment force = " << attachmentForce << endl;
+
+    if (motion.report())
+    {
+        Info<< " force " << restraintForce
+            << " moment " << restraintMoment
+            << endl;
+    }
 
 
-
-
-
-
-
-
-    restraintPosition = motion.transform(refAttachmentPt_);
 }
 
 
@@ -131,6 +155,9 @@ bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::read
 )
 {
     sixDoFRigidBodyMotionRestraint::read(sDoFRBMRDict);
+    sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
+
+    sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
 
     return true;
 }
