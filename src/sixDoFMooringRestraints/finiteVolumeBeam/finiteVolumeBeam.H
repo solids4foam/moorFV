@@ -55,7 +55,11 @@ class finiteVolumeBeam
     public sixDoFRigidBodyMotionRestraint
 {
     // Private data
-        //autoPtr<Foam::beamModel> beam_;
+
+        //- Pointer to beam model
+        mutable autoPtr<Foam::beamModel> beamPtr_;
+
+        //- Attachment point
         point refAttachmentPt_;
 
 
@@ -72,7 +76,6 @@ public:
         (
             const word& name,
             const dictionary& sDoFRBMRDict
-            //const Time& time
         );
 
         //- Construct and return a clone
@@ -92,10 +95,10 @@ public:
     // Member Functions
 
         //- Returns non-const access to the beam model
-        // Foam::beamModel& beam()
-        // {
-        //     return beam_();
-        // }
+        //const beamModel& beam() const;
+
+        //- Calculate the restraint position, force and moment.
+        //  Global reference frame vectors.
         virtual void restrain
         (
             const sixDoFRigidBodyMotion& motion,

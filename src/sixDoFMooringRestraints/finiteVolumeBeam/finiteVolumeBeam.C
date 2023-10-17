@@ -57,11 +57,10 @@ Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::finiteVolumeBeam
 (
     const word& name,
     const dictionary& sDoFRBMRDict
-    //const Time& time
 )
 :
     sixDoFRigidBodyMotionRestraint(name, sDoFRBMRDict),
-    //beam_(beamModel::New(const_cast<Time&>(time), Foam::dynamicFvMesh::defaultRegion)),
+    beamPtr_(),
     refAttachmentPt_()
 {
     read(sDoFRBMRDict);
@@ -87,6 +86,20 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
 {
    // We need to update this function to call the FV beam solver
 
+    // Create the beam model if it does not exist
+    if (!beamPtr_.valid())
+    {
+        beamPtr_ =
+            Foam::beamModel::New
+            (
+                const_cast<Time&>(motion.time()),
+                Foam::dynamicFvMesh::defaultRegion
+            );
+    }
+
+    // Take a reference to the beam model
+    beamModel& beam = beamPtr_();
+
     // Calculate new attachment point position
     //restraintPosition = motion.transform(refAttachmentPt_);
 
@@ -97,7 +110,7 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
     // condition.
 
     // Solve the beam equation
-    // beam.evolve();
+    beam.evolve();
 
     // Extract the beam end forces and moments
 
