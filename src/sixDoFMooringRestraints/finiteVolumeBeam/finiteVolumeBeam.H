@@ -58,12 +58,15 @@ class finiteVolumeBeam
 
         //- Pointer to beam model
         mutable autoPtr<Foam::beamModel> beamPtr_;
+	//autoPtr<Foam::beamModel> beamPtr_;
 
         //- Attachment point
         point refAttachmentPt_;
 
 	//- Attachment patch
 	word attachmentPatch_;
+
+	word beamRegion_;
 
 	label patchID_;
 

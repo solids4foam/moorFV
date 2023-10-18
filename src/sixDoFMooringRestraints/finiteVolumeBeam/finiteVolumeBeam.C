@@ -63,6 +63,7 @@ Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::finiteVolumeBeam
 	beamPtr_(),
 	refAttachmentPt_(),
 	attachmentPatch_(),
+	beamRegion_(),
 	patchID_(-1)
 
 {
@@ -102,7 +103,8 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
             (
                 const_cast<Time&>(motion.time()),
                 Foam::dynamicFvMesh::defaultRegion
-            );
+		// construct with word(beamRegion_)
+           );
     }
 
     // Take a reference to the beam model
@@ -113,6 +115,8 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
 
     volVectorField& W = beam.solutionW();
+
+    //W.boundaryField()[patchID_] = attachmentDisp;
 
     beam.evolve();
 
@@ -158,6 +162,8 @@ bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::read
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
 
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
+
+    sDoFRBMRCoeffs_.readEntry("beamRegion", beamRegion_);
 
     return true;
 }
