@@ -2,17 +2,17 @@ EXE_INC = \
     -DWITH_LAPACK \
     -DDEBUG \
     -DLINUX \
-    -I../../../bali-beamSolver/src/wireBunchingModels/lnInclude \
+    -I../../bali-beamSolver/src/wireBunchingModels/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/fileFormats/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
-    -I$(LIB_SRC)/sixDoFRigidBodyMotion/lnInclude \
-    -I$(FOAM_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/functionObjects/forces/lnInclude \
+    -I$(FOAM_SRC)/dynamicFvMesh/lnInclude
 
 LIB_LIBS = \
     -lfiniteVolume \
     -lmeshTools \
     -ldynamicMesh \
-    -lsixDoFRigidBodyMotion \
+    -lforces \
     -L$(FOAM_USER_LIBBIN) -lwireBunchingModels

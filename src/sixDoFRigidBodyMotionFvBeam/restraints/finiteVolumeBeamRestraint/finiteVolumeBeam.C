@@ -26,7 +26,7 @@ License
 \*---------------------------------------------------------------------------*/
 #include "finiteVolumeBeam.H"
 #include "addToRunTimeSelectionTable.H"
-#include "sixDoFRigidBodyMotion.H"
+#include "sixDoFRigidBodyMotionFvBeam.H"
 #include "Time.H"
 #include "fvMesh.H"
 #include "OFstream.H"
@@ -37,13 +37,13 @@ License
 
 namespace Foam
 {
-namespace sixDoFRigidBodyMotionRestraints
+namespace sixDoFRigidBodyMotionFvBeamRestraints
 {
     defineTypeNameAndDebug(finiteVolumeBeam, 0);
 
     addToRunTimeSelectionTable
     (
-        sixDoFRigidBodyMotionRestraint,
+        sixDoFRigidBodyMotionFvBeamRestraint,
         finiteVolumeBeam,
         dictionary
     );
@@ -53,41 +53,42 @@ namespace sixDoFRigidBodyMotionRestraints
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::finiteVolumeBeam
+Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 (
     const word& name,
-    const dictionary& sDoFRBMRDict
+    const dictionary& sDoFRBMRDict,
+    const Time& time
 )
 :
-	sixDoFRigidBodyMotionRestraint(name, sDoFRBMRDict),
-	beamPtr_(),
+	sixDoFRigidBodyMotionFvBeamRestraint(name, sDoFRBMRDict,time),
+    //beamRegion_(),
+	beam_(beamModel::New(const_cast<Time&>(time) , "beamone")),
 	refAttachmentPt_(),
 	attachmentPatch_(),
-	beamRegion_(),
 	patchID_(-1)
 
 {
     read(sDoFRBMRDict);
     patchID_ =
-        beamPtr_->mesh().boundaryMesh().findPatchID
+		beam_->mesh().boundaryMesh().findPatchID
         (
             attachmentPatch_
-	);
-}
+	    );
+    }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::~finiteVolumeBeam()
+Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::~finiteVolumeBeam()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 
-void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
+void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 (
-    const sixDoFRigidBodyMotion& motion,
+    const sixDoFRigidBodyMotionFvBeam& motion,
     vector& restraintPosition,
     vector& restraintForce,
     vector& restraintMoment
@@ -96,33 +97,61 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
    // We need to update this function to call the FV beam solver
 
     // Create the beam model if it does not exist
-    if (!beamPtr_.valid())
-    {
-        beamPtr_ =
-            Foam::beamModel::New
-            (
-                const_cast<Time&>(motion.time()),
-                Foam::dynamicFvMesh::defaultRegion
-		// construct with word(beamRegion_)
-           );
-    }
+    // if (!beamPtr_.valid())
+    // {
+    //     beamPtr_ =
+    //         Foam::beamModel::New
+    //         (
+    //             const_cast<Time&>(motion.time()),
+	//
+    //        );
+	// patchID_ =
+	// 	beamPtr_->mesh().boundaryMesh().findPatchID
+    //     (
+    //         attachmentPatch_
+	// );
 
-    // Take a reference to the beam model
-    beamModel& beam = beamPtr_();
+    // }
 
+
+    // // Take a reference to the beam model
+    beamModel& beam = beam_();
+
+    Info << "pID="<<patchID_<<endl;
+    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
+    Info << "**********************************"<<endl;
+    Info << "**********************************"<<endl;
+    Info << "RestraintPosition=" << restraintPosition << endl;
+    Info << "RefValue="<<refAttachmentPt_<<endl;
+	Info << "attachmentDisp="<<attachmentDisp<<endl;
+
+
+    Info << "**********************************"<<endl;
+    Info << "**********************************"<<endl;
 
     volVectorField& W = beam.solutionW();
 
-    //W.boundaryField()[patchID_] = attachmentDisp;
+    Info << "**********************************"<<endl;
+    Info << "w1="<<W<<endl;
+    Info << "**********************************"<<endl;
+
+    W.boundaryFieldRef()[patchID_] = attachmentDisp;
+
+    Info << "**********************************"<<endl;
+    Info << "w2="<<W<<endl;
+    Info << "**********************************"<<endl;
 
     beam.evolve();
 
     beam.updateTotalFields();
+    // const_cast<finiteVolumeBeam&>(*this).beam_->evolve();
+    // const_cast<finiteVolumeBeam&>(*this).beam_->updateTotalFields();
 
-    beam.writeFields();
+
+    //beam.writeFields();
 
     const surfaceVectorField& Q =
 	    beam.mesh().lookupObject<surfaceVectorField>("Q");
@@ -153,23 +182,23 @@ void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::restrain
 }
 
 
-bool Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::read
+bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
 (
     const dictionary& sDoFRBMRDict
 )
 {
-    sixDoFRigidBodyMotionRestraint::read(sDoFRBMRDict);
+    sixDoFRigidBodyMotionFvBeamRestraint::read(sDoFRBMRDict);
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
 
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
 
-    sDoFRBMRCoeffs_.readEntry("beamRegion", beamRegion_);
+    //sDoFRBMRCoeffs_.readEntry("beamRegion", beamRegion_);
 
     return true;
 }
 
 
-void Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam::write
+void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::write
 (
     Ostream& os
 ) const

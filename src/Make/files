@@ -1,0 +1,31 @@
+sixDoFRigidBodyMotionFvBeam/sixDoFRigidBodyMotionFvBeam.C
+sixDoFRigidBodyMotionFvBeam/sixDoFRigidBodyMotionFvBeamIO.C
+sixDoFRigidBodyMotionFvBeam/sixDoFRigidBodyMotionFvBeamState.C
+sixDoFRigidBodyMotionFvBeam/sixDoFRigidBodyMotionFvBeamStateIO.C
+
+restraints = sixDoFRigidBodyMotionFvBeam/restraints
+
+$(restraints)/sixDoFRigidBodyMotionFvBeamRestraint/sixDoFRigidBodyMotionFvBeamRestraint.C
+$(restraints)/sixDoFRigidBodyMotionFvBeamRestraint/sixDoFRigidBodyMotionFvBeamRestraintNew.C
+
+$(restraints)/finiteVolumeBeamRestraint/finiteVolumeBeam.C
+
+constraints = sixDoFRigidBodyMotionFvBeam/constraints
+
+$(constraints)/sixDoFRigidBodyMotionFvBeamConstraint/sixDoFRigidBodyMotionFvBeamConstraint.C
+$(constraints)/sixDoFRigidBodyMotionFvBeamConstraint/sixDoFRigidBodyMotionFvBeamConstraintNew.C
+
+FvBeampointPatchFields/derived/finiteVolumeSixDoFRigidBodyDisplacement/finiteVolumeSixDoFRigidBodyDisplacementPointPatchVectorField.C
+sixDoFRigidBodyMotionFvBeamSolver/sixDoFRigidBodyMotionFvBeamSolver.C
+
+sixDoFFvBeamSolvers/sixDoFFvBeamSolver/sixDoFFvBeamSolver.C
+sixDoFFvBeamSolvers/sixDoFFvBeamSolver/sixDoFFvBeamSolverNew.C
+/*
+sixDoFFvBeamSolvers/symplectic/symplectic.C
+sixDoFFvBeamSolvers/CrankNicolson/CrankNicolson.C
+*/
+sixDoFFvBeamSolvers/FvBeamNewmark/FvBeamNewmark.C
+
+
+
+LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeamMooring

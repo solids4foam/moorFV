@@ -5,7 +5,7 @@
     \\  /    A nd           | www.openfoam.com
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-    Copyright (C) 2019 OpenCFD Ltd.
+    Copyright (C) 2015 OpenFOAM Foundation
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
@@ -24,109 +24,108 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sixDoFRigidBodyMotionRestraints::finiteVolumeBeam
+    Foam::sixDoFFvBeamSolvers::FvBeamNewmark
+
+Group
+    grpSixDoFRigidBodySolvers
+
+Description
+    FvBeamNewmark 2nd-order time-integrator for 6DoF solid-body motion.
+
+    Reference:
+    \verbatim
+        FvBeamNewmark, N. M. (1959).
+        A method of computation for structural dynamics.
+        Journal of the Engineering Mechanics Division, 85(3), 67-94.
+    \endverbatim
+
+    Example specification in dynamicMeshDict:
+    \verbatim
+    solver
+    {
+        type    FvBeamNewmark;
+        gamma   0.5;    // Velocity integration coefficient
+        beta    0.25;   // Position integration coefficient
+    }
+    \endverbatim
 
 SourceFiles
-    finiteVolumeBeam.C
+    FvBeamNewmark.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef finiteVolumeBeam_H
-#define finiteVolumeBeam_H
+#ifndef FvBeamNewmark_H
+#define FvBeamNewmark_H
 
-#include "sixDoFRigidBodyMotionRestraint.H"
-#include "point.H"
-#include "beamModel.H"
+#include "sixDoFFvBeamSolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-namespace sixDoFRigidBodyMotionRestraints
+namespace sixDoFFvBeamSolvers
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class finiteVolumeBeam Declaration
+                           Class FvBeamNewmark Declaration
 \*---------------------------------------------------------------------------*/
 
-class finiteVolumeBeam
+class FvBeamNewmark
 :
-    public sixDoFRigidBodyMotionRestraint
+    public sixDoFFvBeamSolver
 {
     // Private data
 
-        //- Pointer to beam model
-        mutable autoPtr<Foam::beamModel> beamPtr_;
-	//autoPtr<Foam::beamModel> beamPtr_;
+        //- Coefficient for velocity integration (default: 0.5)
+        const scalar gamma_;
 
-        //- Attachment point
-        point refAttachmentPt_;
-
-	//- Attachment patch
-	word attachmentPatch_;
-
-	word beamRegion_;
-
-	label patchID_;
+        //- Coefficient for position and orientation integration (default: 0.25)
+        const scalar beta_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("finiteVolumeBeam");
+    TypeName("FvBeamNewmark");
 
 
     // Constructors
 
-        //- Construct from components
-        finiteVolumeBeam
+        //- Construct from a dictionary and the body
+        FvBeamNewmark
         (
-            const word& name,
-            const dictionary& sDoFRBMRDict
+            const dictionary& dict,
+            sixDoFRigidBodyMotionFvBeam& body
         );
 
         //- Construct and return a clone
-        virtual autoPtr<sixDoFRigidBodyMotionRestraint> clone() const
+        virtual autoPtr<sixDoFFvBeamSolver> clone() const
         {
-            return autoPtr<sixDoFRigidBodyMotionRestraint>
-            (
-                new finiteVolumeBeam(*this)
-            );
+            return autoPtr<sixDoFFvBeamSolver>::NewFrom<FvBeamNewmark>(dict_, body_);
         }
 
 
     //- Destructor
-    virtual ~finiteVolumeBeam();
+    virtual ~FvBeamNewmark();
 
 
     // Member Functions
 
-        //- Returns non-const access to the beam model
-        //const beamModel& beam() const;
-
-        //- Calculate the restraint position, force and moment.
-        //  Global reference frame vectors.
-        virtual void restrain
+        //- Drag coefficient
+        virtual void solve
         (
-            const sixDoFRigidBodyMotion& motion,
-            vector& restraintPosition,
-            vector& restraintForce,
-            vector& restraintMoment
-        ) const;
-
-        //- Update properties from given dictionary
-        virtual bool read(const dictionary& sDoFRBMRCoeff);
-
-        //- Write
-        virtual void write(Ostream&) const;
-
+            bool firstIter,
+            const vector& fGlobal,
+            const vector& tauGlobal,
+            scalar deltaT,
+            scalar deltaT0
+        );
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace solidBodyMotionFunctions
+} // End namespace sixDoFFvBeamSolvers
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
