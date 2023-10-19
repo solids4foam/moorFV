@@ -16,11 +16,11 @@ FoamFile
 
 dynamicFvMesh       dynamicMotionSolverFvMesh;
 
-motionSolverLibs    (sixDoFRigidBodyMotion);
+motionSolverLibs    (libfiniteVolumeBeamMooring);
 
-motionSolver        sixDoFRigidBodyMotion;
+motionSolver        sixDoFRigidBodyMotionFvBeam;
 
-sixDoFRigidBodyMotionCoeffs
+sixDoFRigidBodyMotionFvBeamCoeffs
 {
     patches         (floatingObject);
     innerDistance   0.05;
@@ -30,7 +30,7 @@ sixDoFRigidBodyMotionCoeffs
 
     // Cuboid dimensions
     Lx              0.3;
-    Ly              0.2;
+    Ly              0.3;
     Lz              0.12;
 
     // Density of the solid
@@ -40,31 +40,32 @@ sixDoFRigidBodyMotionCoeffs
     mass            #eval{ $rhoSolid*$Lx*$Ly*$Lz };
 
     // Cuboid moment of inertia about the centre of mass
-    momentOfInertia #codeStream
-    {
-        codeInclude
-        #{
-            #include "diagTensor.H"
-        #};
-
-        code
-        #{
-            scalar sqrLx = sqr($Lx);
-            scalar sqrLy = sqr($Ly);
-            scalar sqrLz = sqr($Lz);
-            os  <<
-                $mass
-               *diagTensor(sqrLy + sqrLz, sqrLx + sqrLz, sqrLx + sqrLy)/12.0;
-        #};
-    };
-
+    momentOfInertia (0.08622222 0.08622222 0.144);
+//    #codeStream
+//    {
+//        codeInclude
+//        #{
+//            #include "diagTensor.H"
+//        #};
+//
+//        code
+//        #{
+//            scalar sqrLx = sqr($Lx);
+//            scalar sqrLy = sqr($Ly);
+//            scalar sqrLz = sqr($Lz);
+//            os  <<
+//                $mass
+//               *diagTensor(sqrLy + sqrLz, sqrLx + sqrLz, sqrLx + sqrLy)/12.0;
+//        #};
+//    };
+//
     report          on;
     accelerationRelaxation 0.7;
     //accelerationDamping 0;
 
     solver
     {
-        type Newmark;
+        type FvBeamNewmark;
     }
 
     constraints
@@ -92,7 +93,7 @@ sixDoFRigidBodyMotionCoeffs
     {
     	beam1
 	{
-		sixDoFRigidBodyMotionRestraint finiteVolumeBeam;
+		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
 		attachmentPatch	right;
 
