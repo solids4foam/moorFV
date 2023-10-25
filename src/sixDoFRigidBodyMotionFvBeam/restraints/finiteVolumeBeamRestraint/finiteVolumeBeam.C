@@ -94,40 +94,39 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     vector& restraintMoment
 ) const
 {
-   // We need to update this function to call the FV beam solver
+// We need to update this function to call the FV beam solver
 
-    // Create the beam model if it does not exist
-    // if (!beamPtr_.valid())
-    // {
-    //     beamPtr_ =
-    //         Foam::beamModel::New
-    //         (
-    //             const_cast<Time&>(motion.time()),
-	//
-    //        );
-	// patchID_ =
-	// 	beamPtr_->mesh().boundaryMesh().findPatchID
-    //     (
-    //         attachmentPatch_
-	// );
+   // Create the beam model if it does not exist
+   // if (!beamPtr_.valid())
+   // {
+   //     beamPtr_ =
+   //         Foam::beamModel::New
+   //         (
+   //             const_cast<Time&>(motion.time()),
+ //
+   //        );
+ // patchID_ =
+ // 	beamPtr_->mesh().boundaryMesh().findPatchID
+   //     (
+   //         attachmentPatch_
+ // );
 
-    // }
+   // }
 
 
     // // Take a reference to the beam model
     beamModel& beam = beam_();
 
-    Info << "pID="<<patchID_<<endl;
-    Info << "attachmentP="<<attachmentPatch_<<endl;
+//    Info << "pID="<<patchID_<<endl;
+//    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
-    Info << "**********************************"<<endl;
-    Info << "**********************************"<<endl;
-    Info << "RestraintPosition=" << restraintPosition << endl;
-    Info << "RefValue="<<refAttachmentPt_<<endl;
-	Info << "attachmentDisp="<<attachmentDisp<<endl;
-
+//    Info << "**********************************"<<endl;
+//    Info << "**********************************"<<endl;
+//    Info << "RestraintPosition=" << restraintPosition << endl;
+//    Info << "RefValue="<<refAttachmentPt_<<endl;
+//	Info << "attachmentDisp="<<attachmentDisp<<endl;
 
     Info << "**********************************"<<endl;
     Info << "**********************************"<<endl;
@@ -137,8 +136,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     Info << "**********************************"<<endl;
     Info << "w1="<<W<<endl;
     Info << "**********************************"<<endl;
-
-    W.boundaryFieldRef()[patchID_] = attachmentDisp;
+	// used " == " instead of "="
+  //  W.boundaryFieldRef()[patchID_] == attachmentDisp;
 
     Info << "**********************************"<<endl;
     Info << "w2="<<W<<endl;
