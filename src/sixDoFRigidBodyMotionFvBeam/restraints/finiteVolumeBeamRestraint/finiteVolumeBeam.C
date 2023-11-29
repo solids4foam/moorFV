@@ -65,7 +65,9 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 	beam_(beamModel::New(const_cast<Time&>(time) , "beamone")),
 	refAttachmentPt_(),
 	attachmentPatch_(),
-	patchID_(-1)
+	patchID_(-1),
+    initialW_(vector::zero),
+    storeInitialW_(true)
 
 {
     read(sDoFRBMRDict);
@@ -98,7 +100,14 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 // Take a reference to the beam model
     beamModel& beam = beam_();
 
-//    Info << "pID="<<patchID_<<endl;
+    if (storeInitialW_)
+    {
+        Info<< "Storing initial W" << endl;
+        storeInitialW_ = false;
+        initialW_ = beam.solutionW().boundaryField()[patchID_];
+    }
+
+    //    Info << "pID="<<patchID_<<endl;
 //    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
@@ -118,7 +127,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     Info << "w1="<<W<<endl;
     Info << "**********************************"<<endl;
     Info << "**********************************"<<endl;
-    W.boundaryFieldRef()[patchID_] == attachmentDisp;
+    W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
     Info << "w2="<<W<<endl;
     Info << "**********************************"<<endl;
 
