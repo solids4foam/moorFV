@@ -70,10 +70,10 @@ class finiteVolumeBeam
 	label patchID_;
 
         //- Initial W on the patch
-        vector initialW_;
+        mutable vector initialW_;
 
         //- Flag to indicate if initial W has been stored
-        bool storeInitialW_;
+        mutable bool storeInitialW_;
 
 public:
 

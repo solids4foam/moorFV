@@ -104,7 +104,13 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     {
         Info<< "Storing initial W" << endl;
         storeInitialW_ = false;
-        initialW_ = beam.solutionW().boundaryField()[patchID_];
+        if (beam.solutionW().boundaryField()[patchID_].size() == 0)
+        {
+            FatalError
+                << "W.boundaryField()[patchID_].size() == 0!"
+                << abort(FatalError);
+        }
+        initialW_ = beam.solutionW().boundaryField()[patchID_][0];
     }
 
     //    Info << "pID="<<patchID_<<endl;
