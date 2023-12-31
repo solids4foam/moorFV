@@ -114,7 +114,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     }
 
     //    Info << "pID="<<patchID_<<endl;
-//    Info << "attachmentP="<<attachmentPatch_<<endl;
+    //    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
@@ -124,19 +124,19 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 //    Info << "RefValue="<<refAttachmentPt_<<endl;
 //	Info << "attachmentDisp="<<attachmentDisp<<endl;
 
-    Info << "**********************************"<<endl;
-    Info << "**********************************"<<endl;
+//    Info << "**********************************"<<endl;
+//    Info << "**********************************"<<endl;
 
     volVectorField& W = beam.solutionW();
 
-    Info << "**********************************"<<endl;
-    Info << "w1="<<W<<endl;
-    Info << "**********************************"<<endl;
-    Info << "**********************************"<<endl;
+//    Info << "**********************************"<<endl;
+//    Info << "w1="<<W<<endl;
+//    Info << "**********************************"<<endl;
+//    Info << "**********************************"<<endl;
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
-    Info << "w2="<<W<<endl;
-    Info << "**********************************"<<endl;
-
+//    Info << "w2="<<W<<endl;
+//    Info << "**********************************"<<endl;
+//
     beam.evolve();
 
     beam.updateTotalFields();
