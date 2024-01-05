@@ -67,7 +67,9 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 	attachmentPatch_(),
 	patchID_(-1),
     initialW_(vector::zero),
-    storeInitialW_(true)
+    storeInitialW_(true),
+    initialQ_(vector::zero),
+    storeInitialQ_(true)
 
 {
     read(sDoFRBMRDict);
@@ -145,6 +147,20 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     const surfaceVectorField& Q =
 	    beam.mesh().lookupObject<surfaceVectorField>("Q");
 
+
+    if (storeInitialQ_)
+    {
+        Info<< "Storing initial Q" << endl;
+        storeInitialQ_ = false;
+        if (Q.boundaryField()[patchID_].size() == 0)
+        {
+            FatalError
+                << "Q.boundaryField()[patchID_].size() == 0!"
+                << abort(FatalError);
+        }
+        initialQ_ = Q.boundaryField()[patchID_][0];
+    }
+
     if (Q.boundaryField()[patchID_].size() != 1)
     {
         FatalError
@@ -154,7 +170,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
 
-    restraintForce = attachmentForce;
+    restraintForce = attachmentForce - initialQ_;
 
     restraintMoment = vector::zero;
 

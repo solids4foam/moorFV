@@ -62,7 +62,7 @@ class finiteVolumeBeam
 	//autoPtr<Foam::beamModel> beamPtr_;
 
     //- Attachment point
-    point refAttachmentPt_;
+   point refAttachmentPt_;
 
 	//- Attachment patch
 	word attachmentPatch_;
@@ -74,6 +74,10 @@ class finiteVolumeBeam
 
     //- Flag to indicate if initial W has been stored
     mutable bool storeInitialW_;
+  //- Initial Q ( force ) on the patch
+    mutable vector initialQ_;
+  //- Flag to indicate if initial Q has been stored
+    mutable bool storeInitialQ_;
 
 public:
 
