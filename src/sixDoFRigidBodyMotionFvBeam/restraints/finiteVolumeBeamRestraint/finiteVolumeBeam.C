@@ -61,8 +61,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 )
 :
 	sixDoFRigidBodyMotionFvBeamRestraint(name, sDoFRBMRDict,time),
-    //beamRegion_(),
-	beam_(beamModel::New(const_cast<Time&>(time) , "beamone")),
+	
+	beam_(beamModel::New(const_cast<Time&>(time) , word (sDoFRBMRCoeffs_.lookup("beamRegion")))),
 	refAttachmentPt_(),
 	attachmentPatch_(),
 	patchID_(-1),
@@ -70,7 +70,6 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     storeInitialW_(true),
     initialQ_(vector::zero),
     storeInitialQ_(true)
-
 {
     read(sDoFRBMRDict);
     patchID_ =
@@ -99,8 +98,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 ) const
 {
 
-// Take a reference to the beam model
-    beamModel& beam = beam_();
+	// Take a reference to the beam model
+		beamModel& beam = beam_();
 
     if (storeInitialW_)
     {
@@ -143,6 +142,9 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     beam.updateTotalFields();
     //beam.writeFields();
+	Info << "patchID_ :" << patchID_ << endl;
+
+	Info << "attachment patch :" << attachmentPatch_ << endl;
 
     const surfaceVectorField& Q =
 	    beam.mesh().lookupObject<surfaceVectorField>("Q");
@@ -193,11 +195,12 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
 )
 {
     sixDoFRigidBodyMotionFvBeamRestraint::read(sDoFRBMRDict);
+
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
 
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
 
-    //sDoFRBMRCoeffs_.readEntry("beamRegion", beamRegion_);
+
 
     return true;
 }
