@@ -172,7 +172,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
 
-    restraintForce = attachmentForce - initialQ_;
+    restraintForce = -attachmentForce;// - initialQ_; minus for the direction
 
     restraintMoment = vector::zero;
 
