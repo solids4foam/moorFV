@@ -61,7 +61,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 )
 :
 	sixDoFRigidBodyMotionFvBeamRestraint(name, sDoFRBMRDict,time),
-	
+
 	beam_(beamModel::New(const_cast<Time&>(time) , word (sDoFRBMRCoeffs_.lookup("beamRegion")))),
 	refAttachmentPt_(),
 	attachmentPatch_(),
@@ -100,7 +100,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
 	// Take a reference to the beam model
 		beamModel& beam = beam_();
-
+    scalar t = motion.time().timeOutputValue();
     if (storeInitialW_)
     {
         Info<< "Storing initial W" << endl;
@@ -180,9 +180,10 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     if (motion.report())
     {
-        Info<< " force " << restraintForce
-            << " moment " << restraintMoment
-            << endl;
+        Info<< t << " " << restraintForce.x()   //2
+            << " " << restraintForce.y()        //3
+            << " " << restraintForce.z()        //4
+             << endl;
     }
 
 
