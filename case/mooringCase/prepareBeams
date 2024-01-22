@@ -1,0 +1,12 @@
+#!/bin/sh
+declare -a arr=("beamone" "beamtwo" "beamthree" "beamfour")
+for i in "${arr[@]}"
+do
+    cd cables_initialization/$i
+    printf 'initilizing %s\n' "$i"
+    ./Allrun > log.beamMeshing && beamFoam > log.beamFoam
+    cd ../..
+    cp -r cables_initialization/$i/2 mooredFloatingObject/0.orig/$i
+    cp -r cables_initialization/$i/constant/$i mooredFloatingObject/constant/
+
+done

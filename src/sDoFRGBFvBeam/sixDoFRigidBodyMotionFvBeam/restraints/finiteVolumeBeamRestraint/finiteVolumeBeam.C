@@ -134,6 +134,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 //    Info << "w1="<<W<<endl;
 //    Info << "**********************************"<<endl;
 //    Info << "**********************************"<<endl;
+//    // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
 //    Info << "w2="<<W<<endl;
 //    Info << "**********************************"<<endl;
@@ -173,7 +174,9 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
 
     restraintForce = -attachmentForce;// - initialQ_; minus for the direction
-
+    // relax force
+	// store and lookup alpha from dict 
+	restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
     Info<< "attachment force = " << attachmentForce << endl;

@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       surfaceVectorField;
+    location    "0/beamthree";
+    object      refTangent;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+
+internalField   uniform (-0.474502 -0.759634 -0.44475);
+
+boundaryField
+{
+    left
+    {
+        type            calculated;
+        value           uniform (-0.474502 -0.759634 -0.44475);
+    }
+    right
+    {
+        type            calculated;
+        value           uniform (-0.474502 -0.759634 -0.44475);
+    }
+    beam
+    {
+        type            empty;
+        value           nonuniform List<vector> 0();
+    }
+}
+
+
+// ************************************************************************* //
