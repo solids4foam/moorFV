@@ -10,5 +10,5 @@ then
 fi
 
 # Compile libraries
-echo; echo "Compiling src"; echo
-(cd src && ./Allwmake)
+wmake libso sDoFRGBFvBeam
+wmake libso sDoFRGBState

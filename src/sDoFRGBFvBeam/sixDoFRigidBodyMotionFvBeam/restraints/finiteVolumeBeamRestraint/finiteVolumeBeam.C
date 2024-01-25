@@ -175,8 +175,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     restraintForce = -attachmentForce;// - initialQ_; minus for the direction
     // relax force
-	// store and lookup alpha from dict 
-	restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
+    // store and lookup alpha from dict 
+    //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
     Info<< "attachment force = " << attachmentForce << endl;

@@ -2,7 +2,7 @@ EXE_INC = \
     -DWITH_LAPACK \
     -DDEBUG \
     -DLINUX \
-    -I../../../bali-beamSolver/src/wireBunchingModels/lnInclude \
+    -I$(BEAMFOAM_DIR)/src/wireBunchingModels/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/fileFormats/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
