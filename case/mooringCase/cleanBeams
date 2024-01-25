@@ -6,6 +6,6 @@ do
     printf 'cleaning %s\n' "$i"
     ./Allclean
     cd ../..
-    rm -r mooredFloatingObject/0.orig/$i
-    rm -r mooredFloatingObject/constant/$i
+    rm -rf mooredFloatingObject/0.orig/$i
+    rm -rf mooredFloatingObject/constant/$i
 done
