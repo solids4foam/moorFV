@@ -56,8 +56,6 @@ solids4foam/ThirdParty/eigen3
 .*~
 *.bak
 *.bak[0-9][0-9]
-*.orig
-*.orig[0-9][0-9]
 \#*\#
 .DS_Store
 
@@ -121,7 +119,6 @@ doc/[Dd]oxygen/man
 /*.html
 
 # patch residue
-*.orig
 *.rej
 #vscode specific directory
 .vscode
