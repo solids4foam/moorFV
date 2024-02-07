@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | foam-extend: Open Source CFD                    |
+|  \\    /   O peration     | Version:     4.0                                |
+|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      beamProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+beamModel coupledTotalLagNewtonRaphsonBeam;
+
+nBeams 1;
+R R [0 1 0 0 0 0 0] 1.828E-03; //5.70732;
+L L [0 1 0 0 0 0 0] 1.6;//1.45;//35233241;
+nSegments 60; //change this to 20
+
+
+"coupledTotalLagNewtonRaphsonBeamCoeffs"
+{
+    E E [1 -1 -2 0 0 0 0] 2676870671.117199898;
+    G G [1 -1 -2 0 0 0 0] 1338435335.558599949;
+    // E E [1 -1 -2 0 0 0 0] 2447543.8931224995E03;
+    // G G [1 -1 -2 0 0 0 0] 1223771.9465612498E03;
+    rho rho [1 -3 0 0 0 0 0] 5782.05372451896;
+
+    groundContactActive true;
+    groundZ -0.5;
+    gStiffness 1E03;
+    gDamping 1.0;
+    nSegments 60;
+
+    startPatchName left;
+    endPatchName right;
+
+    nCorrectors 200;
+    convergenceTol 1e-10;
+
+    debug yes;
+
+    updatedLagrangian no;
+
+    //   ibrahimovicCase true;
+
+    objectiveInterpolation false;
+
+    steadyState false;
+
+    // Newmark-beta integration scheme
+    newmark false;
+
+    // Flag to activate drag contribution
+    // steadyState flag should also be false along with this flag
+    // else drag forces will be zero
+    dragActive false;
+
+    // Coefficient of drag in normal and tangential directions
+    // Default value if not specified is 1.0 for both
+    Cdn 0.5;
+    Cdt 0.5;
+}
+
+
+
+// ************************************************************************* //

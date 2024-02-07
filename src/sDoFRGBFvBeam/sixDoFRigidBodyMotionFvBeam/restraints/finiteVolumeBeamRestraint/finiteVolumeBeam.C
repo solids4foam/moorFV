@@ -114,31 +114,15 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
         initialW_ = beam.solutionW().boundaryField()[patchID_][0];
     }
 
-    //    Info << "pID="<<patchID_<<endl;
-    //    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
-//    Info << "RestraintPosition=" << restraintPosition << endl;
-//    Info << "RefValue="<<refAttachmentPt_<<endl;
-//	Info << "attachmentDisp="<<attachmentDisp<<endl;
-
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
 
     volVectorField& W = beam.solutionW();
 
-//    Info << "**********************************"<<endl;
-//    Info << "w1="<<W<<endl;
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
 //    // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
-//    Info << "w2="<<W<<endl;
-//    Info << "**********************************"<<endl;
-//
+
     beam.evolve();
 
     beam.updateTotalFields();
@@ -151,19 +135,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 	    beam.mesh().lookupObject<surfaceVectorField>("Q");
 
 
-    if (storeInitialQ_)
-    {
-        Info<< "Storing initial Q" << endl;
-        storeInitialQ_ = false;
-        if (Q.boundaryField()[patchID_].size() == 0)
-        {
-            FatalError
-                << "Q.boundaryField()[patchID_].size() == 0!"
-                << abort(FatalError);
-        }
-        initialQ_ = Q.boundaryField()[patchID_][0];
-    }
-
     if (Q.boundaryField()[patchID_].size() != 1)
     {
         FatalError
@@ -173,9 +144,9 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
 
-    restraintForce = -attachmentForce;// - initialQ_; minus for the direction
+    restraintForce = -attachmentForce;
     // relax force
-    // store and lookup alpha from dict 
+    // store and lookup alpha from dict
     //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
@@ -188,7 +159,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << " " << restraintForce.z()        //4
              << endl;
     }
-
 
 }
 
