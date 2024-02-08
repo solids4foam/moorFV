@@ -30,8 +30,8 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 
     // Cuboid dimensions
     Lx              0.2;
-	Ly              0.2;
-	Lz              0.132;
+    Ly              0.2;
+    Lz              0.132;
     // Density of the solid
     // rhoSolid        131.6666666667;
 
@@ -71,14 +71,14 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 
     constraints
     {
-	     //translation contrained on a plane around CoR
+        //translation contrained on a plane around CoR
         fixedPlane
         {
             sixDoFRigidBodyMotionFvBeamConstraint plane;
             normal (0 1 0);
         }
 
-	// rotation constraint
+        // rotation constraint
         fixedAxis
         {
             sixDoFRigidBodyMotionFvBeamConstraint axis;
@@ -86,51 +86,51 @@ sixDoFRigidBodyMotionFvBeamCoeffs
         }
     }
 
-	restraints
-	{
-		beam1
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+    restraints
+    {
+        beam1
+        {
+            sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
-		attachmentPatch	right;
+            attachmentPatch	right;
 
-		beamRegion 	"beamone";
+            beamRegion      "beamone";
 
-		refAttachmentPt (-0.1 -0.1 -0.0786);
-	}
-		beam2
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+            refAttachmentPt (-0.1 -0.1 -0.0786);
+        }
+        beam2
+        {
+            sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
-		attachmentPatch	left;
+            attachmentPatch	left;
 
-		beamRegion 	"beamtwo";
+            beamRegion      "beamtwo";
 
-		refAttachmentPt (0.1 -0.1 -0.0786);
-	}
-//   	beam3
-//	{
-//		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-//
-//		attachmentPatch	right;
-//
-//		beamRegion 	"beamthree";
-//
-//		refAttachmentPt (-0.1 0.1 -0.0786);
-//	}
-//   	beam4
-//	{
-//		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-//
-//		attachmentPatch	left;
-//
-//		beamRegion 	"beamfour";
-//
-//		refAttachmentPt (0.1 0.1 -0.0786);
-//	}
+            refAttachmentPt (0.1 -0.1 -0.0786);
+        }
+        beam3
+        {
+            sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+        
+            attachmentPatch	right;
+        
+            beamRegion      "beamthree";
+        
+            refAttachmentPt (-0.1 0.1 -0.0786);
+        }
+        beam4
+        {
+            sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+        
+            attachmentPatch	left;
+        
+            beamRegion      "beamfour";
+        
+            refAttachmentPt (0.1 0.1 -0.0786);
+        }
 
-//
-}
+        
+    }
 }
 
 // ************************************************************************* //

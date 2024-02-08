@@ -14,18 +14,40 @@ runApplication subsetMesh -overwrite c0 -patch floatingObject
 restore0Dir
 
 runApplication setFields
-#if  [ $# -eq 1 ]; then
-#	#decomposePar &> log.decomposePar
-#
-#	#mpirun -np 3 interFoam -parallel &> log.interFoam
-#
-#runApplication decomposePar
-runApplication interFoam
-#runApplication reconstructPar
 
-#else
-#	runApplication interFoam
-#fi
+if [[ "$1" == "parallel" ]]; then
+    # Decompose the fluid domain
+    runApplication decomposePar
 
-say "L-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l- Done"
+    # Decompose the beams
+    for beamI in constant/beam*
+    do
+        # Copy cellDecomposition file to beam directories: we need an automatic
+        # method to create this file!
+        cp constant/cellDecomposition.beams $beamI/cellDecomposition
+    
+        # Decompose the beams (use "manual" to keep all cells on proc0)
+        beamNameI=$(basename $beamI)
+        runApplication -s $beamNameI decomposePar -region $beamNameI
+    done
+
+    # Run solver in parallel
+    runParallel interFoam
+
+    # Reconstructor the fluid domain
+    runApplication reconstructPar
+
+    # Reconstructor the beams
+    # Decompose the beams
+    for beamI in constant/beam*
+    do
+        beamNameI=$(basename $beamI)
+        runApplication -s $beamNameI reconstructPar -region $beamNameI
+    done
+else
+    # Run in serial
+    runApplication interFoam
+fi
+
+#say "L-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l- Done"
 #------------------------------------------------------------------------------
