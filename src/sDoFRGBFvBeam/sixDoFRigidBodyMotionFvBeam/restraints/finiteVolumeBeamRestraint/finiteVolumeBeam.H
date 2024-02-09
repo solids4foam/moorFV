@@ -37,6 +37,7 @@ SourceFiles
 #include "sixDoFRigidBodyMotionFvBeamRestraint.H"
 #include "point.H"
 #include "beamModel.H"
+#include "OFstream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -66,11 +67,10 @@ class finiteVolumeBeam
 	//- Attachment patch
 	word attachmentPatch_;
 
+        //- Index of attachment patch
 	label patchID_;
 
-
-
-	//- Initial W on the patch
+        //- Initial W on the patch
    	mutable vector initialW_;
 
 	//- Flag to indicate if initial W has been stored
@@ -81,6 +81,10 @@ class finiteVolumeBeam
   
 	//- Flag to indicate if initial Q has been stored
    	mutable bool storeInitialQ_;
+
+        //- File for writing attachment force
+        mutable autoPtr<OFstream> forceFilePtr_;
+
 
 public:
 

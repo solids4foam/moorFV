@@ -69,7 +69,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     initialW_(vector::zero),
     storeInitialW_(true),
     initialQ_(vector::zero),
-    storeInitialQ_(true)
+    storeInitialQ_(true),
+    forceFilePtr_()
 {
     read(sDoFRBMRDict);
     patchID_ =
@@ -77,7 +78,50 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         (
             attachmentPatch_
 	    );
+
+    // Create force file
+    if (Pstream::master())
+    {
+        fileName historyDir;
+
+        word startTimeName =
+            time.timeName(time.startTime().value());
+
+        if (Pstream::parRun())
+        {
+            // Put in undecomposed case (Note: gives problems for
+            // distributed data running)
+            historyDir = time.path()/".."/"postProcessing"/startTimeName;
+        }
+        else
+        {
+            historyDir = time.path()/"postProcessing"/startTimeName;
+        }
+
+        // Create directory if does not exist.
+        mkDir(historyDir);
+
+        // Open new file at start up
+        forceFilePtr_.reset
+        (
+            new OFstream
+            (
+                historyDir/"force" + name + ".dat"
+            )
+        );
+
+        // Add headers to output data
+        if (forceFilePtr_.valid())
+        {
+            forceFilePtr_()
+                << "# Time"
+                << " " << "forceX"
+                << " " << "forceY"
+                << " " << "forceZ"
+                << endl;
+        }
     }
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -189,6 +233,15 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
              << endl;
     }
 
+    if (forceFilePtr_.valid())
+    {
+        forceFilePtr_()
+            << t
+            << " " << restraintForce.x()
+            << " " << restraintForce.y()
+            << " " << restraintForce.z()
+            << endl;
+    }
 
 }
 
@@ -214,8 +267,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::write
 (
     Ostream& os
 ) const
-{
-}
+{}
 
 
 // ************************************************************************* //
