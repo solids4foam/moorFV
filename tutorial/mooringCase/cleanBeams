@@ -1,0 +1,13 @@
+#!/bin/sh
+declare -a arr=("beamone" "beamtwo" "beamthree" "beamfour")
+for i in "${arr[@]}"
+do
+    cd cables_initialization/$i
+    printf 'cleaning %s\n' "$i"
+    ./Allclean
+	rm -rf 0/ref*
+	rm -rf 0/$i 
+	cd ../..
+	rm -rf mooredFloatingObject/0.orig/$i
+	rm -rf mooredFloatingObject/constant/$i
+done

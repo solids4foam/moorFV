@@ -60,21 +60,33 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     const Time& time
 )
 :
-	sixDoFRigidBodyMotionFvBeamRestraint(name, sDoFRBMRDict,time),
-
-	beam_(beamModel::New(const_cast<Time&>(time) , word (sDoFRBMRCoeffs_.lookup("beamRegion")))),
-	refAttachmentPt_(),
-	attachmentPatch_(),
-	patchID_(-1),
+    sixDoFRigidBodyMotionFvBeamRestraint(name, sDoFRBMRDict,time),
+    beam_
+    (
+        beamModel::New
+        (
+            const_cast<Time&>(time), word(sDoFRBMRCoeffs_.lookup("beamRegion"))
+        )
+    ),
+    refAttachmentPt_(),
+    attachmentPatch_(),
+    patchID_(-1),
     initialW_(vector::zero),
     storeInitialW_(true),
     initialQ_(vector::zero),
     storeInitialQ_(true),
     forceFilePtr_()
 {
+    if (debug)
+    {
+        InfoIn("finiteVolumeBeam::finiteVolumeBeam(...)")
+            << "Creating finiteVolumeBeam " << name << endl;
+    }
+
     read(sDoFRBMRDict);
+
     patchID_ =
-		beam_->mesh().boundaryMesh().findPatchID
+        beam_->mesh().boundaryMesh().findPatchID
         (
             attachmentPatch_
 	    );
@@ -126,7 +138,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::~finiteVolumeBeam()
+Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::
+~finiteVolumeBeam()
 {}
 
 
@@ -141,10 +154,15 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     vector& restraintMoment
 ) const
 {
+    if (debug)
+    {
+        InfoIn("finiteVolumeBeam::restrain(...)")
+            << endl;
+    }
 
-	// Take a reference to the beam model
-		beamModel& beam = beam_();
-    scalar t = motion.time().timeOutputValue();
+    // Take a reference to the beam model
+    beamModel& beam = beam_();
+    const scalar t = motion.time().timeOutputValue();
     if (storeInitialW_)
     {
         Info<< "Storing initial W" << endl;
@@ -158,55 +176,26 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
         initialW_ = beam.solutionW().boundaryField()[patchID_][0];
     }
 
-    //    Info << "pID="<<patchID_<<endl;
-    //    Info << "attachmentP="<<attachmentPatch_<<endl;
     restraintPosition = motion.transform(refAttachmentPt_);
 
     const vector attachmentDisp = restraintPosition - refAttachmentPt_;
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
-//    Info << "RestraintPosition=" << restraintPosition << endl;
-//    Info << "RefValue="<<refAttachmentPt_<<endl;
-//	Info << "attachmentDisp="<<attachmentDisp<<endl;
-
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
 
     volVectorField& W = beam.solutionW();
 
-//    Info << "**********************************"<<endl;
-//    Info << "w1="<<W<<endl;
-//    Info << "**********************************"<<endl;
-//    Info << "**********************************"<<endl;
-//    // consider relaxing the displacement...
+    // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
-//    Info << "w2="<<W<<endl;
-//    Info << "**********************************"<<endl;
-//
+
     beam.evolve();
 
     beam.updateTotalFields();
     //beam.writeFields();
-	Info << "patchID_ :" << patchID_ << endl;
+    Info<< "patchID_ :" << patchID_ << endl;
 
-	Info << "attachment patch :" << attachmentPatch_ << endl;
+    Info<< "attachment patch :" << attachmentPatch_ << endl;
 
+    // Lookup the surface forces
     const surfaceVectorField& Q =
-	    beam.mesh().lookupObject<surfaceVectorField>("Q");
-
-
-    if (storeInitialQ_)
-    {
-        Info<< "Storing initial Q" << endl;
-        storeInitialQ_ = false;
-        if (Q.boundaryField()[patchID_].size() == 0)
-        {
-            FatalError
-                << "Q.boundaryField()[patchID_].size() == 0!"
-                << abort(FatalError);
-        }
-        initialQ_ = Q.boundaryField()[patchID_][0];
-    }
+        beam.mesh().lookupObject<surfaceVectorField>("Q");
 
     if (Q.boundaryField()[patchID_].size() != 1)
     {
@@ -217,9 +206,9 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
 
-    restraintForce = -attachmentForce;// - initialQ_; minus for the direction
+    restraintForce = -attachmentForce;
     // relax force
-    // store and lookup alpha from dict 
+    // store and lookup alpha from dict
     //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
@@ -230,7 +219,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
         Info<< t << " " << restraintForce.x()   //2
             << " " << restraintForce.y()        //3
             << " " << restraintForce.z()        //4
-             << endl;
+            << endl;
     }
 
     if (forceFilePtr_.valid())
@@ -256,8 +245,6 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
 
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
-
-
 
     return true;
 }
