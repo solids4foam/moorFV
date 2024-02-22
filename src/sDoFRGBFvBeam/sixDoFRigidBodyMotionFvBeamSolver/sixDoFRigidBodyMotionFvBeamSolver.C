@@ -245,7 +245,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
 
         functionObjects::forces f("forces", db(), forcesDict);
 
-        f.calcForcesMoment();
+        f.calcForcesMoments();
 
         motion_.update
         (
