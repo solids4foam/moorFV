@@ -66,9 +66,11 @@ class finiteVolumeBeam
 
 	//- Attachment patch
 	word attachmentPatch_;
+	word anchorPatch_;
 
         //- Index of attachment patch
 	label patchID_;
+	label anchorPatchID_;
 
         //- Initial W on the patch
    	mutable vector initialW_;
@@ -84,6 +86,7 @@ class finiteVolumeBeam
 
         //- File for writing attachment force
         mutable autoPtr<OFstream> forceFilePtr_;
+        mutable autoPtr<OFstream> anchorForceFilePtr_;
 
 
 public:

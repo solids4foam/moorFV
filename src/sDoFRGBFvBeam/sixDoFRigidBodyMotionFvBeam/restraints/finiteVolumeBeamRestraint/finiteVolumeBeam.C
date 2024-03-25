@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------*\
-  =========                 |
+
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
     \\  /    A nd           | www.openfoam.com
@@ -69,13 +69,16 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         )
     ),
     refAttachmentPt_(),
+    anchorPatch_(),
     attachmentPatch_(),
     patchID_(-1),
+    anchorPatchID_(-1),
     initialW_(vector::zero),
     storeInitialW_(true),
     initialQ_(vector::zero),
     storeInitialQ_(true),
-    forceFilePtr_()
+    forceFilePtr_(),
+    anchorForceFilePtr_()
 {
     if (debug)
     {
@@ -89,7 +92,13 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         beam_->mesh().boundaryMesh().findPatchID
         (
             attachmentPatch_
-	    );
+	);
+    anchorPatchID_ =
+	beam_->mesh().boundaryMesh().findPatchID
+        (
+            anchorPatch_
+	);
+
 
     // Create force file
     if (Pstream::master())
@@ -121,6 +130,14 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 historyDir/"force" + name + ".dat"
             )
         );
+	anchorForceFilePtr_.reset
+	(
+	    new OFstream
+	    (
+		historyDir/"anchorForce" + name + ".dat"
+	    )
+	);
+
 
         // Add headers to output data
         if (forceFilePtr_.valid())
@@ -132,6 +149,16 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 << " " << "forceZ"
                 << endl;
         }
+	if (anchorForceFilePtr_.valid())
+        {
+            anchorForceFilePtr_()
+                << "# Time"
+                << " " << "anchorForceX"
+                << " " << "anchorForceY"
+                << " " << "anchorForceZ"
+                << endl;
+        }
+
     }
 }
 
@@ -188,10 +215,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     beam.evolve();
 
     beam.updateTotalFields();
-    //beam.writeFields();
-    Info<< "patchID_ :" << patchID_ << endl;
 
-    Info<< "attachment patch :" << attachmentPatch_ << endl;
 
     // Lookup the surface forces
     const surfaceVectorField& Q =
@@ -205,6 +229,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     }
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
+    const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
 
     restraintForce = -attachmentForce;
     // relax force
@@ -213,14 +238,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     restraintMoment = vector::zero;
 
     Info<< "attachment force = " << attachmentForce << endl;
-
-    if (motion.report())
-    {
-        Info<< t << " " << restraintForce.x()   //2
-            << " " << restraintForce.y()        //3
-            << " " << restraintForce.z()        //4
-            << endl;
-    }
 
     if (forceFilePtr_.valid())
     {
@@ -231,6 +248,16 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << " " << restraintForce.z()
             << endl;
     }
+    if (anchorForceFilePtr_.valid())
+    {
+        anchorForceFilePtr_()
+            << t
+            << " " << anchorForce.x()
+            << " " << anchorForce.y()
+            << " " << anchorForce.z()
+            << endl;
+    }
+
 
 }
 
@@ -246,6 +273,7 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
 
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
 
+    sDoFRBMRCoeffs_.readEntry("anchorPatch", anchorPatch_);
     return true;
 }
 
