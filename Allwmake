@@ -12,3 +12,5 @@ fi
 # Compile libraries
 echo; echo "Compiling src"; echo
 (cd src && ./Allwmake)
+
+echo
