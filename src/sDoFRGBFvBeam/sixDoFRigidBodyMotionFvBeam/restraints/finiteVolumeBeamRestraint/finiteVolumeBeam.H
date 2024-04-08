@@ -81,9 +81,6 @@ class finiteVolumeBeam
 	//- Initial Q ( force ) on the patch
    	mutable vector initialQ_;
   
-	//- Flag to indicate if initial Q has been stored
-   	mutable bool storeInitialQ_;
-
         //- File for writing attachment force
         mutable autoPtr<OFstream> forceFilePtr_;
         mutable autoPtr<OFstream> anchorForceFilePtr_;

@@ -69,14 +69,13 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         )
     ),
     refAttachmentPt_(),
-    anchorPatch_(),
     attachmentPatch_(),
+    anchorPatch_(),
     patchID_(-1),
     anchorPatchID_(-1),
     initialW_(vector::zero),
     storeInitialW_(true),
     initialQ_(vector::zero),
-    storeInitialQ_(true),
     forceFilePtr_(),
     anchorForceFilePtr_()
 {
