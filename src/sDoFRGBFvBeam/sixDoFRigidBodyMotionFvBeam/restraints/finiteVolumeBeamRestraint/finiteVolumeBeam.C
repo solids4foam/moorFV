@@ -85,19 +85,27 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
             << "Creating finiteVolumeBeam " << name << endl;
     }
 
+    // Read settings
     read(sDoFRBMRDict);
 
-    patchID_ =
-        beam_->mesh().boundaryMesh().findPatchID
-        (
-            attachmentPatch_
-	);
-    anchorPatchID_ =
-	beam_->mesh().boundaryMesh().findPatchID
-        (
-            anchorPatch_
-	);
+    // If needed, update patch indices
+    if (patchID_ == -1)
+    {
+        patchID_ =
+            beam_->mesh().boundaryMesh().findPatchID
+            (
+                attachmentPatch_
+            );
+    }
 
+    if (anchorPatchID_ == -1)
+    {
+        anchorPatchID_ =
+            beam_->mesh().boundaryMesh().findPatchID
+            (
+                anchorPatch_
+            );
+    }
 
     // Create force file
     if (Pstream::master())
@@ -129,13 +137,13 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 historyDir/"force" + name + ".dat"
             )
         );
-	anchorForceFilePtr_.reset
-	(
-	    new OFstream
-	    (
-		historyDir/"anchorForce" + name + ".dat"
-	    )
-	);
+        anchorForceFilePtr_.reset
+        (
+            new OFstream
+            (
+                historyDir/"anchorForce" + name + ".dat"
+            )
+        );
 
 
         // Add headers to output data
@@ -148,7 +156,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 << " " << "forceZ"
                 << endl;
         }
-	if (anchorForceFilePtr_.valid())
+        if (anchorForceFilePtr_.valid())
         {
             anchorForceFilePtr_()
                 << "# Time"
@@ -269,10 +277,14 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     sixDoFRigidBodyMotionFvBeamRestraint::read(sDoFRBMRDict);
 
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
-
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
-
     sDoFRBMRCoeffs_.readEntry("anchorPatch", anchorPatch_);
+    sDoFRBMRCoeffs_.readIfPresent("patchID", patchID_);
+    sDoFRBMRCoeffs_.readIfPresent("anchorPatchID", anchorPatchID_);
+    sDoFRBMRCoeffs_.readIfPresent("initialW", initialW_);
+    sDoFRBMRCoeffs_.readIfPresent("storeInitialW", storeInitialW_);
+    sDoFRBMRCoeffs_.readIfPresent("initialQ", initialQ_);
+
     return true;
 }
 
@@ -281,7 +293,16 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::write
 (
     Ostream& os
 ) const
-{}
+{
+    os.writeEntry("refAttachmentPt", refAttachmentPt_);
+    os.writeEntry("attachmentPatch", attachmentPatch_);
+    os.writeEntry("anchorPatch", anchorPatch_);
+    os.writeEntry("patchID", patchID_);
+    os.writeEntry("anchorPatchID", anchorPatchID_);
+    os.writeEntry("initialW", initialW_);
+    os.writeEntry("storeInitialW", storeInitialW_);
+    os.writeEntry("initialQ", initialQ_);
+}
 
 
 // ************************************************************************* //

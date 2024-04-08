@@ -59,7 +59,6 @@ class finiteVolumeBeam
 
    	//- Pointer to beam model
    	mutable autoPtr<Foam::beamModel> beam_;
-	//autoPtr<Foam::beamModel> beamPtr_;
 
    	//- Attachment point
 	point refAttachmentPt_;
