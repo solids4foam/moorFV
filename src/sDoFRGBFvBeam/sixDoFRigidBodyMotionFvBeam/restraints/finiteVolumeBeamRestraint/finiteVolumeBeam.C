@@ -186,8 +186,6 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     state_.add("anchorPatch", anchorPatch_);
     state_.add("patchID", patchID_);
     state_.add("anchorPatchID", anchorPatchID_);
-    state_.add("initialW", initialW_);
-    state_.add("storeInitialW", storeInitialW_);
     state_.add("initialQ", initialQ_);
 }
 
