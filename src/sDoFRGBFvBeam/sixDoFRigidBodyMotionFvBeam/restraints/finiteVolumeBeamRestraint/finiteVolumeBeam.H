@@ -57,29 +57,33 @@ class finiteVolumeBeam
 {
     // Private data
 
-   	//- Pointer to beam model
-   	mutable autoPtr<Foam::beamModel> beam_;
+        //- Pointer to beam model
+        mutable autoPtr<Foam::beamModel> beam_;
 
-   	//- Attachment point
-	point refAttachmentPt_;
+        //- Restraint state information
+        //  This store data to allow consistent restarts
+        mutable IOdictionary state_;
 
-	//- Attachment patch
-	word attachmentPatch_;
-	word anchorPatch_;
+        //- Attachment point
+        point refAttachmentPt_;
+
+        //- Attachment patch
+        word attachmentPatch_;
+        word anchorPatch_;
 
         //- Index of attachment patch
-	label patchID_;
-	label anchorPatchID_;
+        label patchID_;
+        label anchorPatchID_;
 
         //- Initial W on the patch
-   	mutable vector initialW_;
+        mutable vector initialW_;
 
-	//- Flag to indicate if initial W has been stored
-   	mutable bool storeInitialW_;
-  	
-	//- Initial Q ( force ) on the patch
-   	mutable vector initialQ_;
-  
+        //- Flag to indicate if initial W has been stored
+        mutable bool storeInitialW_;
+
+        //- Initial Q ( force ) on the patch
+        mutable vector initialQ_;
+
         //- File for writing attachment force
         mutable autoPtr<OFstream> forceFilePtr_;
         mutable autoPtr<OFstream> anchorForceFilePtr_;
@@ -87,11 +91,11 @@ class finiteVolumeBeam
 
 public:
 
-    	//- Runtime type information
-    	TypeName("finiteVolumeBeam");
+        //- Runtime type information
+        TypeName("finiteVolumeBeam");
 
 
-    	// Constructors
+        // Constructors
 
         //- Construct from components
         finiteVolumeBeam

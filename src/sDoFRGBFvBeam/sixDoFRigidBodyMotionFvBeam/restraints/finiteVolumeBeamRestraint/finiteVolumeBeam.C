@@ -68,6 +68,18 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
             const_cast<Time&>(time), word(sDoFRBMRCoeffs_.lookup("beamRegion"))
         )
     ),
+    state_
+    (
+        IOobject
+        (
+            "stateFiniteVolumeBeam" + name,
+            time.timeName(),
+            time,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        dictionary()
+    ),
     refAttachmentPt_(),
     attachmentPatch_(),
     anchorPatch_(),
@@ -167,6 +179,16 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         }
 
     }
+
+    // Write to the state dictionary to allow restarts
+    state_.add("refAttachmentPt", refAttachmentPt_);
+    state_.add("attachmentPatch", attachmentPatch_);
+    state_.add("anchorPatch", anchorPatch_);
+    state_.add("patchID", patchID_);
+    state_.add("anchorPatchID", anchorPatchID_);
+    state_.add("initialW", initialW_);
+    state_.add("storeInitialW", storeInitialW_);
+    state_.add("initialQ", initialQ_);
 }
 
 
@@ -208,6 +230,10 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
                 << abort(FatalError);
         }
         initialW_ = beam.solutionW().boundaryField()[patchID_][0];
+
+        // Update the state
+        state_.add("initialW", initialW_);
+        state_.add("storeInitialW", storeInitialW_);
     }
 
     restraintPosition = motion.transform(refAttachmentPt_);
@@ -264,8 +290,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << " " << anchorForce.z()
             << endl;
     }
-
-
 }
 
 
@@ -285,6 +309,17 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     sDoFRBMRCoeffs_.readIfPresent("storeInitialW", storeInitialW_);
     sDoFRBMRCoeffs_.readIfPresent("initialQ", initialQ_);
 
+    // Read from state dictionary
+    // Note: this typically only contains data when restarting the simulation
+    state_.readIfPresent("refAttachmentPt", refAttachmentPt_);
+    state_.readIfPresent("attachmentPatch", attachmentPatch_);
+    state_.readIfPresent("anchorPatch", anchorPatch_);
+    state_.readIfPresent("patchID", patchID_);
+    state_.readIfPresent("anchorPatchID", anchorPatchID_);
+    state_.readIfPresent("initialW", initialW_);
+    state_.readIfPresent("storeInitialW", storeInitialW_);
+    state_.readIfPresent("initialQ", initialQ_);
+
     return true;
 }
 
@@ -302,6 +337,18 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::write
     os.writeEntry("initialW", initialW_);
     os.writeEntry("storeInitialW", storeInitialW_);
     os.writeEntry("initialQ", initialQ_);
+
+    // Write to the state dictionary to allow restarts
+    state_.add("refAttachmentPt", refAttachmentPt_);
+    state_.add("attachmentPatch", attachmentPatch_);
+    state_.add("anchorPatch", anchorPatch_);
+    state_.add("patchID", patchID_);
+    state_.add("anchorPatchID", anchorPatchID_);
+    state_.add("initialW", initialW_);
+    state_.add("storeInitialW", storeInitialW_);
+    state_.add("initialQ", initialQ_);
+
+    // Info<< nl << "state is " << state_ << endl;
 }
 
 
