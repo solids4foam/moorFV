@@ -74,6 +74,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
         (
             "stateFiniteVolumeBeam" + name,
             time.timeName(),
+            "uniform",
             time,
             IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
