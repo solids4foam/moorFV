@@ -1,0 +1,14 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+createCircularBeamMesh -region beamthree
+transformPoints -region beamthree -rotate-angle  '((0 1 0) 90)'
+setInitialPositionBeam -cellZone beamthree -region beamthree -translate '(-1.385 0.423 -0.5)' -rotate "((1 0 0) (0.904021961167074 -0.276102014132615 0.326361718832879))"
+# setInitialPositionBeam -cellZone beamthree -region beamthree -translate '(-1.385 -0.423 -0.5)'
+
+cp -r constant/beamthree/polyMesh constant/polyMesh
+cp -r 0/beamthree/* 0/
+cp constant/beamthree/beamProperties constant/
+touch case.foam
