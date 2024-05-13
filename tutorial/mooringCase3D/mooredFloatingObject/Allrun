@@ -7,37 +7,32 @@ cd ${0%/*} || exit 1    # Run from this directory
 # Set application name
 application=$(getApplication)
 
- runApplication blockMesh
- runApplication topoSet
- runApplication subsetMesh -overwrite c0 -patch floatingObject
+runApplication blockMesh
+runApplication topoSet
+runApplication subsetMesh -overwrite c0 -patch floatingObject
 
- restore0Dir
+restore0Dir
 
- runApplication setFields
-
-
-#runApplication decomposePar -latestTime -copyUniform
-#
-#    for beamI in constant/beam*
-#    do
-#
-#        cp constant/cellDecomposition.beams $beamI/cellDecomposition
-#
-#         beamNameI=$(basename $beamI)
-#        runApplication -s $beamNameI decomposePar -region $beamNameI -latestTime
-#    done
-#
-#runParallel interFoam
+runApplication setFields
 
 
- # runApplication reconstructPar #-latestTime
+runApplication decomposePar -latestTime -copyUniform
 
- #   for beamI in constant/beam*
- #    do
- #        beamNameI=$(basename $beamI)
- #        runApplication -s $beamNameI reconstructPar -region $beamNameI #-latestTime
- #    done
+    for beamI in constant/beam*
+    do
+        cp constant/cellDecomposition.beams $beamI/cellDecomposition
+        beamNameI=$(basename $beamI)
+        runApplication -s $beamNameI decomposePar -region $beamNameI -latestTime
+    done
+
+runParallel interFoam
 
 
-#say "L-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l-l- Done"
+runApplication reconstructPar #-latestTime
+
+for beamI in constant/beam*
+do
+    beamNameI=$(basename $beamI)
+    runApplication -s $beamNameI reconstructPar -region $beamNameI #-latestTime
+done
 #------------------------------------------------------------------------------

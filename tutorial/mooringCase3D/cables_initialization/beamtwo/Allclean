@@ -5,5 +5,6 @@
 
 cleanCase
 rm -f constant/polyMesh/boundary
-rm -r constant/beamtwo/polyMesh
+rm -rf 0/ref*
+rm -rf 0/pointW
 

@@ -3,12 +3,8 @@ cd ${0%/*} || exit 1    # Run from this directory
 
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-createCircularBeamMesh -region beamone
-transformPoints -region beamone -rotate-angle  '((0 1 0) 90)'
-setInitialPositionBeam -cellZone beamone -region beamone -translate '(-1.385 -0.423 -0.5)' -rotate "((1 0 0) (0.904021961167074 0.276102014132615 0.326361718832879))"
-# setInitialPositionBeam -cellZone beamone -region beamone -translate '(-1.385 -0.423 -0.5)'
+createCircularBeamMesh
+transformPoints -rotate-angle  '((0 1 0) 90)'
+setInitialPositionBeam -cellZone region0 -translate '(-1.385 -0.423 -0.5)' -rotate "((1 0 0) (0.904021961167074 0.276102014132615 0.326361718832879))"
 
-cp -r constant/beamone/polyMesh constant/polyMesh
-cp -r 0/beamone/* 0/
-cp constant/beamone/beamProperties constant/
 touch case.foam

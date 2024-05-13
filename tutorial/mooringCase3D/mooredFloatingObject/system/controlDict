@@ -32,7 +32,7 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         16;
+endTime         1;
 
 deltaT          0.001;
 
