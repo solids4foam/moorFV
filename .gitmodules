@@ -1,0 +1,3 @@
+[submodule "src/beamFoam"]
+	path = src/beamFoam
+	url = https://github.com/solids4foam/beamFoam.git
