@@ -1,0 +1,14 @@
+#!/bin/bash
+declare -a arr=("beamone" "beamtwo" "beamthree" "beamfour")
+for i in "${arr[@]}"
+do
+    cd cables_initialization/$i
+    printf 'Initilizing %s\n' "$i"
+    ./Allrun > log.beamMeshing && beamFoam > log.beamFoam
+    cd ../..
+    cp -r cables_initialization/$i/2 mooredFloatingObject/0.orig/$i
+    cp -r cables_initialization/$i/constant/ mooredFloatingObject/constant/$i
+    sed -i 's/fixedDisplacement/fixedValue/g' mooredFloatingObject/0.orig/$i/W
+    sed -i "s@constant/timeVsMoment@constant/$i/timeVsMoment@g" mooredFloatingObject/0.orig/$i/Theta
+
+done

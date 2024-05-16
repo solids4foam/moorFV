@@ -19,7 +19,7 @@ libs
 (
     libfiniteVolumeBeamMooring.so
     libsixDoFRigidBodyStateFvBeam.so
-	libmyScotchDecomp.so
+	//libmyScotchDecomp.so
 	libwireBunchingModels.so
 );
 
