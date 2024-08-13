@@ -33,7 +33,7 @@ nSegments 60; //change this to 20
 
     groundContactActive true;
     groundZ -0.5;
-    gStiffness 1E03;
+    gStiffness 1E04;
     gDamping 1.0;
     nSegments 60;
 
@@ -66,6 +66,8 @@ nSegments 60; //change this to 20
     // Default value if not specified is 1.0 for both
     Cdn 1.6;
     Cdt 0.05;
+    CMn 1.0;
+    CMt 0.0;
 }
 
 
