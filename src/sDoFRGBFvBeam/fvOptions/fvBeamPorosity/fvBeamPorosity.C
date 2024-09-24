@@ -66,16 +66,33 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
             mesh_.time().timeName(),
             mesh_.time(),
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh_,
         dimensionedScalar(dimless/dimTime, Zero)
     );
+    label celli;
     auto& dragCoeff = tdragCoeff.ref();
-    forAll(mesh_.C(),celli)
+    
+    Info << "available objects = " << U.db().names() << endl;
+    if (mesh_.foundObject<volScalarField>("fluidCellMarker"))
     {
-        dragCoeff[celli] = 0.5;
+        Info << " im here " << endl;
+        const volScalarField& gg(mesh_.lookupObject<volScalarField>("fluidCellMarker"));
+        forAll(mesh_.C(),celli)
+        {
+            dragCoeff[celli] = 2000*gg[celli];
+        }
+        if (mesh_.time().writeTime())
+        {
+            dragCoeff.write();
+        }
     }
+    else
+    {
+        dragCoeff[celli] = 0;
+    }
+    
 
     return tdragCoeff;
 }
@@ -137,10 +154,7 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
 )
 :
     fv::option(name, modelType, dict, mesh)
-    // aZone_(),
-    // NZone_(),
-    // CmZone_(),
-    // CdZone_()
+    // active_()
 {
     read(dict);
 }
@@ -189,14 +203,14 @@ void Foam::fv::fvBeamPorosity::addSup
 
 bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
 {
-    // if (fv::option::read(dict))
-    // {
-    //     if (!coeffs_.readIfPresent("UNames", fieldNames_))
-    //     {
-    //         fieldNames_.resize(1);
-    //         fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
-    //     }
-    //     fv::option::resetApplied();
+    if (fv::option::read(dict))
+    {
+        if (!coeffs_.readIfPresent("UNames", fieldNames_))
+        {
+            fieldNames_.resize(1);
+            fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
+        }
+        fv::option::resetApplied();
 
     //     // Create the Mangroves models - 1 per region
     //     const dictionary& regionsDict(coeffs_.subDict("regions"));
@@ -229,8 +243,8 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
     //         modelDict.readEntry("Cd", CdZone_[i]);
     //     }
 
-    //     return true;
-    // }
+        return true;
+    }
 
     return false;
 }
