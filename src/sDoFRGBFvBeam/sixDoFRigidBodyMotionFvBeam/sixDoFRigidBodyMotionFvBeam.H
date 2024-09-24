@@ -332,7 +332,27 @@ public:
                 const pointField& initialPoints,
                 const scalarField& scale
             ) const;
+            //- {modified mesh morphing
+            tmp<pointField> transform
+            (
+                const pointField& initialPoints,
+                const scalar& xdist,
+                const scalar& ydist,
+                const scalarField& scale,
+                const scalarField& xScale,
+                const scalarField& yScale
+            ) const;
 
+            void updateXYScale
+            (
+                const pointField& initialPoints,
+                const scalar& xdist,
+                const scalar& ydist,
+                const scalarField& scale,
+                scalarField& xScale,
+                scalarField& yScale
+            ) const;
+            //-modified mesh morphing}
 
         //- Write
         void write(Ostream&) const;
