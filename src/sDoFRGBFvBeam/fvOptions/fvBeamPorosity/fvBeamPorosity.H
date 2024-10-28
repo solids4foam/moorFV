@@ -31,9 +31,18 @@ Group
     grpFvOptionsSources
 
 Description
-    fvOption to subtract the momentum from momentum equation, similar to porosity effects.
+    fvOption to subtract the momentum (based on drag) from momentum equation, similar to porosity effects.
+    based on mangrove models for porosity.
 
 Usage
+    beamPorosity
+    {
+        type            fvBeamPorosity;
+        active          yes;
+    }
+
+Author
+    Amirhossein Taran, UCD
 
 SourceFiles
     fvBeamPorosity.C
@@ -78,26 +87,6 @@ protected:
 
     // Protected data
 
-        // Coefficients per cell zone
-
-            //- Width of the vegetation element
-            // scalarList aZone_;
-
-            // //- Number of plants per unit of area
-            // scalarList NZone_;
-
-            // //- Inertia coefficient
-            // scalarList CmZone_;
-
-            // //- Drag coefficient
-            // scalarList CdZone_;
-
-            // //- Porosity coefficient
-            // //scalarList MangrovesZone_;
-
-            // //- Zone indices
-            // labelListList zoneIDs_;
-
 
     // Protected Member Functions
 
@@ -105,7 +94,7 @@ protected:
         tmp<volScalarField> dragCoeff(const volVectorField& U) const;
 
         //- Return the inertia force coefficient
-        // tmp<volScalarField> inertiaCoeff() const;
+        tmp<volScalarField> inertiaCoeff() const;
 
 
 public:
