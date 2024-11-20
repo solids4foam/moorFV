@@ -18,12 +18,12 @@ runApplication setFields
 
 runApplication decomposePar -latestTime -copyUniform
 
-    for beamI in constant/beam*
-    do
-        cp constant/cellDecomposition.beams $beamI/cellDecomposition
-        beamNameI=$(basename $beamI)
-        runApplication -s $beamNameI decomposePar -region $beamNameI -latestTime
-    done
+   for beamI in constant/beam*
+   do
+       cp constant/cellDecomposition.beams $beamI/cellDecomposition
+       beamNameI=$(basename $beamI)
+       runApplication -s $beamNameI decomposePar -region $beamNameI -latestTime
+   done
 
 runParallel interFoam
 
@@ -32,7 +32,7 @@ runApplication reconstructPar #-latestTime
 
 for beamI in constant/beam*
 do
-    beamNameI=$(basename $beamI)
-    runApplication -s $beamNameI reconstructPar -region $beamNameI #-latestTime
+   beamNameI=$(basename $beamI)
+   runApplication -s $beamNameI reconstructPar -region $beamNameI #-latestTime
 done
 #------------------------------------------------------------------------------

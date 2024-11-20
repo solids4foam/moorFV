@@ -81,13 +81,8 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
-            // dragCoeff[celli] = 100*mesh_.lookupObject<volScalarField>("cellMarker")[celli];
-            dragCoeff[celli] = 200*0.5 * cellMarker[celli] * fluidRho.value() * beamRadius.value() * beamLength.value() * mag(U[celli]);
+            dragCoeff[celli] = 0.5 * cellMarker[celli] * fluidRho.value() * beamRadius.value() * beamLength.value() * mag(U[celli]);
         }
-        // if (mesh_.time().writeTime())
-        // {
-        //     dragCoeff.write();
-        // }
         else
         {
             dragCoeff[celli] = 0;
@@ -134,10 +129,6 @@ Foam::fv::fvBeamPorosity::inertiaCoeff() const
         {
             inertiaCoeff[celli] = 0;
         }
-        // if (mesh_.time().writeTime())
-        // {
-        //     inertiaCoeff.write();
-        // }
     }
     
 
