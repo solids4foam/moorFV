@@ -60,7 +60,7 @@ nSegments 60; //change this to 20
     // steadyState flag should also be false along with this flag
     // else drag forces will be zero
     dragActive true;
-    couplingActive true;
+    beamFluidInteraction true;
 
     // Coefficient of drag in normal and tangential directions
     // Default value if not specified is 1.0 for both
