@@ -572,4 +572,5 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
 		
 	return;
 }
+
 // ************************************************************************* //

@@ -21,10 +21,21 @@ internalField   uniform (0 0 0);
 
 boundaryField
 {
-    stationaryWalls
+    frontWall
     {
-        type            fixedValue;
-        value           uniform (0 0 0);
+        type            fixedNormalSlip;//fixedValue;
+        n		(0 1 0);
+    }
+    backWall
+    {
+        type            fixedNormalSlip;//fixedValue;
+        n		(0 -1 0);
+    }
+    bottomWall
+    {
+        type            fixedNormalSlip;//fixedValue;
+        n		(0 0 1);
+	//value           uniform (0 0 0);
     }
     inlet
     {
@@ -38,8 +49,9 @@ boundaryField
     }
     atmosphere
     {
-        type            fixedValue;
-        value           uniform (0 0 0);
+        type            fixedNormalSlip;//fixedValue;
+        n		(0 0 -1);
+	//value           uniform (0 0 0);
     }
     sides
     {
