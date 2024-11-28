@@ -71,76 +71,71 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
         mesh_,
         dimensionedScalar(dimless/dimTime, Zero)
     );
-    label celli;
     auto& dragCoeff = tdragCoeff.ref();
-    
-    Info << "available objects = " << U.db().names() << endl;
-    if (mesh_.foundObject<volScalarField>("fluidCellMarker"))
+    const dictionary& linkToBeamProperties = mesh_.time().db().parent().lookupObject<dictionary>("beamProperties");
+    const dimensionedScalar& fluidRho = linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs").get<dimensionedScalar>("rhoFluid");
+    const dimensionedScalar& beamRadius = linkToBeamProperties.get<dimensionedScalar>("R");
+    const dimensionedScalar& beamLength = linkToBeamProperties.get<dimensionedScalar>("L");
+    const volScalarField& cellMarker(mesh_.lookupObject<volScalarField>("cellMarker"));
+    forAll(mesh_.C(),celli)
     {
-        Info << " im here " << endl;
-        const volScalarField& gg(mesh_.lookupObject<volScalarField>("fluidCellMarker"));
-        forAll(mesh_.C(),celli)
+        if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
-            dragCoeff[celli] = 2000*gg[celli];
+            dragCoeff[celli] = 0.5 * cellMarker[celli] * fluidRho.value() * beamRadius.value() * beamLength.value() * mag(U[celli]);
         }
-        if (mesh_.time().writeTime())
+        else
         {
-            dragCoeff.write();
+            dragCoeff[celli] = 0;
         }
     }
-    else
-    {
-        dragCoeff[celli] = 0;
-    }
-    
-
+    dragCoeff.correctBoundaryConditions();
     return tdragCoeff;
 }
 
 
-// Foam::tmp<Foam::volScalarField>
-// Foam::fv::fvBeamPorosity::inertiaCoeff() const
-// {
-//     auto tinertiaCoeff = tmp<volScalarField>::New
-//     (
-//         IOobject
-//         (
-//             typeName + ":inertiaCoeff",
-//             mesh_.time().timeName(),
-//             mesh_.time(),
-//             IOobject::NO_READ,
-//             IOobject::NO_WRITE
-//         ),
-//         mesh_,
-//         dimensionedScalar(dimless, Zero)
-//     );
-//     auto& inertiaCoeff = tinertiaCoeff.ref();
+Foam::tmp<Foam::volScalarField>
+Foam::fv::fvBeamPorosity::inertiaCoeff() const
+{
+    auto tinertiaCoeff = tmp<volScalarField>::New
+    (
+        IOobject
+        (
+            typeName + ":inertiaCoeff",
+            mesh_.time().timeName(),
+            mesh_.time(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar(dimless, Zero)
+    );
+    auto& inertiaCoeff = tinertiaCoeff.ref();
 
-//     const scalar pi = constant::mathematical::pi;
+    const scalar pi = constant::mathematical::pi;
+    const dictionary& linkToBeamProperties = mesh_.time().db().parent().lookupObject<dictionary>("beamProperties");
+    const dimensionedScalar& fluidRho = linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs").get<dimensionedScalar>("rhoFluid");
+    const dimensionedScalar& beamRadius = linkToBeamProperties.get<dimensionedScalar>("R");
+    const dimensionedScalar& beamLength = linkToBeamProperties.get<dimensionedScalar>("L");
+    const scalar& cm = linkToBeamProperties.getOrDefault<scalar>("CMn", 1.0);
+    const volScalarField& cellMarker(mesh_.lookupObject<volScalarField>("cellMarker"));
+    
+    forAll(mesh_.C(),celli)
+    {
+        if (mesh_.foundObject<volScalarField>("cellMarker"))
+        {
+            inertiaCoeff[celli] = (cm+1) * fluidRho.value()*cellMarker[celli] * beamLength.value() * pow(beamRadius.value(),2) * pi;
+        }
+        else
+        {
+            inertiaCoeff[celli] = 0;
+        }
+    }
+    
 
-//     forAll(zoneIDs_, i)
-//     {
-//         const scalar a = aZone_[i];
-//         const scalar N = NZone_[i];
-//         const scalar Cm = CmZone_[i];
+    inertiaCoeff.correctBoundaryConditions();
 
-//         const labelList& zones = zoneIDs_[i];
-
-//         for (label zonei : zones)
-//         {
-//             const cellZone& cz = mesh_.cellZones()[zonei];
-
-//             for (label celli : cz)
-//             {
-//                 inertiaCoeff[celli] = 0.25*(Cm+1)*pi*a*a*N;
-//             }
-//         }
-//     }
-
-//     inertiaCoeff.correctBoundaryConditions();
-
-//     return tinertiaCoeff;
-// }
+    return tinertiaCoeff;
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -173,9 +168,8 @@ void Foam::fv::fvBeamPorosity::addSup
     fvMatrix<vector> mangrovesEqn
     (
       - fvm::Sp(dragCoeff(U), U)
-      //- inertiaCoeff()*fvm::ddt(U)
+      - inertiaCoeff()*fvm::ddt(U)
     );
-
     // Contributions are added to RHS of momentum equation
     eqn += mangrovesEqn;
 }
@@ -193,7 +187,7 @@ void Foam::fv::fvBeamPorosity::addSup
     fvMatrix<vector> mangrovesEqn
     (
       - fvm::Sp(rho*dragCoeff(U), U)
-      //- rho*inertiaCoeff()*fvm::ddt(U)
+      - rho*inertiaCoeff()*fvm::ddt(U)
     );
 
     // Contributions are added to RHS of momentum equation
@@ -205,47 +199,14 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
 {
     if (fv::option::read(dict))
     {
-        if (!coeffs_.readIfPresent("UNames", fieldNames_))
-        {
-            fieldNames_.resize(1);
-            fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
-        }
+            if (!coeffs_.readIfPresent("UNames", fieldNames_))
+            {
+                fieldNames_.resize(1);
+                fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
+            }
         fv::option::resetApplied();
-
-    //     // Create the Mangroves models - 1 per region
-    //     const dictionary& regionsDict(coeffs_.subDict("regions"));
-    //     const wordList regionNames(regionsDict.toc());
-    //     aZone_.setSize(regionNames.size(), 1);
-    //     NZone_.setSize(regionNames.size(), 1);
-    //     CmZone_.setSize(regionNames.size(), 1);
-    //     CdZone_.setSize(regionNames.size(), 1);
-    //     zoneIDs_.setSize(regionNames.size());
-
-    //     forAll(zoneIDs_, i)
-    //     {
-    //         const word& regionName = regionNames[i];
-    //         const dictionary& modelDict = regionsDict.subDict(regionName);
-
-    //         const word zoneName(modelDict.get<word>("cellZone"));
-
-    //         zoneIDs_[i] = mesh_.cellZones().indices(zoneName);
-    //         if (zoneIDs_[i].empty())
-    //         {
-    //             FatalErrorInFunction
-    //                 << "Unable to find cellZone " << zoneName << nl
-    //                 << "Valid cellZones are:" << mesh_.cellZones().names()
-    //                 << exit(FatalError);
-    //         }
-
-    //         modelDict.readEntry("a", aZone_[i]);
-    //         modelDict.readEntry("N", NZone_[i]);
-    //         modelDict.readEntry("Cm", CmZone_[i]);
-    //         modelDict.readEntry("Cd", CdZone_[i]);
-    //     }
-
         return true;
     }
-
     return false;
 }
 
