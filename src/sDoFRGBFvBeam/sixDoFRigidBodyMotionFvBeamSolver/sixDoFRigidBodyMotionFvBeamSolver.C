@@ -170,7 +170,6 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
     // Calculate scaling factor everywhere
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     {
         const pointMesh& pMesh = pointMesh::New(mesh);
 
@@ -213,12 +212,14 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         {
             motion_.updateXYScale(points0(), xdist_, ydist_, scale_, xscale_, yscale_);
             if (xdist_>0)
-            {   cosineTransition(xscale_);      
+            {   
+                cosineTransition(xscale_);      
                 pointConstraints::New(pMesh).constrain(xscale_);
                 xscale_.write();
             }
             if (ydist_>0)
-            {   cosineTransition(yscale_);     
+            {   
+                cosineTransition(yscale_);     
                 pointConstraints::New(pMesh).constrain(yscale_);
                 yscale_.write();
             }

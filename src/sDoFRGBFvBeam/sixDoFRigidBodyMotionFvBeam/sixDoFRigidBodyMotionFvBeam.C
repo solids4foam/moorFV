@@ -29,6 +29,7 @@ License
 #include "sixDoFRigidBodyMotionFvBeam.H"
 #include "sixDoFFvBeamSolver.H"
 #include "septernion.H"
+
 //- modified morphing
 #include "boundBox.H"
 //- modified morphing
@@ -412,7 +413,6 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     const scalarField& yScale   
 ) const
 {
-
     //- Get switches for different directions. True means active translation region -//
     const bool isXScale = xdist>0;
     const bool isYScale = ydist>0;
@@ -424,10 +424,13 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     // Create slerp point as origin of rotation slerp. Remove translation if present as switches. 
     point slerpPoint(tPoint);
 	if (isXScale)
+    {
         slerpPoint.x() = 0;
+    }
     if (isYScale)
+    {
         slerpPoint.y() = 0;
-
+    }
     // Calculate the transformation septerion from the initial state for the slerp dofs.  
     septernion s
     (
@@ -445,10 +448,11 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
         // Move non-stationary points in centre region
         if (scale[pointi] > SMALL)
         {
-	    septernion ss(s);
-	    if (scale[pointi] <= 1 - SMALL)			
-		ss= slerp(septernion::I, s, scale[pointi]);
-
+	        septernion ss(s);
+	        if (scale[pointi] <= 1 - SMALL)
+            {
+                ss= slerp(septernion::I, s, scale[pointi]);
+            }
             points[pointi] =
                     initialCentreOfRotation()
                   + ss.invTransformPoint
@@ -459,9 +463,13 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
         }
         // Add x- and y-scale translations to the point location 
         if (xScale[pointi]>SMALL)
-        {   points[pointi].x() += xScale[pointi]*tPoint.x();   }
+        {   
+            points[pointi].x() += xScale[pointi]*tPoint.x();   
+        }
         if (yScale[pointi]>SMALL)
-        {   points[pointi].y() += yScale[pointi]*tPoint.y();   }
+        {   
+            points[pointi].y() += yScale[pointi]*tPoint.y();   
+        }
     
     }
 
@@ -488,7 +496,9 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
 	forAll(points,pointi)
 	{
 		if (scale[pointi] <= 1-SMALL)
+        {
 			points[pointi] = initialCentreOfRotation(); 
+        }
 	}
 	
 	//- Use boundBox to get min and max x-value of the deformation sphere of scale.
@@ -502,12 +512,13 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
 	vector maxDomain = boxi.max();
 
 	// Compute domain-adjusted interpolation lengths dx and dy
-	scalar dx = min( min(minVal.x()-minDomain.x(),	maxDomain.x()-maxVal.x() )
+	scalar dx = min(min(minVal.x() - minDomain.x(),	maxDomain.x() - maxVal.x())
 			, xdist);	
-	scalar dy = min( min(minVal.y()-minDomain.y(),	maxDomain.y()-maxVal.y() )
+	scalar dy = min(min(minVal.y() - minDomain.y(),	maxDomain.y() - maxVal.y())
 			, ydist);
 
 	if (dx > SMALL)
+    {
 		//- Set xScale values based on minVal and maxVal 
 		forAll(initialPoints,pointi)
 		{
@@ -515,44 +526,50 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
 			const scalar& xVal = initialPoints[pointi].x();
 						
 			// Compute x-scale on right side of bound-box.
-		    	if ( xVal >= maxVal.x() )
+		    if ( xVal >= maxVal.x() )
+            {
 				xScale[pointi]= max( 1.0 - (xVal-maxVal.x())/dx, 0.0 );
-					
-			else if ( xVal <= minVal.x() ) // left side of bound box
-					
-				xScale[pointi]= max( 1.0 - (minVal.x()-xVal)/dx, 0.0 );
-					
-			else // inside the bound box (x-wise), use rigid body x-motion
+            }	
+            // left side of bound box
+			else if ( xVal <= minVal.x() ) 
+			{		
+			    xScale[pointi]= max( 1.0 - (minVal.x()-xVal)/dx, 0.0 );
+            }	
+            // inside the bound box (x-wise), use rigid body x-motion	
+			else
+            { 
 				xScale[pointi]= 1.0;
-	}
+            }
+	    }
+    }
 
 	// Repeat for y-scale
 	if ( dy > SMALL ) 
-    	{
+    {
 		forAll(initialPoints,pointi)
 		{
 			const scalar& yVal = initialPoints[pointi].y();
 			if ( yVal >= maxVal.y() ) 
+            {
 				yScale[pointi]= max( 1.0 - (yVal-maxVal.y())/dy, 0.0 );
-					
-			else if ( yVal <= minVal.y() )				
+            }		
+			else if ( yVal <= minVal.y() )	
+            {			
 				yScale[pointi]= max( 1.0 - (minVal.y()-yVal)/dy, 0.0 );
-					
-			else 
+            }		
+			else
+            { 
 				yScale[pointi]= 1.0;			
-
+            }
 		}
 		
 		// If x-scale is used, multiply to avoid moving relaxation zones at x=start and end
 		if (dx > SMALL)
+        {
 			yScale *= xScale;
-	}
+	    }
+    }
 		
 	return;
 }
-
-// Update method ends
-//--- modifiedMeshMorphing}
-
-
 // ************************************************************************* //
