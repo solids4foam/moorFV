@@ -77,10 +77,10 @@ class sixDoFRigidBodyMotionFvBeamSolver
         const scalar do_;
 
 
-        //---Modified Morphing{ 
+        //---Modified Morphing{
         //- Switch to use the domain check for the outer distance
-        bool outerDistanceDomainCheck_; 
-        
+        bool outerDistanceDomainCheck_;
+
         //- Morphing distances of x- and y-directions respectively (length of linear interpolation region)
         const scalar xdist_;
 
@@ -105,8 +105,8 @@ class sixDoFRigidBodyMotionFvBeamSolver
 
 
         //---Modified Morphing{
-        //- X-coordinate scale field (1 is rigid body transform, 0 is static mesh) 
-        pointScalarField xscale_; 
+        //- X-coordinate scale field (1 is rigid body transform, 0 is static mesh)
+        pointScalarField xscale_;
 
         //- Y-coordinate scale field (1 is rigid body transform, 0 is static mesh)
         pointScalarField yscale_;
@@ -131,9 +131,9 @@ class sixDoFRigidBodyMotionFvBeamSolver
         void operator=(const sixDoFRigidBodyMotionFvBeamSolver&) = delete;
 
         //---Modified Morphing{
-        //- 
+        //-
         void cosineTransition(pointScalarField& scale);
-        
+
         //---Modified Morphing}
 
 

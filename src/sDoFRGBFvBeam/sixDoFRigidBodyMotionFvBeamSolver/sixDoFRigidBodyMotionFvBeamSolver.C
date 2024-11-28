@@ -90,7 +90,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
             "uniform",
             mesh
         ).typeHeaderOk<IOdictionary>(true)
-      ? IOdictionary
+        ? IOdictionary
         (
             IOobject
             (
@@ -103,7 +103,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
                 false
             )
         )
-      : coeffDict(),
+        : coeffDict(),
         mesh.time()
     ),
     patches_(coeffDict().get<wordRes>("patches")),
@@ -201,7 +201,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         //         ),
         //         scalar(1)
         //     );
-        cosineTransition(scale_);   // ModMorph adaptation to shorten code. 
+        cosineTransition(scale_);   // ModMorph adaptation to shorten code.
         pointConstraints::New(pMesh).constrain(scale_);
         scale_.write();
 
@@ -212,18 +212,18 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         {
             motion_.updateXYScale(points0(), xdist_, ydist_, scale_, xscale_, yscale_);
             if (xdist_>0)
-            {   
-                cosineTransition(xscale_);      
+            {
+                cosineTransition(xscale_);
                 pointConstraints::New(pMesh).constrain(xscale_);
                 xscale_.write();
             }
             if (ydist_>0)
-            {   
-                cosineTransition(yscale_);     
+            {
+                cosineTransition(yscale_);
                 pointConstraints::New(pMesh).constrain(yscale_);
                 yscale_.write();
             }
-        } 
+        }
         //---ModMorph}
     }
 }
@@ -327,8 +327,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
             ramp*(f.forceEff() + motion_.mass()*g.value()),
             ramp
            *(
-               f.momentEff()
-             + motion_.mass()*(motion_.momentArm() ^ g.value())
+                f.momentEff()
+                + motion_.mass()*(motion_.momentArm() ^ g.value())
             ),
             t.deltaTValue(),
             t.deltaT0Value()

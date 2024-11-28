@@ -64,7 +64,7 @@ namespace Foam
 class sixDoFFvBeamSolver;
 
 /*---------------------------------------------------------------------------*\
-                      Class sixDoFRigidBodyMotionFvBeam Declaration
+                    Class sixDoFRigidBodyMotionFvBeam Declaration
 \*---------------------------------------------------------------------------*/
 
 class sixDoFRigidBodyMotionFvBeam
