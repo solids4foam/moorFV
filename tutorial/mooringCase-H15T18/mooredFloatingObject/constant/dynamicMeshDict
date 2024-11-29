@@ -37,8 +37,8 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 
     // Cuboid dimensions
     Lx              0.2;
-	Ly              0.2;
-	Lz              0.132;
+    Ly              0.2;
+    Lz              0.132;
 
     // Cuboid mass
     mass           3.144;
@@ -58,56 +58,56 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 
     constraints {}
 
-	restraints
-	{
-		beam1
-	    {
-		    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+        restraints
+        {
+                beam1
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
-		    attachmentPatch	right;
-		
-		    anchorPatch left;
-		
-		    beamRegion 	"beamone";
+                    attachmentPatch	right;
 
-		    refAttachmentPt (-0.1 -0.1 -0.0786);
-	    }   
-		beam2
-	    {
-		    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    anchorPatch left;
 
-		    attachmentPatch	left;
-		
-		    anchorPatch	right;		
+                    beamRegion  "beamone";
 
-		    beamRegion 	"beamtwo";
+                    refAttachmentPt (-0.1 -0.1 -0.0786);
+            }
+                beam2
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
-		    refAttachmentPt (0.1 -0.1 -0.0786);
-	    }
-   	    beam3
-	    {
-		    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    attachmentPatch	left;
 
-		    attachmentPatch	right;
-		
-		    anchorPatch	left;		
+                    anchorPatch	right;
 
-		    beamRegion 	"beamthree";
+                    beamRegion  "beamtwo";
 
-		    refAttachmentPt (-0.1 0.1 -0.0786);
-	    }
-   	    beam4
-	    {
-		    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    refAttachmentPt (0.1 -0.1 -0.0786);
+            }
+            beam3
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
 
-		    attachmentPatch	left;
+                    attachmentPatch	right;
 
-		    anchorPatch	right;
+                    anchorPatch	left;
 
-		    beamRegion 	"beamfour";
+                    beamRegion  "beamthree";
 
-		    refAttachmentPt (0.1 0.1 -0.0786);
-	    }
+                    refAttachmentPt (-0.1 0.1 -0.0786);
+            }
+            beam4
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+
+                    attachmentPatch	left;
+
+                    anchorPatch	right;
+
+                    beamRegion  "beamfour";
+
+                    refAttachmentPt (0.1 0.1 -0.0786);
+            }
 
     }
 }

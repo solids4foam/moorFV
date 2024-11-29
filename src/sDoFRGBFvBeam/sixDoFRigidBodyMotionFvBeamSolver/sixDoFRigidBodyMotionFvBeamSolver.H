@@ -77,15 +77,15 @@ class sixDoFRigidBodyMotionFvBeamSolver
         const scalar do_;
 
 
-        //---Modified Morphing{
+        
         //- Switch to use the domain check for the outer distance
         bool outerDistanceDomainCheck_;
 
-        //- Morphing distances of x- and y-directions respectively (length of linear interpolation region)
-        const scalar xdist_;
+        //- Morphing distances of x- and y-directions respectively (length of linear interpolation region), -1 makes it inactive
+        const scalar xDist_;
 
-        const scalar ydist_;
-        //---Modified Morphing}
+        const scalar yDist_;
+
 
 
         //- Test-mode in which only the gravitational body-force is applied

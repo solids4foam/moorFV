@@ -332,12 +332,12 @@ public:
                 const pointField& initialPoints,
                 const scalarField& scale
             ) const;
-            //- {modified mesh morphing
+            //- New transform method based on two scales. One for surge, and one for 5 dof motion.
             tmp<pointField> transform
             (
                 const pointField& initialPoints,
-                const scalar& xdist,
-                const scalar& ydist,
+                const scalar& xDist,
+                const scalar& yDist,
                 const scalarField& scale,
                 const scalarField& xScale,
                 const scalarField& yScale
@@ -346,8 +346,8 @@ public:
             void updateXYScale
             (
                 const pointField& initialPoints,
-                const scalar& xdist,
-                const scalar& ydist,
+                const scalar& xDist,
+                const scalar& yDist,
                 const scalarField& scale,
                 scalarField& xScale,
                 scalarField& yScale

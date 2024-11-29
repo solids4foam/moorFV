@@ -48,27 +48,28 @@ namespace Foam
         dictionary
     );
 }
-//---Modified Morphing{
 // * * * * * * * * * * * * * * private member functions  * * * * * * * * * * * * * //
-void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition(pointScalarField& scale)
+void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition
+(
+    pointScalarField& scale
+)
 {
     // Convert the scale function to a cosine
-        scale.primitiveFieldRef() =
-            min
-            (
-                max
-                (
-                    0.5
-                  - 0.5
-                   *cos(scale.primitiveField()
-                   *Foam::constant::mathematical::pi),
-                    scalar(0)
-                ),
-                scalar(1)
-            );
-        return;
+    scale.primitiveFieldRef() =
+        min
+        (
+            max
+        (
+            0.5 -
+            0.5 *
+            cos(scale.primitiveField() *
+            Foam::constant::mathematical::pi),
+            scalar(0)
+        ),
+            scalar(1)
+        );
+    return;
 };
-//---Modified Morphing}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -90,7 +91,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
             "uniform",
             mesh
         ).typeHeaderOk<IOdictionary>(true)
-        ? IOdictionary
+      ? IOdictionary
         (
             IOobject
             (
@@ -102,17 +103,24 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
                 IOobject::NO_WRITE,
                 false
             )
-        )
-        : coeffDict(),
+        ):
+        coeffDict(),
         mesh.time()
     ),
     patches_(coeffDict().get<wordRes>("patches")),
     patchSet_(mesh.boundaryMesh().patchSet(patches_)),
     di_(coeffDict().get<scalar>("innerDistance")),
     do_(coeffDict().get<scalar>("outerDistance")),
-    outerDistanceDomainCheck_(coeffDict().getOrDefault("containOuterDistance",false)),
-    xdist_(coeffDict().getOrDefault<scalar>("xDistance",-1)),   // Modified Morph: -1 means not used
-    ydist_(coeffDict().getOrDefault<scalar>("yDistance",-1)),   // Modified Morph: -1 means not used
+    outerDistanceDomainCheck_
+    (
+        coeffDict().getOrDefault
+        (
+            "containOuterDistance",
+            false
+        )
+    ),
+    xDist_(coeffDict().getOrDefault<scalar>("xDistance",-1)),
+    yDist_(coeffDict().getOrDefault<scalar>("yDistance",-1)),
     test_(coeffDict().getOrDefault("test", false)),
     rhoInf_(1.0),
     rhoName_(coeffDict().getOrDefault<word>("rho", "rho")),
@@ -159,7 +167,6 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         pointMesh::New(mesh),
         dimensionedScalar(dimless, Zero)
     ),
-    //---Modified Morphing}
     curTimeIndex_(-1),
     CofGvelocity_(coeffDict().getOrDefault<word>("CofGvelocity", "none"))
 {
@@ -201,30 +208,28 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         //         ),
         //         scalar(1)
         //     );
-        cosineTransition(scale_);   // ModMorph adaptation to shorten code.
+        cosineTransition(scale_);
         pointConstraints::New(pMesh).constrain(scale_);
         scale_.write();
 
-        //---ModMorph{
         // Compute x or y scale transitions
         // Note: Put implementation in motion_ to allow for parallel computing.
-        if (xdist_>0 || ydist_>0)
+        if (xDist_>0 || ydist_>0)
         {
-            motion_.updateXYScale(points0(), xdist_, ydist_, scale_, xscale_, yscale_);
-            if (xdist_>0)
+            motion_.updateXYScale(points0(), xDist_, yDist_, scale_, xscale_, yscale_);
+            if (xDist_>0)
             {
                 cosineTransition(xscale_);
                 pointConstraints::New(pMesh).constrain(xscale_);
                 xscale_.write();
             }
-            if (ydist_>0)
+            if (yDist_>0)
             {
                 cosineTransition(yscale_);
                 pointConstraints::New(pMesh).constrain(yscale_);
                 yscale_.write();
             }
         }
-        //---ModMorph}
     }
 }
 
@@ -357,10 +362,10 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
     // Update the displacements
     //--- Modified Morphing{
     // Update x- or y-compensated morphed positions
-    if (xdist_ >0 || ydist_>0)
+    if (xDist_ >0 || ydist_>0)
     {
         pointDisplacement_.primitiveFieldRef() =
-            motion_.transform(points0(), xdist_, ydist_, scale_, xscale_, yscale_) - points0();   
+            motion_.transform(points0(), xDist_, yDist_, scale_, xscale_, yscale_) - points0();   
     }
     else // do normal morphing operation. 
     {
