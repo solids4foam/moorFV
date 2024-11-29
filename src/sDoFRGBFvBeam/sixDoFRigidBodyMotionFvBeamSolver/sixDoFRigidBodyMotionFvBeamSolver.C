@@ -218,7 +218,15 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         // Note: Put implementation in motion_ to allow for parallel computing.
         if (xDist_ > 0 || yDist_ > 0)
         {
-            motion_.updateXYScale(points0(), xDist_, yDist_, scale_, xscale_, yscale_);
+            motion_.updateXYScale
+            (
+                points0(),
+                xDist_,
+                yDist_,
+                scale_,
+                xscale_,
+                yscale_
+            );
             if (xDist_ > 0)
             {
                 cosineTransition(xscale_);
@@ -334,8 +342,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
             ramp*(f.forceEff() + motion_.mass()*g.value()),
             ramp
            *(
-                f.momentEff()
-                + motion_.mass()*(motion_.momentArm() ^ g.value())
+                f.momentEff() +
+                motion_.mass()*(motion_.momentArm() ^ g.value())
             ),
             t.deltaTValue(),
             t.deltaT0Value()

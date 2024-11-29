@@ -352,7 +352,6 @@ public:
                 scalarField& xScale,
                 scalarField& yScale
             ) const;
-            //-modified mesh morphing}
 
         //- Write
         void write(Ostream&) const;

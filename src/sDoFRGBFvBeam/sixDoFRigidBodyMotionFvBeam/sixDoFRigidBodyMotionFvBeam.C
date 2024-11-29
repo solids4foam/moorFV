@@ -409,12 +409,12 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     const scalarField& yScale
 ) const
 {
-    //- Get switches for different directions. True means active translation region -//
+    // Get switches for different directions. True means active translation region
     const bool isXScale = xDist > 0;
     const bool isYScale = yDist > 0;
     
     // Compute translation displacement.
-    // tPoint- point to morph in translation regions of tDist
+    // tPoint - point to morph in translation regions of tDist
     // slerpPoint - point offset to morph with slerp region
     point tPoint = centreOfRotation() - initialCentreOfRotation();
     // Create slerp point as origin of rotation slerp. Remove translation if present as switches.
@@ -427,7 +427,8 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     {
         slerpPoint.y() = 0;
     }
-    // Calculate the transformation septerion from the initial state for the slerp dofs.
+    // Calculate the transformation septerion from the
+    // initial state for the slerp dofs.
     septernion s
     (
         slerpPoint,
@@ -515,17 +516,16 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
         // Set xScale values based on minVal and maxVal
         forAll(initialPoints,pointi)
         {
-            // Shorthand notation:
             const scalar xVal = initialPoints[pointi].x();
             // Compute x-scale on right side of bound-box.
             if ( xVal >= maxVal.x() )
             {
-                xScale[pointi] = max( 1.0 - (xVal-maxVal.x())/dx, 0.0 );
+                xScale[pointi] = max(1.0 - (xVal-maxVal.x())/dx, 0.0);
             }
             // left side of bound box
             else if ( xVal <= minVal.x() )
             {
-                xScale[pointi] = max(1.0 - (minVal.x()-xVal)/dx, 0.0 );
+                xScale[pointi] = max(1.0 - (minVal.x()-xVal)/dx, 0.0);
             }
             // inside the bound box (x-wise), use rigid body x-motion
             else

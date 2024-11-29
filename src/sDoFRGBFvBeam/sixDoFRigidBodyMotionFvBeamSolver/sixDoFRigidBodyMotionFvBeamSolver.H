@@ -81,7 +81,9 @@ class sixDoFRigidBodyMotionFvBeamSolver
         //- Switch to use the domain check for the outer distance
         bool outerDistanceDomainCheck_;
 
-        //- Morphing distances of x- and y-directions respectively (length of linear interpolation region), -1 makes it inactive
+        //- Morphing distances of x- and y-directions respectively
+        //  (length of linear interpolation region),
+        //  -1 makes it inactive
         const scalar xDist_;
 
         const scalar yDist_;
