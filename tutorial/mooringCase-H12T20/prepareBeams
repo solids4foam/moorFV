@@ -1,14 +1,39 @@
 #!/bin/bash
-declare -a arr=("beamone" "beamtwo" "beamthree" "beamfour")
-for i in "${arr[@]}"
-do
-    cd cables_initialization/$i
-    printf 'Initilizing %s\n' "$i"
-    ./Allrun > log.beamMeshing && beamFoam > log.beamFoam
-    cd ../..
-    cp -r cables_initialization/$i/2 mooredFloatingObject/0.orig/$i
-    cp -r cables_initialization/$i/constant/ mooredFloatingObject/constant/$i
-    sed -i 's/fixedDisplacement/fixedValue/g' mooredFloatingObject/0.orig/$i/W
-    sed -i "s@constant/timeVsMoment@constant/$i/timeVsMoment@g" mooredFloatingObject/0.orig/$i/Theta
 
+# Base directory to look for beam folders
+base_dir="./cables_initialization"
+# finding beams
+beams=($(find "$base_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
+
+
+echo "Beams found: ${beams[@]}"
+
+process_beam()
+{
+    local beam="$1"
+    local beam_dir="$base_dir/$beam"
+    local case_dir="mooredFloatingObject"
+
+    echo "Initializing $beam"    
+    (
+        cd "$beam_dir" || exit
+        ./Allrun > log.beamMeshing && beamFoam > log.beamFoam
+    )
+    max_time_folder=$(find "$beam_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -E '^[0-9]+$' | sort -n | tail -1)
+
+    if [[ -z "$max_time_folder" ]]; then
+        echo "Error: No time folders found in $beam_dir, check beamFoam log file"
+        exit 1
+    fi
+
+    mkdir -p "$case_dir/0.orig/$beam" "$case_dir/constant/$beam"
+    cp -r "$beam_dir/$max_time_folder/" "$case_dir/0.orig/$beam"
+    cp -r "$beam_dir/constant/" "$case_dir/constant/$beam"    
+    sed -i 's/fixedDisplacement/fixedValue/g' "$case_dir/0.orig/$beam/W"
+    sed -i "s@constant/timeVsMoment@constant/$beam/timeVsMoment@g" "$case_dir/0.orig/$beam/Theta"
+}
+
+for beam in "${beams[@]}"; do
+    process_beam "$beam"
 done
+
