@@ -62,8 +62,11 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition
             (
                 0.5 -
                 0.5 *
-                cos(scale.primitiveField() *
-                Foam::constant::mathematical::pi),
+                cos
+                (
+                    scale.primitiveField() *
+                    Foam::constant::mathematical::pi
+                ),
                 scalar(0)
             ),
             scalar(1)
@@ -213,7 +216,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         // Compute x or y scale transitions
         // Note: Put implementation in motion_ to allow for parallel computing.
-        if (xDist_ > 0 || ydist_ > 0)
+        if (xDist_ > 0 || yDist_ > 0)
         {
             motion_.updateXYScale(points0(), xDist_, yDist_, scale_, xscale_, yscale_);
             if (xDist_ > 0)
@@ -360,7 +363,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
 
     // Update the displacements
     // Update x- or y-compensated morphed positions
-    if (xDist_ > 0 || ydist_ > 0)
+    if (xDist_ > 0 || yDist_ > 0)
     {
         pointDisplacement_.primitiveFieldRef() =
             motion_.transform

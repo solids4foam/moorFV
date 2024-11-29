@@ -412,7 +412,7 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     //- Get switches for different directions. True means active translation region -//
     const bool isXScale = xDist > 0;
     const bool isYScale = yDist > 0;
-
+    
     // Compute translation displacement.
     // tPoint- point to morph in translation regions of tDist
     // slerpPoint - point offset to morph with slerp region
@@ -481,12 +481,12 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     scalarField& yScale
 ) const
 {
-    //- Collect initial points as copy of points
+    // Collect initial points as copy of points
     tmp<pointField> tpoints(new pointField(initialPoints));
     pointField& points = tpoints.ref();
 
     // Find the bounding box of the inner (or outer) distance from scale
-    //- Move all points to inside the slerp scale domain. Then compute boundBox
+    // Move all points to inside the slerp scale domain. Then compute boundBox
     forAll(points,pointi)
     {
         if (scale[pointi] <= 1 - SMALL)
@@ -496,13 +496,13 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     }
     // Use boundBox to get min and max x-value of the deformation sphere of scale.
     boundBox box(points);
-    vector minVal = box.min();
-    vector maxVal = box.max();
+    const vector minVal = box.min();
+    const vector maxVal = box.max();
 
     // Compute bound box of whole domain, stable for rectangular box domains.
     boundBox boxi(initialPoints);
-    vector minDomain = boxi.min();
-    vector maxDomain = boxi.max();
+    const vector minDomain = boxi.min();
+    const vector maxDomain = boxi.max();
 
     // Compute domain-adjusted interpolation lengths dx and dy
     scalar dx = min(min(minVal.x() - minDomain.x(), maxDomain.x() - maxVal.x())
@@ -516,7 +516,7 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
         forAll(initialPoints,pointi)
         {
             // Shorthand notation:
-            const scalar& xVal = initialPoints[pointi].x();
+            const scalar xVal = initialPoints[pointi].x();
             // Compute x-scale on right side of bound-box.
             if ( xVal >= maxVal.x() )
             {
@@ -540,7 +540,7 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     {
         forAll(initialPoints,pointi)
         {
-            const scalar& yVal = initialPoints[pointi].y();
+            const scalar yVal = initialPoints[pointi].y();
             if ( yVal >= maxVal.y() )
             {
                 yScale[pointi] = max( 1.0 - (yVal-maxVal.y())/dy, 0.0 );
