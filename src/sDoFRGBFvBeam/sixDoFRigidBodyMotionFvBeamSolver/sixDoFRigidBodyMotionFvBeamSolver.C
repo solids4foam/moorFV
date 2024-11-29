@@ -59,13 +59,13 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition
         min
         (
             max
-        (
-            0.5 -
-            0.5 *
-            cos(scale.primitiveField() *
-            Foam::constant::mathematical::pi),
-            scalar(0)
-        ),
+            (
+                0.5 -
+                0.5 *
+                cos(scale.primitiveField() *
+                Foam::constant::mathematical::pi),
+                scalar(0)
+            ),
             scalar(1)
         );
     return;
@@ -138,7 +138,6 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         pointMesh::New(mesh),
         dimensionedScalar(dimless, Zero)
     ),
-    //---Modified Morphing{
     xscale_
     (
         IOobject
@@ -214,16 +213,16 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         // Compute x or y scale transitions
         // Note: Put implementation in motion_ to allow for parallel computing.
-        if (xDist_>0 || ydist_>0)
+        if (xDist_ > 0 || ydist_ > 0)
         {
             motion_.updateXYScale(points0(), xDist_, yDist_, scale_, xscale_, yscale_);
-            if (xDist_>0)
+            if (xDist_ > 0)
             {
                 cosineTransition(xscale_);
                 pointConstraints::New(pMesh).constrain(xscale_);
                 xscale_.write();
             }
-            if (yDist_>0)
+            if (yDist_ > 0)
             {
                 cosineTransition(yscale_);
                 pointConstraints::New(pMesh).constrain(yscale_);
@@ -360,20 +359,28 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
     }
 
     // Update the displacements
-    //--- Modified Morphing{
     // Update x- or y-compensated morphed positions
-    if (xDist_ >0 || ydist_>0)
+    if (xDist_ > 0 || ydist_ > 0)
     {
         pointDisplacement_.primitiveFieldRef() =
-            motion_.transform(points0(), xDist_, yDist_, scale_, xscale_, yscale_) - points0();   
+            motion_.transform
+            (
+                points0(),
+                xDist_,
+                yDist_,
+                scale_,
+                xscale_,
+                yscale_
+            ) -
+            points0();   
     }
-    else // do normal morphing operation. 
+    // do normal morphing operation 
+    else 
     {
         pointDisplacement_.primitiveFieldRef() =
             motion_.transform(points0(), scale_) - points0();
     }
-    //--- Modified Morphing}
-
+    
     // Displacement has changed. Update boundary conditions
     pointConstraints::New
     (
