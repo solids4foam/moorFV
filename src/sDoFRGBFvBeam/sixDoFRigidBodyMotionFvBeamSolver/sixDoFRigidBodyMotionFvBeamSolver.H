@@ -106,13 +106,13 @@ class sixDoFRigidBodyMotionFvBeamSolver
         pointScalarField scale_;
 
 
-        //---Modified Morphing{
+
         //- X-coordinate scale field (1 is rigid body transform, 0 is static mesh)
         pointScalarField xscale_;
 
         //- Y-coordinate scale field (1 is rigid body transform, 0 is static mesh)
         pointScalarField yscale_;
-        //---Modified Morphing}
+
 
         //- Current time index (used for updating)
         label curTimeIndex_;
@@ -132,11 +132,11 @@ class sixDoFRigidBodyMotionFvBeamSolver
         //- No copy assignment
         void operator=(const sixDoFRigidBodyMotionFvBeamSolver&) = delete;
 
-        //---Modified Morphing{
-        //-
+
+        //- convert scale function to a cosine
         void cosineTransition(pointScalarField& scale);
 
-        //---Modified Morphing}
+
 
 
 public:

@@ -54,7 +54,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition
     pointScalarField& scale
 )
 {
-    // Convert the scale function to a cosine
     scale.primitiveFieldRef() =
         min
         (
