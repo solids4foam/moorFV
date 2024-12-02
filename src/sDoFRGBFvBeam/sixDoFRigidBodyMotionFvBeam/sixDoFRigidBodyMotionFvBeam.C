@@ -348,8 +348,8 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
 {
     return
     (
-        centreOfRotation() +
-        (Q() & initialQ_.T() & (initialPoints - initialCentreOfRotation_))
+        centreOfRotation()
+      + (Q() & initialQ_.T() & (initialPoints - initialCentreOfRotation_))
     );
 }
 
@@ -386,11 +386,11 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
                 septernion ss(slerp(septernion::I, s, scale[pointi]));
 
                 points[pointi] =
-                    initialCentreOfRotation() +
-                    ss.invTransformPoint
+                    initialCentreOfRotation()
+                  + ss.invTransformPoint
                     (
-                        initialPoints[pointi] -
-                        initialCentreOfRotation()
+                        initialPoints[pointi]
+                      - initialCentreOfRotation()
                     );
             }
         }
@@ -450,11 +450,11 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
                 ss = slerp(septernion::I, s, scale[pointi]);
             }
             points[pointi] =
-                initialCentreOfRotation() +
-                ss.invTransformPoint
+                initialCentreOfRotation()
+              + ss.invTransformPoint
                 (
-                    initialPoints[pointi] -
-                    initialCentreOfRotation()
+                    initialPoints[pointi]
+                  - initialCentreOfRotation()
                 );
         }
         // Add x- and y-scale translations to the point location
@@ -506,10 +506,10 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     const vector maxDomain = boxi.max();
 
     // Compute domain-adjusted interpolation lengths dx and dy
-    scalar dx = min(min(minVal.x() - minDomain.x(), maxDomain.x() - maxVal.x())
-                , xDist);
-    scalar dy = min(min(minVal.y() - minDomain.y(), maxDomain.y() - maxVal.y())
-                , yDist);
+    scalar dx =
+        min(min(minVal.x() - minDomain.x(), maxDomain.x() - maxVal.x()), xDist);
+    scalar dy =
+        min(min(minVal.y() - minDomain.y(), maxDomain.y() - maxVal.y()), yDist);
 
     if (dx > SMALL)
     {
@@ -520,12 +520,12 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
             // Compute x-scale on right side of bound-box.
             if ( xVal >= maxVal.x() )
             {
-                xScale[pointi] = max(1.0 - (xVal-maxVal.x())/dx, 0.0);
+                xScale[pointi] = max(1.0 - (xVal - maxVal.x())/dx, 0.0);
             }
             // left side of bound box
             else if ( xVal <= minVal.x() )
             {
-                xScale[pointi] = max(1.0 - (minVal.x()-xVal)/dx, 0.0);
+                xScale[pointi] = max(1.0 - (minVal.x() - xVal)/dx, 0.0);
             }
             // inside the bound box (x-wise), use rigid body x-motion
             else
@@ -536,18 +536,18 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     }
 
     // Repeat for y-scale
-    if ( dy > SMALL )
+    if (dy > SMALL)
     {
         forAll(initialPoints,pointi)
         {
             const scalar yVal = initialPoints[pointi].y();
             if ( yVal >= maxVal.y() )
             {
-                yScale[pointi] = max( 1.0 - (yVal-maxVal.y())/dy, 0.0 );
+                yScale[pointi] = max( 1.0 - (yVal - maxVal.y())/dy, 0.0 );
             }
             else if ( yVal <= minVal.y() )
             {
-                yScale[pointi] = max( 1.0 - (minVal.y()-yVal)/dy, 0.0 );
+                yScale[pointi] = max( 1.0 - (minVal.y() - yVal)/dy, 0.0 );
             }
             else
             {

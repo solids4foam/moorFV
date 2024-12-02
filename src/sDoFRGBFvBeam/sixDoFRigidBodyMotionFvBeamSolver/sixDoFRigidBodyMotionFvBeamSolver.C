@@ -105,8 +105,8 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
                 IOobject::NO_WRITE,
                 false
             )
-        ):
-        coeffDict(),
+        )
+      : coeffDict(),
         mesh.time()
     ),
     patches_(coeffDict().get<wordRes>("patches")),
@@ -121,8 +121,8 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
             false
         )
     ),
-    xDist_(coeffDict().getOrDefault<scalar>("xDistance",-1)),
-    yDist_(coeffDict().getOrDefault<scalar>("yDistance",-1)),
+    xDist_(coeffDict().getOrDefault<scalar>("xDistance", -1)),
+    yDist_(coeffDict().getOrDefault<scalar>("yDistance", -1)),
     test_(coeffDict().getOrDefault("test", false)),
     rhoInf_(1.0),
     rhoName_(coeffDict().getOrDefault<word>("rho", "rho")),
@@ -341,8 +341,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
             ramp*(f.forceEff() + motion_.mass()*g.value()),
             ramp
            *(
-                f.momentEff() +
-                motion_.mass()*(motion_.momentArm() ^ g.value())
+                f.momentEff()
+              + motion_.mass()*(motion_.momentArm() ^ g.value())
             ),
             t.deltaTValue(),
             t.deltaT0Value()
