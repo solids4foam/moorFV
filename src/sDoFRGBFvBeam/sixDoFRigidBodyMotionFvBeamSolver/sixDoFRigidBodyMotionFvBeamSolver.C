@@ -48,6 +48,30 @@ namespace Foam
         dictionary
     );
 }
+// * * * * * * * * * * * * * * private member functions  * * * * * * * * * * * * * //
+void Foam::sixDoFRigidBodyMotionFvBeamSolver::cosineTransition
+(
+    pointScalarField& scale
+)
+{
+    scale.primitiveFieldRef() =
+        min
+        (
+            max
+            (
+                0.5 -
+                0.5 *
+                cos
+                (
+                    scale.primitiveField() *
+                    Foam::constant::mathematical::pi
+                ),
+                scalar(0)
+            ),
+            scalar(1)
+        );
+    return;
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -89,6 +113,16 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
     patchSet_(mesh.boundaryMesh().patchSet(patches_)),
     di_(coeffDict().get<scalar>("innerDistance")),
     do_(coeffDict().get<scalar>("outerDistance")),
+    outerDistanceDomainCheck_
+    (
+        coeffDict().getOrDefault
+        (
+            "containOuterDistance",
+            false
+        )
+    ),
+    xDist_(coeffDict().getOrDefault<scalar>("xDistance", -1)),
+    yDist_(coeffDict().getOrDefault<scalar>("yDistance", -1)),
     test_(coeffDict().getOrDefault("test", false)),
     rhoInf_(1.0),
     rhoName_(coeffDict().getOrDefault<word>("rho", "rho")),
@@ -106,6 +140,34 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
         pointMesh::New(mesh),
         dimensionedScalar(dimless, Zero)
     ),
+    xscale_
+    (
+        IOobject
+        (
+            "xmotionScale",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            IOobject::NO_REGISTER
+        ),
+        pointMesh::New(mesh),
+        dimensionedScalar(dimless, Zero)
+    ),
+    yscale_
+    (
+        IOobject
+        (
+            "ymotionScale",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            IOobject::NO_REGISTER
+        ),
+        pointMesh::New(mesh),
+        dimensionedScalar(dimless, Zero)
+    ),
     curTimeIndex_(-1),
     CofGvelocity_(coeffDict().getOrDefault<word>("CofGvelocity", "none"))
 {
@@ -116,7 +178,6 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
     // Calculate scaling factor everywhere
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     {
         const pointMesh& pMesh = pointMesh::New(mesh);
 
@@ -135,22 +196,49 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
             );
 
         // Convert the scale function to a cosine
-        scale_.primitiveFieldRef() =
-            min
-            (
-                max
-                (
-                    0.5
-                  - 0.5
-                   *cos(scale_.primitiveField()
-                   *Foam::constant::mathematical::pi),
-                    scalar(0)
-                ),
-                scalar(1)
-            );
-
+        // scale_.primitiveFieldRef() =
+        //     min
+        //     (
+        //         max
+        //         (
+        //             0.5
+        //           - 0.5
+        //            *cos(scale_.primitiveField()
+        //            *Foam::constant::mathematical::pi),
+        //             scalar(0)
+        //         ),
+        //         scalar(1)
+        //     );
+        cosineTransition(scale_);
         pointConstraints::New(pMesh).constrain(scale_);
         scale_.write();
+
+        // Compute x or y scale transitions
+        // Note: Put implementation in motion_ to allow for parallel computing.
+        if (xDist_ > 0 || yDist_ > 0)
+        {
+            motion_.updateXYScale
+            (
+                points0(),
+                xDist_,
+                yDist_,
+                scale_,
+                xscale_,
+                yscale_
+            );
+            if (xDist_ > 0)
+            {
+                cosineTransition(xscale_);
+                pointConstraints::New(pMesh).constrain(xscale_);
+                xscale_.write();
+            }
+            if (yDist_ > 0)
+            {
+                cosineTransition(yscale_);
+                pointConstraints::New(pMesh).constrain(yscale_);
+                yscale_.write();
+            }
+        }
     }
 }
 
@@ -253,8 +341,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
             ramp*(f.forceEff() + motion_.mass()*g.value()),
             ramp
            *(
-               f.momentEff()
-             + motion_.mass()*(motion_.momentArm() ^ g.value())
+                f.momentEff()
+              + motion_.mass()*(motion_.momentArm() ^ g.value())
             ),
             t.deltaTValue(),
             t.deltaT0Value()
@@ -281,9 +369,28 @@ void Foam::sixDoFRigidBodyMotionFvBeamSolver::solve()
     }
 
     // Update the displacements
-    pointDisplacement_.primitiveFieldRef() =
-        motion_.transform(points0(), scale_) - points0();
-
+    // Update x- or y-compensated morphed positions
+    if (xDist_ > 0 || yDist_ > 0)
+    {
+        pointDisplacement_.primitiveFieldRef() =
+            motion_.transform
+            (
+                points0(),
+                xDist_,
+                yDist_,
+                scale_,
+                xscale_,
+                yscale_
+            ) -
+            points0();   
+    }
+    // do normal morphing operation 
+    else 
+    {
+        pointDisplacement_.primitiveFieldRef() =
+            motion_.transform(points0(), scale_) - points0();
+    }
+    
     // Displacement has changed. Update boundary conditions
     pointConstraints::New
     (

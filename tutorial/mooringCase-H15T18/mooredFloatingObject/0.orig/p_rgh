@@ -21,12 +21,25 @@ internalField   uniform 0;
 
 boundaryField
 {
-    stationaryWalls
+    frontWall
     {
         type            fixedFluxPressure;
         gradient        uniform 0;
         value           uniform 0;
     }
+    backWall
+    {
+        type            fixedFluxPressure;
+        gradient        uniform 0;
+        value           uniform 0;
+    }
+    bottomWall
+    {
+        type            fixedFluxPressure;
+        gradient        uniform 0;
+        value           uniform 0;
+    }
+
     inlet
     {
         type            fixedFluxPressure;

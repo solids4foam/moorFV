@@ -21,7 +21,15 @@ internalField   uniform 0;
 
 boundaryField
 {
-    stationaryWalls
+    frontWall
+    {
+        type            zeroGradient;
+    }
+    backWall
+    {
+        type            zeroGradient;
+    }
+    bottomWall
     {
         type            zeroGradient;
     }

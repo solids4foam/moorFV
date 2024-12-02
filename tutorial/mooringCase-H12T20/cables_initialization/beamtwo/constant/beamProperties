@@ -33,7 +33,7 @@ nSegments 60; //change this to 20
 
     groundContactActive true;
     groundZ -0.5;
-    gStiffness 1E04;
+    gStiffness 1E03;
     gDamping 1.0;
     nSegments 60;
 
@@ -60,7 +60,8 @@ nSegments 60; //change this to 20
     // steadyState flag should also be false along with this flag
     // else drag forces will be zero
     dragActive true;
-    beamFluidInteraction true;
+    beamFluidInteraction false;
+
 
     // Coefficient of drag in normal and tangential directions
     // Default value if not specified is 1.0 for both
