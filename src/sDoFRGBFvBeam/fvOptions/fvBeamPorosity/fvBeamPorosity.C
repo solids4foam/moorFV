@@ -33,7 +33,7 @@ License
 #include "fvmDdt.H"
 #include "fvmSup.H"
 #include "addToRunTimeSelectionTable.H"
-#include "couplingHelperFunctions.H"
+#include "samplingFluid.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -72,16 +72,25 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
         dimensionedScalar(dimless/dimTime, Zero)
     );
     auto& dragCoeff = tdragCoeff.ref();
-    const dictionary& linkToBeamProperties = mesh_.time().db().parent().lookupObject<dictionary>("beamProperties");
-    const dimensionedScalar& fluidRho = linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs").get<dimensionedScalar>("rhoFluid");
-    const dimensionedScalar& beamRadius = linkToBeamProperties.get<dimensionedScalar>("R");
-    const dimensionedScalar& beamLength = linkToBeamProperties.get<dimensionedScalar>("L");
-    const volScalarField& cellMarker(mesh_.lookupObject<volScalarField>("cellMarker"));
+    const dictionary& linkToBeamProperties = mesh_.time().db().parent()
+        .lookupObject<dictionary>("beamProperties");
+    const dimensionedScalar& fluidRho =
+        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
+            .get<dimensionedScalar>("rhoFluid");
+    const dimensionedScalar& beamRadius = linkToBeamProperties
+        .get<dimensionedScalar>("R");
+    const dimensionedScalar& beamLength = linkToBeamProperties
+        .get<dimensionedScalar>("L");
+    const volScalarField& cellMarker
+    (
+        mesh_.lookupObject<volScalarField>("cellMarker")
+    );
     forAll(mesh_.C(),celli)
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
-            dragCoeff[celli] = 0.5 * cellMarker[celli] * fluidRho.value() * beamRadius.value() * beamLength.value() * mag(U[celli]);
+            dragCoeff[celli] = 0.5 * cellMarker[celli] * fluidRho.value()
+              * (2 * beamRadius.value()) * beamLength.value() * mag(U[celli]);
         }
         else
         {
@@ -112,26 +121,33 @@ Foam::fv::fvBeamPorosity::inertiaCoeff() const
     auto& inertiaCoeff = tinertiaCoeff.ref();
 
     const scalar pi = constant::mathematical::pi;
-    const dictionary& linkToBeamProperties = mesh_.time().db().parent().lookupObject<dictionary>("beamProperties");
-    const dimensionedScalar& fluidRho = linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs").get<dimensionedScalar>("rhoFluid");
-    const dimensionedScalar& beamRadius = linkToBeamProperties.get<dimensionedScalar>("R");
-    const dimensionedScalar& beamLength = linkToBeamProperties.get<dimensionedScalar>("L");
+    const dictionary& linkToBeamProperties = mesh_.time().db().parent()
+        .lookupObject<dictionary>("beamProperties");
+    const dimensionedScalar& fluidRho =
+        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
+            .get<dimensionedScalar>("rhoFluid");
+    const dimensionedScalar& beamRadius = linkToBeamProperties
+        .get<dimensionedScalar>("R");
+    const dimensionedScalar& beamLength = linkToBeamProperties
+        .get<dimensionedScalar>("L");
     const scalar& cm = linkToBeamProperties.getOrDefault<scalar>("CMn", 1.0);
-    const volScalarField& cellMarker(mesh_.lookupObject<volScalarField>("cellMarker"));
-    
+    const volScalarField& cellMarker
+    (
+        mesh_.lookupObject<volScalarField>("cellMarker")
+    );
+
     forAll(mesh_.C(),celli)
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
-            inertiaCoeff[celli] = (cm+1) * fluidRho.value()*cellMarker[celli] * beamLength.value() * pow(beamRadius.value(),2) * pi;
+            inertiaCoeff[celli] = (cm+1) * fluidRho.value() * cellMarker[celli]
+              * beamLength.value() * pow((2 * beamRadius.value()),2) * pi;
         }
         else
         {
             inertiaCoeff[celli] = 0;
         }
     }
-    
-
     inertiaCoeff.correctBoundaryConditions();
 
     return tinertiaCoeff;
