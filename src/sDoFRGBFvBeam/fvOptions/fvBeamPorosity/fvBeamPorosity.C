@@ -62,10 +62,11 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
     (
         IOobject
         (
-            typeName + ":dragCoeff",
+            "dragCoeff",
             mesh_.time().timeName(),
-            mesh_.time(),
-            IOobject::NO_READ,
+            mesh_,
+            //            mesh_.time(),
+            IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
         mesh_,
@@ -81,6 +82,10 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
         .get<dimensionedScalar>("R");
     const dimensionedScalar& beamLength = linkToBeamProperties
         .get<dimensionedScalar>("L");
+    const scalar& cd =
+        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
+            .getOrDefault<scalar>("CD",0.3);
+
     const volScalarField& cellMarker
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
@@ -88,16 +93,39 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
     forAll(mesh_.C(),celli)
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
-        {
-            dragCoeff[celli] = 0.5 * cellMarker[celli] * fluidRho.value()
-              * (2 * beamRadius.value()) * beamLength.value() * mag(U[celli]);
+        {           
+            // dragCoeff[celli] = 0.5 * 15 * cellMarker[celli] * fluidRho.value()
+            //   * (2 * beamRadius.value()) * beamLength.value() * mag(U[celli]);
+            dragCoeff[celli] = cd * cellMarker[celli];
         }
         else
         {
             dragCoeff[celli] = 0;
         }
     }
+    vector integratedValue = vector::zero;
+    forAll(cellMarker, cellI)
+    {
+        if (cellMarker[cellI] >= 0.001 && cellMarker[cellI] <= 1)
+        {
+            integratedValue += dragCoeff[cellI] * U[cellI] * mesh_.V()[cellI];          
+        }
+    }
+    if (dragFilePtr_.valid())
+    {
+        dragFilePtr_()
+        << mesh_.time().timeOutputValue()
+        << " "
+        << integratedValueUsingV
+        << " "
+        << endl;
+    }
+
     dragCoeff.correctBoundaryConditions();
+    if(mesh_.time().writeTime())
+    {
+        dragCoeff.write();
+    }
     return tdragCoeff;
 }
 
@@ -140,8 +168,11 @@ Foam::fv::fvBeamPorosity::inertiaCoeff() const
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
+            /*
+             inertiaCoeff[celli] = (cm+1) * fluidRho.value() * cellMarker[celli] * beamLength.value() * pow((2 * beamRadius.value()),2) * pi;
+            */
             inertiaCoeff[celli] = (cm+1) * fluidRho.value() * cellMarker[celli]
-              * beamLength.value() * pow((2 * beamRadius.value()),2) * pi;
+               * beamLength.value() * (2 * beamRadius.value()) * pi;
         }
         else
         {
@@ -164,10 +195,38 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
     const fvMesh& mesh
 )
 :
-    fv::option(name, modelType, dict, mesh)
+    fv::option(name, modelType, dict, mesh),
+    dragFilePtr_()
     // active_()
 {
     read(dict);
+    fileName postProcDir;
+    word startTimeName =
+            mesh.time().timeName(mesh.time().startTime().value());
+    postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
+    Info <<" postProcDir =  " << postProcDir << endl;
+
+
+    mkDir(postProcDir);
+    dragFilePtr_.reset
+    (
+        new OFstream
+        (
+            postProcDir/"dragCoeffIntegration.dat"
+        )
+    );
+    if (dragFilePtr_.valid())
+    {
+        dragFilePtr_()
+            << "# Time"
+            << " " << "dragCoeffUsing V"
+            << " " << "dragCoeffUsing Sf"
+            << endl;
+    }
+
+    // Write the result to the file
+    //OFstream file(filePath);
+
 }
 
 
@@ -181,13 +240,15 @@ void Foam::fv::fvBeamPorosity::addSup
 {
     const volVectorField& U = eqn.psi();
 
+    // dimensionedScalar A ( "A", dimless/dimTime, 100);
     fvMatrix<vector> mangrovesEqn
     (
       - fvm::Sp(dragCoeff(U), U)
-      - inertiaCoeff()*fvm::ddt(U)
+      //- inertiaCoeff()*fvm::ddt(U)
     );
     // Contributions are added to RHS of momentum equation
     eqn += mangrovesEqn;
+    //Info << "max drag coeff : " << max(mag(dragCoeff(U))) << endl;
 }
 
 

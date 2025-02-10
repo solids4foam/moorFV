@@ -54,6 +54,7 @@ SourceFiles
 
 #include "fvOption.H"
 #include "volFields.H"
+#include "OFstream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,6 +76,7 @@ class fvBeamPorosity
     public fv::option
 {
     // Private Member Functions
+        mutable autoPtr<OFstream> dragFilePtr_;
 
         //- No copy construct
         fvBeamPorosity(const fvBeamPorosity&) = delete;
