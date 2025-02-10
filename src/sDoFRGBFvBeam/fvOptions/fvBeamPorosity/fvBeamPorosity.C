@@ -116,7 +116,7 @@ Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
         dragFilePtr_()
         << mesh_.time().timeOutputValue()
         << " "
-        << integratedValueUsingV
+        << integratedValue
         << " "
         << endl;
     }
