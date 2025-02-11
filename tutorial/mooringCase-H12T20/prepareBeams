@@ -27,8 +27,8 @@ process_beam()
     fi
 
     mkdir -p "$case_dir/0.orig/$beam" "$case_dir/constant/$beam"
-    cp -r "$beam_dir/$max_time_folder/" "$case_dir/0.orig/$beam"
-    cp -r "$beam_dir/constant/" "$case_dir/constant/$beam"    
+    cp -r "$beam_dir/$max_time_folder/"* "$case_dir/0.orig/$beam"
+    cp -r "$beam_dir/constant/"* "$case_dir/constant/$beam"    
     sed -i 's/fixedDisplacement/fixedValue/g' "$case_dir/0.orig/$beam/W"
     sed -i "s@constant/timeVsMoment@constant/$beam/timeVsMoment@g" "$case_dir/0.orig/$beam/Theta"
 }
