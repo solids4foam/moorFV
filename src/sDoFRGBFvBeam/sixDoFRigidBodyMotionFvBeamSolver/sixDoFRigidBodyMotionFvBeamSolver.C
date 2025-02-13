@@ -122,6 +122,14 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         pointPatchDist pDist(pMesh, patchSet_, points0());
 
+        if (mag(do_ - di_) < SMALL)
+        {
+            // Should do be greater than di? If so, we should check this.
+            FatalErrorInFunction
+                << "innerDistance and outerDistance should be different!"
+                << abort(FatalError);
+        }
+
         // Scaling: 1 up to di then linear down to 0 at do away from patches
         scale_.primitiveFieldRef() =
             min
