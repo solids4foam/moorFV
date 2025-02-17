@@ -37,6 +37,12 @@ nSegments 60; //change this to 20
     gDamping 1.0;
     nSegments 60;
 
+    seadbedFrictionActive true;
+    muKt    0.1;
+    muKa    0.01;
+    muSt    0.1;
+    muSa    0.01;
+
     startPatchName left;
     endPatchName right;
 

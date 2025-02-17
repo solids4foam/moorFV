@@ -37,6 +37,12 @@ nSegments 60; //change this to 20
     gDamping 1.0;
     nSegments 60;
 
+    seadbedFrictionActive true;
+    muKt    0.1;
+    muKa    0.01;
+    muSt    0.1;
+    muSa    0.01;
+
     startPatchName left;
     endPatchName right;
 
@@ -60,7 +66,7 @@ nSegments 60; //change this to 20
     // steadyState flag should also be false along with this flag
     // else drag forces will be zero
     dragActive true;
-    couplingActive false;
+    beamFluidInteraction false;
 
     // Coefficient of drag in normal and tangential directions
     // Default value if not specified is 1.0 for both
