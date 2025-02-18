@@ -28,9 +28,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          token: ${{ secrets.CLONER_SECRET }}
           submodules: true
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Source OpenFOAM environment and compile submodule
         run: |
