@@ -1,0 +1,52 @@
+# Build and test the solver using Docker containers
+name: Building moorFV
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        container-image:
+          - name: "OpenFOAM-v2312"
+            image: "opencfd/openfoam-dev:2312"
+            source: "/usr/lib/openfoam/openfoam2312/etc/bashrc"
+            buildflags: "-j"
+
+    container:
+      image: ${{ matrix.container-image.image }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Source OpenFOAM environment and compile submodule
+        run: |
+          echo "Using OpenFOAM version: ${{ matrix.container-image.name }}"
+          source ${{ matrix.container-image.source }}
+
+          # Set BEAMFOAM_DIR to the submodule location
+          export BEAMFOAM_DIR=$(pwd)/src/beamFoam
+          echo "BEAMFOAM_DIR set to $BEAMFOAM_DIR"
+
+          # Compile the submodule
+          (cd src/beamFoam && ./Allwmake)
+        shell: bash
+
+      - name: Compile main solver
+        run: |
+          source ${{ matrix.container-image.source }}
+
+          # Ensure BEAMFOA_DIR is still available
+          export BEAMFOAM_DIR=$(pwd)/src/beamFoam
+          echo "BEAMFOAM_DIR set to $BEAMFOAM_DIR"
+
+          # Compile the main solver
+          (cd src && ./Allwmake ${{ matrix.container-image.buildflags }})
+        shell: bash
