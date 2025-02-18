@@ -32,7 +32,8 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Source OpenFOAM environment and compile submodule
+      - name: Source OpenFOAM environment and compile Submodule
+        shell: bash -l {0}
         run: |
           echo "Using OpenFOAM version: ${{ matrix.container-image.name }}"
           source ${{ matrix.container-image.source }}
@@ -43,16 +44,15 @@ jobs:
 
           # Compile the submodule
           (cd src/beamFoam && ./Allwmake)
-        shell: bash
 
-      - name: Compile main solver
+      - name: Compile moorFV
+        shell: bash -l {0}
         run: |
           source ${{ matrix.container-image.source }}
 
-          # Ensure BEAMFOA_DIR is still available
+          # Ensure BEAMFOAM_DIR is still available
           export BEAMFOAM_DIR=$(pwd)/src/beamFoam
           echo "BEAMFOAM_DIR set to $BEAMFOAM_DIR"
 
           # Compile the main solver
           (cd src && ./Allwmake ${{ matrix.container-image.buildflags }})
-        shell: bash
