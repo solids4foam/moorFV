@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Install git on container
-      run: |
+        run: |
           apt update
           apt install -y git
       - name: Checkout repository
