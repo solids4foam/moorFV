@@ -122,11 +122,12 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         pointPatchDist pDist(pMesh, patchSet_, points0());
 
-        if (mag(do_ - di_) < SMALL)
+        if (mag(do_ - di_) < SMALL || do_ < di_)
         {
-            // Should do be greater than di? If so, we should check this.
-            FatalErrorInFunction
-                << "innerDistance and outerDistance should be different!"
+            FatalErrorInFunction 
+                << "Invalid values: Outer diameter (do_) and inner diameter (di_) are too close or incorrectly defined.\n"
+                << "Ensure that do_ > di_ with sufficient difference (greater than SMALL).\n"
+                << "Current values: do_ = " << do_ << ", di_ = " << di_ 
                 << abort(FatalError);
         }
 
