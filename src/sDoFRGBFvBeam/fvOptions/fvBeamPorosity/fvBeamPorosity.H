@@ -76,7 +76,7 @@ class fvBeamPorosity
     public fv::option
 {
     // Private Member Functions
-        mutable autoPtr<OFstream> dragFilePtr_;
+        mutable autoPtr<OFstream> forceFilePtr_;
 
         //- No copy construct
         fvBeamPorosity(const fvBeamPorosity&) = delete;
@@ -92,11 +92,25 @@ protected:
 
     // Protected Member Functions
 
-        //- Return the drag force coefficient
-        tmp<volScalarField> dragCoeff(const volVectorField& U) const;
+        //- Name of the model
+        word modelName_;
 
-        //- Return the inertia force coefficient
-        tmp<volScalarField> inertiaCoeff() const;
+        //- Permablity coefficient
+        scalar perm_;
+
+        //- Viscosity
+        scalar nu_;
+
+        //- Density
+        scalar rho_;
+
+        //- penalization factor
+        scalar pFactor_;
+
+
+        //- Return the coefficient for the model
+        tmp<volScalarField> coeff(const volVectorField& U, const word& modelName) const;
+
 
 
 public:

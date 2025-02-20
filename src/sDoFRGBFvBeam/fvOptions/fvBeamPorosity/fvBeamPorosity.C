@@ -56,133 +56,74 @@ namespace fv
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 Foam::tmp<Foam::volScalarField>
-Foam::fv::fvBeamPorosity::dragCoeff(const volVectorField& U) const
+Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) const
 {
-    auto tdragCoeff = tmp<volScalarField>::New
+    auto tcoeff = tmp<volScalarField>::New
     (
         IOobject
         (
-            "dragCoeff",
+            typeName + "coeff",
             mesh_.time().timeName(),
             mesh_,
-            //            mesh_.time(),
             IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
         mesh_,
         dimensionedScalar(dimless/dimTime, Zero)
     );
-    auto& dragCoeff = tdragCoeff.ref();
-    const dictionary& linkToBeamProperties = mesh_.time().db().parent()
-        .lookupObject<dictionary>("beamProperties");
-    const dimensionedScalar& fluidRho =
-        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
-            .get<dimensionedScalar>("rhoFluid");
-    const dimensionedScalar& beamRadius = linkToBeamProperties
-        .get<dimensionedScalar>("R");
-    const dimensionedScalar& beamLength = linkToBeamProperties
-        .get<dimensionedScalar>("L");
-    const scalar& cd =
-        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
-            .getOrDefault<scalar>("CD",0.3);
+    auto& coeff = tcoeff.ref();
 
     const volScalarField& cellMarker
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
     );
+
     forAll(mesh_.C(),celli)
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
-        {           
-            // dragCoeff[celli] = 0.5 * 15 * cellMarker[celli] * fluidRho.value()
-            //   * (2 * beamRadius.value()) * beamLength.value() * mag(U[celli]);
-            dragCoeff[celli] = cd * cellMarker[celli];
+        {
+            if (modelName_ == "DarcyLike")
+            {
+                coeff[celli] = (nu_ / perm_) * cellMarker[celli];
+            }
+            if (modelName_ == "SmagorinskyLike")
+            {
+                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * mag(U[celli]);
+            }
         }
         else
         {
-            dragCoeff[celli] = 0;
+            coeff[celli] = 0;
         }
     }
-    vector integratedValue = vector::zero;
+    vector integratedForce = vector::zero;
     forAll(cellMarker, cellI)
     {
         if (cellMarker[cellI] >= 0.001 && cellMarker[cellI] <= 1)
         {
-            integratedValue += dragCoeff[cellI] * U[cellI] * mesh_.V()[cellI];          
+            integratedForce += coeff[cellI] * U[cellI] * mesh_.V()[cellI];
         }
     }
-    if (dragFilePtr_.valid())
+    if (forceFilePtr_.valid())
     {
-        dragFilePtr_()
+        forceFilePtr_()
         << mesh_.time().timeOutputValue()
         << " "
-        << integratedValue
-        << " "
+        << integratedForce
         << endl;
     }
 
-    dragCoeff.correctBoundaryConditions();
+    coeff.correctBoundaryConditions();
     if(mesh_.time().writeTime())
     {
-        dragCoeff.write();
+        coeff.write();
     }
-    return tdragCoeff;
+    coeff.correctBoundaryConditions();
+
+    return tcoeff;
 }
 
 
-Foam::tmp<Foam::volScalarField>
-Foam::fv::fvBeamPorosity::inertiaCoeff() const
-{
-    auto tinertiaCoeff = tmp<volScalarField>::New
-    (
-        IOobject
-        (
-            typeName + ":inertiaCoeff",
-            mesh_.time().timeName(),
-            mesh_.time(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless, Zero)
-    );
-    auto& inertiaCoeff = tinertiaCoeff.ref();
-
-    const scalar pi = constant::mathematical::pi;
-    const dictionary& linkToBeamProperties = mesh_.time().db().parent()
-        .lookupObject<dictionary>("beamProperties");
-    const dimensionedScalar& fluidRho =
-        linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
-            .get<dimensionedScalar>("rhoFluid");
-    const dimensionedScalar& beamRadius = linkToBeamProperties
-        .get<dimensionedScalar>("R");
-    const dimensionedScalar& beamLength = linkToBeamProperties
-        .get<dimensionedScalar>("L");
-    const scalar& cm = linkToBeamProperties.getOrDefault<scalar>("CMn", 1.0);
-    const volScalarField& cellMarker
-    (
-        mesh_.lookupObject<volScalarField>("cellMarker")
-    );
-
-    forAll(mesh_.C(),celli)
-    {
-        if (mesh_.foundObject<volScalarField>("cellMarker"))
-        {
-            /*
-             inertiaCoeff[celli] = (cm+1) * fluidRho.value() * cellMarker[celli] * beamLength.value() * pow((2 * beamRadius.value()),2) * pi;
-            */
-            inertiaCoeff[celli] = (cm+1) * fluidRho.value() * cellMarker[celli]
-               * beamLength.value() * (2 * beamRadius.value()) * pi;
-        }
-        else
-        {
-            inertiaCoeff[celli] = 0;
-        }
-    }
-    inertiaCoeff.correctBoundaryConditions();
-
-    return tinertiaCoeff;
-}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -196,7 +137,12 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
 )
 :
     fv::option(name, modelType, dict, mesh),
-    dragFilePtr_()
+    forceFilePtr_(),
+    modelName_(coeffs_.get<word>("modelName")),
+    perm_(),
+    nu_(),
+    rho_(),
+    pFactor_()
     // active_()
 {
     read(dict);
@@ -208,25 +154,21 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
 
 
     mkDir(postProcDir);
-    dragFilePtr_.reset
+    forceFilePtr_.reset
     (
         new OFstream
         (
             postProcDir/"dragCoeffIntegration.dat"
         )
     );
-    if (dragFilePtr_.valid())
+    if (forceFilePtr_.valid())
     {
-        dragFilePtr_()
+        forceFilePtr_()
             << "# Time"
-            << " " << "dragCoeffUsing V"
-            << " " << "dragCoeffUsing Sf"
+            << " "
+            << "force"
             << endl;
     }
-
-    // Write the result to the file
-    //OFstream file(filePath);
-
 }
 
 
@@ -240,15 +182,12 @@ void Foam::fv::fvBeamPorosity::addSup
 {
     const volVectorField& U = eqn.psi();
 
-    // dimensionedScalar A ( "A", dimless/dimTime, 100);
     fvMatrix<vector> mangrovesEqn
     (
-      - fvm::Sp(dragCoeff(U), U)
-      //- inertiaCoeff()*fvm::ddt(U)
+      - fvm::Sp(coeff(U, modelName_), U)
     );
     // Contributions are added to RHS of momentum equation
     eqn += mangrovesEqn;
-    //Info << "max drag coeff : " << max(mag(dragCoeff(U))) << endl;
 }
 
 
@@ -263,8 +202,7 @@ void Foam::fv::fvBeamPorosity::addSup
 
     fvMatrix<vector> mangrovesEqn
     (
-      - fvm::Sp(rho*dragCoeff(U), U)
-      - rho*inertiaCoeff()*fvm::ddt(U)
+      - fvm::Sp(rho*coeff(U, modelName_), U)
     );
 
     // Contributions are added to RHS of momentum equation
@@ -276,12 +214,34 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
 {
     if (fv::option::read(dict))
     {
-            if (!coeffs_.readIfPresent("UNames", fieldNames_))
-            {
-                fieldNames_.resize(1);
-                fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
-            }
+        if (!coeffs_.readIfPresent("UNames", fieldNames_))
+        {
+            fieldNames_.resize(1);
+            fieldNames_.first() = coeffs_.getOrDefault<word>("U", "U");
+        }
         fv::option::resetApplied();
+        Info << "modelName = " << modelName_ << endl;
+        if (modelName_ == "DarcyLike")
+        {
+            coeffs_.readEntry("k", perm_);
+            coeffs_.readEntry("nu", nu_);
+        }
+        else if (modelName_ == "SmagorinskyLike")
+        {
+            coeffs_.readEntry("rho", rho_);
+            coeffs_.readEntry("penalizationFactor", pFactor_);
+        }
+        else
+        {
+            FatalError
+            (
+                "Foam::fv::fvBeamPorosity::read"
+            )
+            << "Unknown model type " << modelName_ << nl
+            << "Valid model types are: DarcyLike, smagorinskyLike" << nl
+            << abort(FatalError);
+        }
+
         return true;
     }
     return false;
