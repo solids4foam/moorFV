@@ -88,7 +88,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             }
             if (modelName_ == "SmagorinskyLike")
             {
-                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * pow(mag(U[celli]),exponent);
+                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * pow(mag(U[celli]),exponent_);
             }
         }
         else
