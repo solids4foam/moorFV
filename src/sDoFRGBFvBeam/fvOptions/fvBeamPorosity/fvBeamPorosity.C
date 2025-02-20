@@ -88,7 +88,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             }
             if (modelName_ == "SmagorinskyLike")
             {
-                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * mag(U[celli]);
+                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * pow(mag(U[celli]),exponent);
             }
         }
         else
@@ -142,7 +142,8 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
     perm_(),
     nu_(),
     rho_(),
-    pFactor_()
+    pFactor_(),
+    exponent_()
     // active_()
 {
     read(dict);
@@ -230,6 +231,7 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         {
             coeffs_.readEntry("rho", rho_);
             coeffs_.readEntry("penalizationFactor", pFactor_);
+            coeffs_.readEntry("exponent", exponent_);
         }
         else
         {

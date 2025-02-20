@@ -107,6 +107,8 @@ protected:
         //- penalization factor
         scalar pFactor_;
 
+        //- exponent in the model
+        scalar exponent_;
 
         //- Return the coefficient for the model
         tmp<volScalarField> coeff(const volVectorField& U, const word& modelName) const;
