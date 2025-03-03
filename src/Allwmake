@@ -1,11 +1,14 @@
 #!/bin/bash
-cd ${0%/*} || exit 1    # run from this directory
+cd "${0%/*}" || exit 1  # Run from this directory
 
-# Check if the beamFoam installation directory has been set
-if [[ -z "${BEAMFOAM_DIR}" ]]
-then
+# Check if the beamFoam directory exists in the current location
+if [[ -d "beamFoam" && "$(ls -A beamFoam)" ]]; then
+    export BEAMFOAM_DIR="$(pwd)/beamFoam"
+    echo "BEAMFOAM_DIR set to: $BEAMFOAM_DIR"
+else
+    echo "Error: beamFoam directory not found or empty."
     echo "Please set BEAMFOAM_DIR, e.g."
-    echo "    export BEAMFOAM_DIR=/Users/philipc/code/moorFV/bali-beamSolver"
+    echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
     exit 1
 fi
 

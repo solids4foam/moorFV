@@ -90,6 +90,10 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             {
                 coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * pow(mag(U[celli]),exponent_);
             }
+            if (modelName_ == "fixedCoefficient")
+            {
+                coeff[celli] = fixedCoefficient_ * cellMarker[celli];
+            }
         }
         else
         {
@@ -143,7 +147,8 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
     nu_(),
     rho_(),
     pFactor_(),
-    exponent_()
+    exponent_(),
+    fixedCoefficient_()
     // active_()
 {
     read(dict);
@@ -233,6 +238,10 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
             coeffs_.readEntry("penalizationFactor", pFactor_);
             coeffs_.readEntry("exponent", exponent_);
         }
+        else if (modelName_ == "fixedCoefficient")
+        {
+            coeffs_.readEntry("coefficient", fixedCoefficient_);
+        }
         else
         {
             FatalError
@@ -240,7 +249,7 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
                 "Foam::fv::fvBeamPorosity::read"
             )
             << "Unknown model type " << modelName_ << nl
-            << "Valid model types are: DarcyLike, smagorinskyLike" << nl
+            << "Valid model types are: DarcyLike, smagorinskyLike, fixedCoefficient" << nl
             << abort(FatalError);
         }
 
