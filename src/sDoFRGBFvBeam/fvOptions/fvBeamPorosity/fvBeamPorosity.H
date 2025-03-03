@@ -111,7 +111,7 @@ protected:
         scalar exponent_;
 
         //- fixed coefficient
-        scalar fixedCoefficient_;
+        scalar coeff_;
 
         //- Return the coefficient for the model
         tmp<volScalarField> coeff(const volVectorField& U, const word& modelName) const;

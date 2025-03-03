@@ -92,7 +92,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             }
             if (modelName_ == "fixedCoefficient")
             {
-                coeff[celli] = fixedCoefficient_ * cellMarker[celli];
+                coeff[celli] = coeff_ * cellMarker[celli];
             }
         }
         else
@@ -148,32 +148,45 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
     rho_(),
     pFactor_(),
     exponent_(),
-    fixedCoefficient_()
+    coeff_()
     // active_()
 {
     read(dict);
-    fileName postProcDir;
-    word startTimeName =
-            mesh.time().timeName(mesh.time().startTime().value());
-    postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
-    Info <<" postProcDir =  " << postProcDir << endl;
 
-
-    mkDir(postProcDir);
-    forceFilePtr_.reset
-    (
-        new OFstream
-        (
-            postProcDir/"dragCoeffIntegration.dat"
-        )
-    );
-    if (forceFilePtr_.valid())
+    if (Pstream::master())
     {
-        forceFilePtr_()
-            << "# Time"
-            << " "
-            << "force"
-            << endl;
+        fileName postProcDir;
+
+        word startTimeName =
+                mesh.time().timeName(mesh.time().startTime().value());
+
+        if (Pstream::parRun())
+        {
+            // Put in undecomposed case (Note: gives problems for
+            // distributed data running)
+            postProcDir = mesh.time().path()/".."/"postProcessing"/startTimeName;
+        }
+        else
+        {
+            postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
+        }
+
+        mkDir(postProcDir);
+        forceFilePtr_.reset
+        (
+            new OFstream
+            (
+                postProcDir/"integratedForce.dat"
+            )
+        );
+        if (forceFilePtr_.valid())
+        {
+            forceFilePtr_()
+                << "# Time"
+                << " "
+                << "force"
+                << endl;
+        }
     }
 }
 
@@ -240,7 +253,7 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         }
         else if (modelName_ == "fixedCoefficient")
         {
-            coeffs_.readEntry("coefficient", fixedCoefficient_);
+            coeffs_.readEntry("coefficient", coeff_);
         }
         else
         {
