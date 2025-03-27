@@ -82,13 +82,9 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     {
         if (mesh_.foundObject<volScalarField>("cellMarker"))
         {
-            if (modelName_ == "DarcyLike")
+            if (modelName_ == "Darcy")
             {
-                coeff[celli] = (nu_ / perm_) * cellMarker[celli];
-            }
-            if (modelName_ == "SmagorinskyLike")
-            {
-                coeff[celli] = rho_ * pFactor_ * cellMarker[celli] * pow(mag(U[celli]),exponent_);
+                coeff[celli] = ((nu_ / perm_) + (rho_ * pFactor_ * pow(mag(U[celli]),exponent_)))  * cellMarker[celli];
             }
             if (modelName_ == "fixedCoefficient")
             {
@@ -108,6 +104,8 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             integratedForce += coeff[cellI] * U[cellI] * mesh_.V()[cellI];
         }
     }
+    // For the integrated force, reduce before printing
+    reduce(integratedForce, sumOp<vector>());
     if (forceFilePtr_.valid())
     {
         forceFilePtr_()
@@ -240,13 +238,10 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         }
         fv::option::resetApplied();
         Info << "modelName = " << modelName_ << endl;
-        if (modelName_ == "DarcyLike")
+        if (modelName_ == "Darcy")
         {
             coeffs_.readEntry("k", perm_);
             coeffs_.readEntry("nu", nu_);
-        }
-        else if (modelName_ == "SmagorinskyLike")
-        {
             coeffs_.readEntry("rho", rho_);
             coeffs_.readEntry("penalizationFactor", pFactor_);
             coeffs_.readEntry("exponent", exponent_);
@@ -262,7 +257,7 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
                 "Foam::fv::fvBeamPorosity::read"
             )
             << "Unknown model type " << modelName_ << nl
-            << "Valid model types are: DarcyLike, smagorinskyLike, fixedCoefficient" << nl
+            << "Valid model types are: Darcy,  fixedCoefficient" << nl
             << abort(FatalError);
         }
 
