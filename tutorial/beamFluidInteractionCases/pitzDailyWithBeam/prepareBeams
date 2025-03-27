@@ -1,0 +1,9 @@
+#!/bin/bash
+cd cables_initialization/beamone
+printf 'Initilizing %s\n' "beamone"
+./Allrun > log.beamMeshing
+cd ../..
+cp -r cables_initialization/beamone/0 pitzDailyWithBeam/0.orig/beamone
+cp -r cables_initialization/beamone/constant/ pitzDailyWithBeam/constant/beamone
+sed -i 's/fixedDisplacement/fixedValue/g' pitzDailyWithBeam/0.orig/beamone/W
+sed -i "s@constant/timeVsMoment@constant/beamone/timeVsMoment@g" pitzDailyWithBeam/0.orig/beamone/Theta

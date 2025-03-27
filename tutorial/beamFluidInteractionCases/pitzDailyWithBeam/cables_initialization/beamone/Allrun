@@ -1,0 +1,10 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+createCircularBeamMesh
+transformPoints -rotate-angle  '((0 1 0) 90)'
+setInitialPositionBeam -cellZone region0 -translate '(0.06 -0.0254 0)' -rotate "((1 0 0) (0 1 0))"
+
+touch case.foam

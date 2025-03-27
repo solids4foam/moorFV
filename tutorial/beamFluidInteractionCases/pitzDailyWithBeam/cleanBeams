@@ -1,0 +1,10 @@
+#!/bin/bash
+cd cables_initialization/beamone
+printf 'cleaning %s\n' "beamone"
+./Allclean
+rm -rf 0/ref*
+rm -rf 0/pointW
+rm -rf 0/beamone 
+cd ../..
+rm -rf pitzDailyWithBeam/0.orig/beamone
+rm -rf pitzDailyWithBeam/constant/beamone
