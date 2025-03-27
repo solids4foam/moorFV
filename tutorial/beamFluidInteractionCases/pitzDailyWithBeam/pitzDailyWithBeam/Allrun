@@ -9,7 +9,7 @@ runApplication blockMesh
 
 restore0Dir
 
-#runApplication pimpleFoam
+runApplication pimpleFoam
 
 
 #------------------------------------------------------------------------------
