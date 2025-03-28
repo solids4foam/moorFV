@@ -22,25 +22,17 @@ boundaryField
 {
     left
     {
-        type momentBeamRotationNR;
-		momentSeries
-		{
-			file	"$FOAM_CASE/constant/timeVsMoment";
-			outOfBounds	clamp;
-		}
-        value uniform (0 0 0);
+        type    momentBeamRotationNR;
+        moment  uniform (0 0 0);
+        value   uniform (0 0 0);
     }
 
     right
     {
-        type momentBeamRotationNR;
-		momentSeries
-		{
-		file	"$FOAM_CASE/constant/timeVsMoment";
-			outOfBounds	clamp;
-		}
-		value uniform (0 0 0);
-	}
+        type    momentBeamRotationNR;
+        moment  uniform (0 0 0);
+        value   uniform (0 0 0);
+    }
 
     beam
     {

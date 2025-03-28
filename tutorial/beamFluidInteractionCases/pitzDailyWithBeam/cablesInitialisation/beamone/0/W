@@ -21,28 +21,25 @@ internalField   uniform (0 0 0);
 boundaryField
 {
     left
-     {
-        type fixedValue;//fixedDisplacement;
-        value uniform (0 0 0);
-     }
-
-
-    right
-        {
-        type fixedDisplacement;
-        value uniform (0 0 0);
-       displacementSeries
-       {
-           "file"        "$FOAM_CASE/constant/timeVsDisplacement";
-           outOfBounds     clamp;
-       }
+    {
+        type    fixedValue;
+        value   uniform (0 0 0);
     }
 
-
+    right
+    {
+        type    fixedDisplacement;
+        displacementSeries
+        {
+            file        "$FOAM_CASE/constant/timeVsDisplacement";
+            outOfBounds     clamp;
+        }
+        value   uniform (0 0 0);
+    }
 
     beam
     {
-        type empty;
+        type    empty;
     }
 }
 

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Clean the beam initialisation cse
+echo "Cleaning cablesInitialisation/beamone"
+(cd cablesInitialisation/beamone && ./Allclean)
+
+# Clean the fluid case
+echo "Cleaning pitzDailyWithBeam"
+(cd pitzDailyWithBeam && ./Allclean)

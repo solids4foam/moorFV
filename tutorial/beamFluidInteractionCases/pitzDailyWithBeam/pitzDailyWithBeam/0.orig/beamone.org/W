@@ -10,11 +10,11 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volVectorField;
-    object      q;
+    object      DW;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 0 -2 0 0 0 0];
+dimensions      [0 1 0 0 0 0 0];
 
 internalField   uniform (0 0 0);
 
@@ -22,19 +22,20 @@ boundaryField
 {
     left
     {
-        type calculated;
-        value uniform (0 0 0);
+        type    fixedValue;
+        value   uniform (0 0 0);
     }
 
     right
     {
-        type calculated;
-        value uniform (0 0 0);
+        type    forceBeamDisplacementNR;
+        force   uniform (0 0 0);
+        value   uniform (0 0 0);
     }
 
     beam
     {
-        type empty;
+        type    empty;
     }
 }
 
