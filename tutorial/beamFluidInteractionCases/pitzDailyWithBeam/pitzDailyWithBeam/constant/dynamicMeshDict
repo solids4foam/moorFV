@@ -24,7 +24,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 {
     patches         (upperWall);
     innerDistance   0.01;
-    outerDistance   0.01;//0.5 worked up to 5.2s//0.35;
+    outerDistance   0.05;//0.5 worked up to 5.2s//0.35;
     mass 1;
     centreOfMass    (0.0618 0.0094 -0.006);
     rho rhoInf;
