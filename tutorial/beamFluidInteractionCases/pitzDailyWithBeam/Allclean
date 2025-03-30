@@ -7,3 +7,6 @@ echo "Cleaning cablesInitialisation/beamone"
 # Clean the fluid case
 echo "Cleaning pitzDailyWithBeam"
 (cd pitzDailyWithBeam && ./Allclean)
+
+rm -rf pitzDailyWithBeam/0.orig/beamone
+rm -rf pitzDailyWithBeam/constant/beamone
