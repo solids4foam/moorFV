@@ -39,8 +39,8 @@ void Foam::sixDoFRigidBodyMotionFvBeam::applyRestraints()
         return;
     }
 
-    if (Pstream::master())
-    {
+    //    if (Pstream::master())
+    //{
         forAll(restraints_, rI)
         {
             if (report_)
@@ -59,15 +59,19 @@ void Foam::sixDoFRigidBodyMotionFvBeam::applyRestraints()
 
             // Accumulate the restraints
             restraints_[rI].restrain(*this, rP, rF, rM);
-
+            if (Pstream::master())
+            {
             // Update the acceleration
             a() += rF/mass_;
 
             // Moments are returned in global axes, transforming to
             // body local to add to torque.
             tau() += Q().T() & (rM + ((rP - centreOfRotation()) ^ rF));
+
+            }
+
         }
-    }
+        //   }
 }
 
 
@@ -315,17 +319,21 @@ void Foam::sixDoFRigidBodyMotionFvBeam::update
     scalar deltaT0
 )
 {
-    if (Pstream::master())
-    {
+    // Removed Pstream::master() guard to allow parallel execution across all ranks.
+        // if (Pstream::master())
+        {
+
+
         solver_->solve(firstIter, fGlobal, tauGlobal, deltaT, deltaT0);
+
 
         if (report_)
         {
             status();
         }
-    }
-
+        }
     Pstream::scatter(motionState_);
+
 }
 
 
@@ -412,7 +420,7 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     // Get switches for different directions. True means active translation region
     const bool isXScale = xDist > 0;
     const bool isYScale = yDist > 0;
-    
+
     // Compute translation displacement.
     // tPoint - point to morph in translation regions of tDist
     // slerpPoint - point offset to morph with slerp region

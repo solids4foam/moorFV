@@ -33,23 +33,20 @@ nSegments 60; //change this to 20
 
     groundContactActive true;
     groundZ -0.5;
-    gStiffness 1E03;
-    gDamping 1.0;
-    nSegments 60;
+    kNormal 1E03;
+    cNormal 1.0;
+    kTangential 1E03;
 
     seadbedFrictionActive true;
-    muKt    0.1;
-    muKa    0.01;
-    muSt    0.1;
-    muSa    0.01;
+    muFriction 0.01;
 
     startPatchName left;
     endPatchName right;
 
-    nCorrectors 200;
+    nCorrectors 10;
     convergenceTol 1e-10;
 
-    debug yes;
+    debug no;
 
     updatedLagrangian no;
 
@@ -67,7 +64,7 @@ nSegments 60; //change this to 20
     // else drag forces will be zero
     dragActive true;
     beamFluidInteraction false;
-
+    fractionalMarking false;
     // Coefficient of drag in normal and tangential directions
     // Default value if not specified is 1.0 for both
     Cdn 1.6;
