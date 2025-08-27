@@ -79,13 +79,11 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     const labelList& fluidCellIDs = beamMesh.lookupObject<labelIOList>("fluidCellIDs");
 
     vectorIOList& immersedF = beamMesh.lookupObjectRef<vectorIOList>("immersedForce");
-    // Info<< "fluidCellIDs = " << fluidCellIDs << endl;
+
     const volScalarField& cellMarker
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
     );
-    // Info<< "available objects = " << beamMesh.sortedNames() << endl;
-    // 2- loop over beam cells, for each cell, get the force on the relevant cell marker cell beside it!
 
     forAll(mesh_.C(),celli)
     {
@@ -105,16 +103,14 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             coeff[celli] = 0;
         }
     }
-    // forAll(beamMesh, cellI)
     for (label cellI = 0; cellI < beamMesh.nCells(); cellI++)
     {
         if (cellMarker[fluidCellIDs[cellI]] >= 0.001 && cellMarker[fluidCellIDs[cellI]] <= 1)
         {
             immersedF[cellI] = coeff[fluidCellIDs[cellI]] * U[fluidCellIDs[cellI]] * mesh_.V()[fluidCellIDs[cellI]];
-            // Info<< "immersedForce  = " << immersedF[cellI] << endl;
         }
     }
-    Info<< " immersed Force = " << immersedF << endl;
+    // Info<< " immersed Force = " << immersedF << endl;
 
 
     vector integratedForce = vector::zero;
