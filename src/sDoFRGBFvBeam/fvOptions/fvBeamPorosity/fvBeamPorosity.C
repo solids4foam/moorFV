@@ -35,6 +35,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "samplingFluid.H"
 #include "vectorIOList.H"
+#include "FieldSumOp.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -73,19 +74,34 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
         dimensionedScalar(dimless/dimTime, Zero)
     );
     auto& coeff = tcoeff.ref();
+    labelList fluidCellIDs;
+    vectorField immersedForce;
+    if (Pstream::master())
+    {
+        fvMesh& beamMesh = const_cast<fvMesh&>(mesh().time().db().parent().lookupObject<fvMesh>("beamone"));
 
-    fvMesh& beamMesh = const_cast<fvMesh&>(mesh().time().db().parent().lookupObject<fvMesh>("beamone"));
+        const labelList& gFluidCellIDsIO = beamMesh.lookupObject<labelIOList>("fluidCellIDs");
 
-    const labelList& fluidCellIDs = beamMesh.lookupObject<labelIOList>("fluidCellIDs");
+        vectorIOList& immersedF = beamMesh.lookupObjectRef<vectorIOList>("immersedForce");
 
-    vectorIOList& immersedF = beamMesh.lookupObjectRef<vectorIOList>("immersedForce");
-    // Info<< "fluidCellIDs = " << fluidCellIDs << endl;
+        fluidCellIDs = gFluidCellIDsIO;
+        immersedForce.setSize(immersedF.size(), vector::zero);
+    }
+    else
+    {
+        fluidCellIDs.setSize(0);
+        immersedForce.setSize(0);
+    }
+    Pstream::broadcast(fluidCellIDs);
+    Pstream::broadcast(immersedForce);
+   
+    globalIndex gI(mesh_.nCells());
+
+
     const volScalarField& cellMarker
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
     );
-    // Info<< "available objects = " << beamMesh.sortedNames() << endl;
-    // 2- loop over beam cells, for each cell, get the force on the relevant cell marker cell beside it!
 
     forAll(mesh_.C(),celli)
     {
@@ -105,17 +121,56 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             coeff[celli] = 0;
         }
     }
-    // forAll(beamMesh, cellI)
-    for (label cellI = 0; cellI < beamMesh.nCells(); cellI++)
+    
+    forAll(fluidCellIDs, beamCellI)
     {
-        if (cellMarker[fluidCellIDs[cellI]] >= 0.001 && cellMarker[fluidCellIDs[cellI]] <= 1)
+        const label gId = fluidCellIDs[beamCellI];
+        if (gId == -1)
         {
-            immersedF[cellI] = coeff[fluidCellIDs[cellI]] * U[fluidCellIDs[cellI]] * mesh_.V()[fluidCellIDs[cellI]];
-            // Info<< "immersedForce  = " << immersedF[cellI] << endl;
+            continue;
+        }
+
+        const label owner = gI.whichProcID(gId);
+        // only owner should modify
+        if (owner != Pstream::myProcNo()) 
+        {
+            continue;
+        }
+
+        const label c = gI.toLocal(owner, gId);
+        if (c < 0 || c >= mesh_.nCells())
+        {
+            continue;
+        }
+        if (cellMarker[c] >= 0.001 && cellMarker[c] <= 1)
+        {
+            immersedForce[beamCellI] = coeff[c] * U[c] * mesh_.V()[c];
         }
     }
-    Info<< " immersed Force = " << immersedF << endl;
+    reduce(immersedForce, FieldSumOp<vector>());
+    //    Pout << "immersed Force on cell 20 = " << immersedForce[20] << endl;
+    if (Pstream::master())
+    {
+        fvMesh& beamMesh = const_cast<fvMesh&>(mesh().time().db().parent().lookupObject<fvMesh>("beamone"));
 
+        vectorIOList& immersedF =
+            const_cast<vectorIOList&>(beamMesh.lookupObject<vectorIOList>("immersedForce"));
+
+        if (immersedF.size() != immersedForce.size())
+        {
+            immersedF.setSize(immersedForce.size());
+        }
+        vector sumF(vector::zero);
+        forAll(immersedForce, i)
+        {
+            sumF += immersedForce[i];
+        }
+        Info<< "sumF on the fvOptions = " << sumF << endl;
+        forAll(immersedForce, i)
+        {
+            immersedF[i] = immersedForce[i];
+        }
+    }
 
     vector integratedForce = vector::zero;
     forAll(cellMarker, cellI)
