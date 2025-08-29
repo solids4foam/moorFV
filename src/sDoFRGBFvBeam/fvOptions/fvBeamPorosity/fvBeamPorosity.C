@@ -102,25 +102,23 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
     );
-
-    forAll(mesh_.C(),celli)
+    if (mesh_.foundObject<volScalarField>("cellMarker"))
     {
-        if (mesh_.foundObject<volScalarField>("cellMarker"))
+        if (modelName_ == "Darcy")
         {
-            if (modelName_ == "Darcy")
-            {
-                coeff[celli] = ((nu_ / perm_) + (rho_ * pFactor_ * pow(mag(U[celli]),exponent_)))  * cellMarker[celli];
-            }
-            if (modelName_ == "fixedCoefficient")
-            {
-                coeff[celli] = coeff_ * cellMarker[celli];
-            }
+            coeff = (nu_/perm_) + beta_*mag(U)  * cellMarker;
         }
-        else
+        // dimensions need to be fixed for fixedCoefficient model!
+        else if (modelName_ == "fixedCoefficient")
         {
-            coeff[celli] = 0;
+            coeff = coeff_ * cellMarker;
         }
     }
+    else
+    {
+        coeff = 0.0;
+    }
+
 
     forAll(fluidCellIDs, beamCellI)
     {
@@ -220,9 +218,7 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
     modelName_(coeffs_.get<word>("modelName")),
     perm_(),
     nu_(),
-    rho_(),
-    pFactor_(),
-    exponent_(),
+    beta_(),
     coeff_()
     // active_()
 {
@@ -318,9 +314,7 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         {
             coeffs_.readEntry("k", perm_);
             coeffs_.readEntry("nu", nu_);
-            coeffs_.readEntry("rho", rho_);
-            coeffs_.readEntry("penalizationFactor", pFactor_);
-            coeffs_.readEntry("exponent", exponent_);
+            coeffs_.readEntry("beta", beta_);
         }
         else if (modelName_ == "fixedCoefficient")
         {

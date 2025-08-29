@@ -96,22 +96,16 @@ protected:
         word modelName_;
 
         //- Permablity coefficient
-        scalar perm_;
+        dimensionedScalar perm_;
 
         //- Viscosity
-        scalar nu_;
+        dimensionedScalar nu_;
 
-        //- Density
-        scalar rho_;
-
-        //- penalization factor
-        scalar pFactor_;
-
-        //- exponent in the model
-        scalar exponent_;
+        //- Forcheimer coefficient
+        dimensionedScalar beta_;
 
         //- fixed coefficient
-        scalar coeff_;
+        dimensionedScalar coeff_;
 
         //- Return the coefficient for the model
         tmp<volScalarField> coeff(const volVectorField& U, const word& modelName) const;
