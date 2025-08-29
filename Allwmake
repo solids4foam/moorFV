@@ -1,11 +1,44 @@
 #!/bin/bash
 cd ${0%/*} || exit 1    # run from this directory
 
-# Check if the beamFoam installation directory has been set
-if [[ -z "${BEAMFOAM_DIR}" ]]
-then
-    echo "Please set BEAMFOAM_DIR, e.g."
-    echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+# If BEAMFOAM_DIR not set, try local submodule at src/beamFoam
+if [[ -z "${BEAMFOAM_DIR:-}" ]]; then
+    candidate="./src/beamFoam"
+    if [[ -d "$candidate" ]]; then
+        # Check submodule is initialised (contains something useful)
+        if [[ -s "$candidate/.git" || -d "$candidate/.git" ]] || [[ -n "$(ls -A "$candidate" 2>/dev/null)" ]]; then
+            export BEAMFOAM_DIR="$(cd "$candidate" && pwd -P)"
+            echo "Using local beamFoam submodule at: ${BEAMFOAM_DIR}"
+        else
+            echo "Found src/beamFoam but it appears uninitialised (empty)."
+            echo "Please initialise it with:"
+            echo "    git submodule update --init --recursive src/beamFoam"
+            exit 1
+        fi
+    else
+        echo "Please set BEAMFOAM_DIR, e.g."
+        echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+        echo "Or initialise the submodule and retry:"
+        echo "    git submodule update --init --recursive src/beamFoam"
+        exit 1
+    fi
+else
+    # Validate provided BEAMFOAM_DIR
+    if [[ ! -d "${BEAMFOAM_DIR}" ]]; then
+        echo "BEAMFOAM_DIR='${BEAMFOAM_DIR}' does not exist or is not a directory."
+        echo "Fix BEAMFOAM_DIR or initialise the submodule and omit BEAMFOAM_DIR:"
+        echo "    git submodule update --init --recursive src/beamFoam"
+        exit 1
+    fi
+    # Normalise to absolute path
+    export BEAMFOAM_DIR="$(cd "${BEAMFOAM_DIR}" && pwd -P)"
+fi
+
+# Check the beam models link directory exists
+if [[ ! -d "${BEAMFOAM_DIR}"/src/wireBunchingModels/lnInclude ]]; then
+    echo "The ${BEAMFOAM_DIR}/src/wireBunchingModels/lnInclude directory does not exist"
+    echo "You should compile beamFoam with:"
+    echo "    (cd ${BEAMFOAM_DIR} && ./Allwmake -j)"
     exit 1
 fi
 
