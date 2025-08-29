@@ -5,7 +5,7 @@ cd "${0%/*}" || exit 1  # Run from this directory
 if [[ -d "beamFoam" && "$(ls -A beamFoam)" ]]; then
     export BEAMFOAM_DIR="$(pwd)/beamFoam"
     echo "BEAMFOAM_DIR set to: $BEAMFOAM_DIR"
-else
+elif [[ -z "${BEAMFOAM_DIR}" ]]; then
     echo "Error: beamFoam directory not found or empty."
     echo "Please set BEAMFOAM_DIR, e.g."
     echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
