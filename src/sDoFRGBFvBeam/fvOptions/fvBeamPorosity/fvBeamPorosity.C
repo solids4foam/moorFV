@@ -94,7 +94,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     }
     Pstream::broadcast(fluidCellIDs);
     Pstream::broadcast(immersedForce);
-   
+
     globalIndex gI(mesh_.nCells());
 
 
@@ -121,7 +121,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
             coeff[celli] = 0;
         }
     }
-    
+
     forAll(fluidCellIDs, beamCellI)
     {
         const label gId = fluidCellIDs[beamCellI];
@@ -132,7 +132,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
 
         const label owner = gI.whichProcID(gId);
         // only owner should modify
-        if (owner != Pstream::myProcNo()) 
+        if (owner != Pstream::myProcNo())
         {
             continue;
         }

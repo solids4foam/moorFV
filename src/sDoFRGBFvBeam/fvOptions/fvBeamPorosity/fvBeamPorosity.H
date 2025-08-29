@@ -31,7 +31,7 @@ Group
     grpFvOptionsSources
 
 Description
-    fvOption to subtract the momentum (based on drag) from momentum equation, similar to porosity effects.
+    fvOption to subtract the momentum from the momentum equation, similar to porosity effects.
     based on mangrove models for porosity.
 
 Usage
