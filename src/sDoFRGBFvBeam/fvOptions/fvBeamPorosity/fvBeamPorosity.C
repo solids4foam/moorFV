@@ -36,7 +36,7 @@ License
 #include "samplingFluid.H"
 #include "vectorIOList.H"
 #include "FieldSumOp.H"
-
+#include "fvcSup.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -102,11 +102,16 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     (
         mesh_.lookupObject<volScalarField>("cellMarker")
     );
+    const volVectorField& beamVelocity
+    (
+        mesh_.lookupObject<volVectorField>("beamVelocity")
+    );
+
     if (mesh_.foundObject<volScalarField>("cellMarker"))
     {
         if (modelName_ == "Darcy")
         {
-            coeff = (nu_/perm_) + beta_*mag(U)  * cellMarker;
+            coeff = (nu_/perm_) + beta_*mag(U - beamVelocity)  * cellMarker;
         }
         // dimensions need to be fixed for fixedCoefficient model!
         else if (modelName_ == "fixedCoefficient")
@@ -142,7 +147,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
         }
         if (cellMarker[c] >= 0.001 && cellMarker[c] <= 1)
         {
-            immersedForce[beamCellI] = coeff[c] * U[c] * mesh_.V()[c];
+            immersedForce[beamCellI] = coeff[c] * (U[c] - beamVelocity[c]) * mesh_.V()[c];
         }
     }
     reduce(immersedForce, FieldSumOp<vector>());
@@ -271,12 +276,17 @@ void Foam::fv::fvBeamPorosity::addSup
 )
     {
     const volVectorField& U = eqn.psi();
+    const volVectorField& Ubeam = U.mesh().lookupObject<volVectorField>("beamVelocity");
+
+
     fvMatrix<vector> mangrovesEqn
     (
         - fvm::Sp(coeff(U, modelName_), U)
     );
     // Contributions are added to RHS of momentum equation
     eqn += mangrovesEqn;
+    eqn += Ubeam*coeff(U, modelName_);
+    // eqn += fvc::SuSp(coeff(U, modelName_), Ubeam);
 }
 
 
