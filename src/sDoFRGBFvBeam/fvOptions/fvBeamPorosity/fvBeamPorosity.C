@@ -38,6 +38,7 @@ License
 #include "FieldSumOp.H"
 #include "fvcSup.H"
 
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -111,7 +112,7 @@ Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) 
     {
         if (modelName_ == "Darcy")
         {
-            coeff = (nu_/perm_) + beta_*mag(U - beamVelocity)  * cellMarker;
+            coeff = ((nu_/perm_) + beta_*mag(U - beamVelocity))*cellMarker;
         }
         // dimensions need to be fixed for fixedCoefficient model!
         else if (modelName_ == "fixedCoefficient")
