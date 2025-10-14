@@ -183,6 +183,37 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         pointPatchDist pDist(pMesh, patchSet_, points0());
 
+        // TESTING: START
+        // scale distances above the structure
+        if (Switch(coeffDict().lookup("useZDistScaleFactor")))
+        {
+            Info<< "Using useZDistScaleFactor approach" << endl;
+            const vector centreOfRotation(motion_.centreOfRotation());
+            scalarField& pDistI = pDist.primitiveFieldRef();
+            const pointField& points = mesh.points();
+            const scalarField relativeZCoord
+            (
+                points.component(vector::Z) - centreOfRotation.z()
+            );
+            const scalar zDistScaleFactor
+            (
+                readScalar(coeffDict().lookup("zDistScaleFactor"))
+            );
+            forAll(pDistI, pointI)
+            {
+                if (relativeZCoord[pointI] > 0.0)
+                {
+                    pDistI[pointI] *= zDistScaleFactor;
+                }
+            }
+            pDist.correctBoundaryConditions();
+        }
+        else
+        {
+            Info<< "NOT using useZDistScaleFactor approach" << endl;
+        }
+        // TESTING: END
+
         // Scaling: 1 up to di then linear down to 0 at do away from patches
         scale_.primitiveFieldRef() =
             min
