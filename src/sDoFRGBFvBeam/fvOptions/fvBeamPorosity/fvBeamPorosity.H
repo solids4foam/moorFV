@@ -91,24 +91,21 @@ protected:
 
 
     // Protected Member Functions
+    // Geometric mapping data
+    Foam::scalarField sField_;
+    Foam::scalarField closestBeamCellDist_;
+    Foam::labelList   closestBeamCell_;
 
-        //- Name of the model
-        word modelName_;
+    // Gaussian kernel width epsilon
+    scalar eps_;
 
-        //- Permablity coefficient
-        dimensionedScalar perm_;
+    // Protected Member Functions
 
-        //- Viscosity
-        dimensionedScalar nu_;
+    // Gaussian kernel
+    inline Foam::scalar eta(const scalar r) const;
 
-        //- Forcheimer coefficient
-        dimensionedScalar beta_;
-
-        //- fixed coefficient
-        dimensionedScalar coeff_;
-
-        //- Return the coefficient for the model
-        tmp<volScalarField> coeff(const volVectorField& U, const word& modelName) const;
+    // Compute s, r and segment index
+    void calculateS();
 
 
 
