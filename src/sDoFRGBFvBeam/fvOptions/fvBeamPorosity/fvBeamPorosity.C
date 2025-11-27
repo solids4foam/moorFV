@@ -119,9 +119,15 @@ void Foam::fv::fvBeamPorosity::calculateS()
             }
         }
 
-        closestBeamCellDist_[fluidCellI] = bestR;  // r
-        closestBeamCell_[fluidCellI]      = bestSeg; // segment index i
-        sField_[fluidCellI]               = bestS;   // s in [0,1]
+        //r
+        closestBeamCellDist_[fluidCellI] = bestR;  
+
+        // segment index i
+        closestBeamCell_[fluidCellI] = bestSeg;
+
+        // s in [0,1]
+        sField_[fluidCellI] = bestS;
+        
     }
 }
 Foam::scalar Foam::fv::fvBeamPorosity::eta(const scalar r) const
