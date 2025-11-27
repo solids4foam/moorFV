@@ -431,7 +431,7 @@ void Foam::fv::fvBeamPorosity::addSup
 
         const vector Sj = -(1.0 - s)*etaR*Fi - s*etaR*Fip1;
 
-        eqn.source()[c] -= (Sj*mesh_.V()[c]);
+        eqn.source()[c] += (Sj*mesh_.V()[c]);
     }
     if (mesh_.time().writeTime())
     {
@@ -490,29 +490,6 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         }
         fv::option::resetApplied();
         coeffs_.readEntry("epsilon", eps_);
-        // it would be better for this to be backward compatible!
-        // Info << "modelName = " << modelName_ << endl;
-        // if (modelName_ == "Darcy")
-        // {
-        //     coeffs_.readEntry("k", perm_);
-        //     coeffs_.readEntry("nu", nu_);
-        //     coeffs_.readEntry("beta", beta_);
-        // }
-        // else if (modelName_ == "fixedCoefficient")
-        // {
-        //     coeffs_.readEntry("coefficient", coeff_);
-        // }
-        // else
-        // {
-        //     FatalError
-        //     (
-        //         "Foam::fv::fvBeamPorosity::read"
-        //     )
-        //     << "Unknown model type " << modelName_ << nl
-        //     << "Valid model types are: Darcy,  fixedCoefficient" << nl
-        //     << abort(FatalError);
-        // }
-
         return true;
     }
     return false;
