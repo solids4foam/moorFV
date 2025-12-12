@@ -8,7 +8,8 @@ EXE_INC = \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
     -I$(LIB_SRC)/functionObjects/forces/lnInclude \
-    -I$(FOAM_SRC)/dynamicFvMesh/lnInclude
+    -I$(FOAM_SRC)/dynamicFvMesh/lnInclude \
+    -I/Users/colmmcalister/OpenFOAM/colmmcalister-v2312/run/moorFV/src/beamFoam/src/wireBunchingModels/beamModels/beamModel
 
 LIB_LIBS = \
     -lfiniteVolume \

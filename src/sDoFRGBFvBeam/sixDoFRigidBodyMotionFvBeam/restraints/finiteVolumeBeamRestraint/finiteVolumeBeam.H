@@ -87,6 +87,7 @@ class finiteVolumeBeam
         //- File for writing attachment force
         mutable autoPtr<OFstream> forceFilePtr_;
         mutable autoPtr<OFstream> anchorForceFilePtr_;
+        mutable autoPtr<OFstream> displacementFilePtr_;
 
 
 public:

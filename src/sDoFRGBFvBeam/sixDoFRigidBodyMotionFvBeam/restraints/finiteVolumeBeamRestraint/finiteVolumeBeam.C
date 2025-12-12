@@ -90,7 +90,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     storeInitialW_(true),
     initialQ_(vector::zero),
     forceFilePtr_(),
-    anchorForceFilePtr_()
+    anchorForceFilePtr_(),
+    displacementFilePtr_()
 {
     if (debug)
     {
@@ -157,6 +158,14 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 historyDir/"anchorForce" + name + ".dat"
             )
         );
+        
+        displacementFilePtr_.reset
+        (
+            new OFstream
+            (
+                historyDir/"displacement" + name + ".dat"
+            )
+        );
 
 
         // Add headers to output data
@@ -176,6 +185,15 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 << " " << "anchorForceX"
                 << " " << "anchorForceY"
                 << " " << "anchorForceZ"
+                << endl;
+        }
+        if (displacementFilePtr_.valid())
+        {
+            displacementFilePtr_()
+                << "# Time"
+                << " " << "dispX"
+                << " " << "dispY"
+                << " " << "dispZ"
                 << endl;
         }
 
@@ -262,6 +280,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
     const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
+    const vector anchorDisplacement = W.boundaryField()[anchorPatchID_][0];  // first cell of patch
 
     restraintForce = -attachmentForce;
     // relax force
@@ -289,6 +308,16 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << " " << anchorForce.z()
             << endl;
     }
+    if (displacementFilePtr_.valid())
+    {
+        displacementFilePtr_()
+            << t
+            << " " << anchorDisplacement.x()
+            << " " << anchorDisplacement.y()
+            << " " << anchorDisplacement.z()
+            << endl;
+    }
+
 }
 
 
