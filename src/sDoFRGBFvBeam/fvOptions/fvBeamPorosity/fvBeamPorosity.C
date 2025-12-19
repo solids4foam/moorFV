@@ -99,13 +99,13 @@ void Foam::fv::fvBeamPorosity::calculateS()
         {
             const vector& Pa = beamC_[i];
             const vector& Pb = beamC_[i+1];
-            // segment length
-            const scalar ds = mag(Pb - Pa);
-
             const vector Ei = Pb - Pa;
             const scalar magEi2 = magSqr(Ei);
             //skip
-            if (magEi2 <= SMALL) continue;
+            if (magEi2 <= SMALL)
+            {
+                continue;
+            }
 
             // parametric coordinate along the segment (can be <0 or >1)
             const scalar t = ((Cj - Pa) & Ei)/magEi2;
@@ -372,7 +372,7 @@ void Foam::fv::fvBeamPorosity::addSup
     const label fieldi
 )
 {
-    const volVectorField& U = eqn.psi();
+    //    const volVectorField& U = eqn.psi();
     Info<< "applying ALM force on fluid cells" << endl;
     // 1) Get ALM forces from beam mesh
     labelList fluidCellIDs;
@@ -462,7 +462,6 @@ void Foam::fv::fvBeamPorosity::addSup
 
         const scalar r = closestBeamCellDist_[c];
         scalar etaR = eta(r);
-        sumEtaR += etaVals[c]*V[c];
         if (etaR < SMALL)
         {
             continue;
@@ -551,7 +550,7 @@ void Foam::fv::fvBeamPorosity::addSup
     const label fieldi
 )
 {
-    const volVectorField& U = eqn.psi();
+    //    const volVectorField& U = eqn.psi();
 
     // fvMatrix<vector> mangrovesEqn
     // (
