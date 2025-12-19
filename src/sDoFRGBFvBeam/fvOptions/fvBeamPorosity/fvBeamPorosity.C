@@ -61,16 +61,22 @@ namespace fv
 
 void Foam::fv::fvBeamPorosity::calculateS()
 {
-    const fvMesh& beamMesh =
-        mesh().time().db().parent().lookupObject<fvMesh>("beamone");
+    // vectorField beamC;
+    if (Pstream::master())
+    {
+        const fvMesh& beamMesh =
+            mesh().time().db().parent().lookupObject<fvMesh>("beamone");
 
-    const vectorField& beamCellCoords = beamMesh.C();   // actuator points Pa,i
-    const volVectorField& refW =
-        beamMesh.lookupObject<volVectorField>("refW");
-    const volVectorField& W =
-        beamMesh.lookupObject<volVectorField>("W");
+        const vectorField& beamCellCoords = beamMesh.C();   // actuator points Pa,i
+        const volVectorField& refW =
+            beamMesh.lookupObject<volVectorField>("refW");
+        const volVectorField& W =
+            beamMesh.lookupObject<volVectorField>("W");
 
-    vectorField beamC(beamCellCoords + refW.internalField() + W.internalField());
+        beamC_ = beamCellCoords + refW.internalField() + W.internalField();
+    }
+    Pstream::broadcast(beamC_);
+
     const vectorField& fluidC = mesh_.C();     // cell centres Cj
 
     const label nFluid = mesh_.nCells();
@@ -89,15 +95,17 @@ void Foam::fv::fvBeamPorosity::calculateS()
         label bestSeg = -1;
 
         // loop over beam *segments* Ei between Pa,i and Pa,i+1
-        for (label i = 0; i < beamC.size() - 1; ++i)
+        for (label i = 0; i < beamC_.size() - 1; ++i)
         {
-            const vector& Pa = beamC[i];
-            const vector& Pb = beamC[i+1];
-            const scalar ds = mag(Pb - Pa);  // segment length
+            const vector& Pa = beamC_[i];
+            const vector& Pb = beamC_[i+1];
+            // segment length
+            const scalar ds = mag(Pb - Pa);
 
             const vector Ei = Pb - Pa;
             const scalar magEi2 = magSqr(Ei);
-            if (magEi2 <= SMALL) continue; // degenerate segment, skip
+            //skip
+            if (magEi2 <= SMALL) continue;
 
             // parametric coordinate along the segment (can be <0 or >1)
             const scalar t = ((Cj - Pa) & Ei)/magEi2;
@@ -120,14 +128,14 @@ void Foam::fv::fvBeamPorosity::calculateS()
         }
 
         //r
-        closestBeamCellDist_[fluidCellI] = bestR;  
+        closestBeamCellDist_[fluidCellI] = bestR;
 
         // segment index i
         closestBeamCell_[fluidCellI] = bestSeg;
 
         // s in [0,1]
         sField_[fluidCellI] = bestS;
-        
+
     }
 }
 Foam::scalar Foam::fv::fvBeamPorosity::eta(const scalar r) const
@@ -393,46 +401,99 @@ void Foam::fv::fvBeamPorosity::addSup
     Pstream::broadcast(fluidCellIDs);
     Pstream::broadcast(almF);
 
+
     // Updating s,r and segmentID's
     calculateS();
+    // weights
+    scalarList nodeWeights(almF.size(), 0.0);
+
+    const scalarField& V = mesh_.V();
+
+    // Pass 1: Accumulate weights
+    forAll(closestBeamCell_, c)
+    {
+        const label segI = closestBeamCell_[c];
+
+        // Check valid segment
+        if (segI < 0 || segI + 1 >= almF.size())
+        {
+            continue;
+        }
+
+        const scalar r = closestBeamCellDist_[c];
+        const scalar etaR = eta(r);
+
+        // Optimization: skip negligible contributions
+        if (etaR < SMALL)
+        {
+            continue;
+        }
+
+        const scalar s = sField_[c];
+        const scalar cellVol = V[c];
+
+        // Distribution logic based on Bral et al. [cite_start]Eq (9) [cite: 158]
+        // Node i gets weight (1-s) * eta
+        // Node i+1 gets weight (s) * eta
+
+        nodeWeights[segI] += (1.0 - s)*etaR*cellVol;
+        nodeWeights[segI + 1] += (s)*etaR*cellVol;
+    }
+
+    // Parallel Reduction: Sum weights across all processors
+    // reduce(nodeWeights, sumOp<scalarList>());
 
     scalarField etaVals(mesh_.nCells(), 0.0);
+    vectorField forceVals(mesh_.nCells(), vector::zero);
 
     // probably not needed now
     //    globalIndex gI(mesh_.nCells());
 
     // once the calculateS() has been called, apply momentum source to all
     // fluid cells, based on their s and eta
-
+    vector ffvOption(vector::zero);
     forAll(eqn.source(), c)
     {
-        // Segment index for this fluid cell (from calculateS)
         const label segI = closestBeamCell_[c];
-
-        // Skip cells not influenced by any segment
-        if (segI < 0 || segI+1 >= almF.size())
+        if (segI < 0 || segI + 1 >= almF.size()) 
+        {
             continue;
+        }
 
-        const scalar s = sField_[c];
         const scalar r = closestBeamCellDist_[c];
-        const scalar etaR = eta(r);
-        // if (etaR > 0)
-        // {
-        //     Info<< " eta R =  " << etaR << endl;
-        // }
+        scalar etaR = eta(r);
+        sumEtaR += etaVals[c]*V[c];
+        if (etaR < SMALL)
+        {
+            continue;
+        }
+
         etaVals[c] = etaR;
 
-        // Trying to skip for far-away cells
-        if (etaR == 0)
-            continue;
+        const scalar s = sField_[c];
 
-        const vector& Fi   = almF[segI];
-        const vector& Fip1 = almF[segI+1];
+        // We need this to convert Density (N/m) to Force (N)
+        const vector& Pa = beamC_[segI];
+        const vector& Pb = beamC_[segI+1];
+        const scalar ds = mag(Pb - Pa);
 
-        const vector Sj = -(1.0 - s)*etaR*Fi - s*etaR*Fip1;
+        // Retrieve Force Density (N/m)
+        const vector Fi_density   = almF[segI];
+        const vector Fip1_density = almF[segI+1];
 
-        eqn.source()[c] += (Sj*mesh_.V()[c]);
+        // Normalize: (Density * Length) / Weight
+        // This ensures the volume integral equals (Density * Length)
+        const vector Fi_applied   = (Fi_density*ds) / (nodeWeights[segI] + VSMALL);
+        const vector Fip1_applied = (Fip1_density*ds) / (nodeWeights[segI + 1] + VSMALL);
+
+        // Interpolation and Applying the force
+        const vector Sj = -etaR * ((1.0 - s) * Fi_applied + s * Fip1_applied);
+
+        eqn.source()[c] += (Sj*V[c]);
+        ffvOption += (Sj*V[c]);
     }
+
+    Info<< "Sum of ALM forces applied to Fluid (fvOptions) = " << ffvOption << endl;
     if (mesh_.time().writeTime())
     {
         volScalarField etaField
@@ -446,7 +507,8 @@ void Foam::fv::fvBeamPorosity::addSup
                 IOobject::AUTO_WRITE
             ),
             mesh_,
-            dimensionedScalar("zero", dimless/dimArea, 0.0)
+            dimensionedScalar("zero", dimless/dimArea, 0.0),
+            "zeroGradient"
         );
 
         //        etaField.internalField() = etaVals;
@@ -456,6 +518,28 @@ void Foam::fv::fvBeamPorosity::addSup
         }
         etaField.correctBoundaryConditions();
         etaField.write();
+        volVectorField forceField
+        (
+            IOobject
+            (
+                "ffield",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh_,
+            dimensionedVector("zero", dimForce, vector::zero),
+            "zeroGradient"
+        );
+
+        //        etaField.internalField() = etaVals;
+        forAll(forceField, c)
+        {
+            forceField.internalFieldRef()[c] = forceVals[c];
+        }
+        forceField.correctBoundaryConditions();
+        forceField.write();
 }
 }
 

@@ -99,6 +99,9 @@ protected:
     // Gaussian kernel width epsilon
     scalar eps_;
 
+    // Beam cell center coordinates
+    mutable vectorField beamC_;
+
     // Protected Member Functions
 
     // Gaussian kernel
