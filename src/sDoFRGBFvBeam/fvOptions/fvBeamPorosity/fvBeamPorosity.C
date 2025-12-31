@@ -441,7 +441,7 @@ void Foam::fv::fvBeamPorosity::addSup
     }
 
     // Parallel Reduction: Sum weights across all processors
-    // reduce(nodeWeights, sumOp<scalarList>());
+    reduce(nodeWeights, sumOp<scalarList>());
 
     scalarField etaVals(mesh_.nCells(), 0.0);
     vectorField forceVals(mesh_.nCells(), vector::zero);
@@ -455,7 +455,7 @@ void Foam::fv::fvBeamPorosity::addSup
     forAll(eqn.source(), c)
     {
         const label segI = closestBeamCell_[c];
-        if (segI < 0 || segI + 1 >= almF.size()) 
+        if (segI < 0 || segI + 1 >= almF.size())
         {
             continue;
         }
