@@ -110,6 +110,8 @@ protected:
     // Compute s, r and segment index
     void calculateS();
 
+    // Helper function to apply the force
+    void applyBeamForce(fvMatrix<vector>& eqn);
 
 
 public:

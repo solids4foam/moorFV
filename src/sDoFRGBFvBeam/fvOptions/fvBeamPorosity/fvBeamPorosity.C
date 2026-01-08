@@ -144,233 +144,8 @@ Foam::scalar Foam::fv::fvBeamPorosity::eta(const scalar r) const
     const scalar re  = r/eps_;
     return (1.0/(eps_*eps_*constant::mathematical::pi)) * exp(-re*re);
 }
-// Foam::tmp<Foam::volScalarField>
-// Foam::fv::fvBeamPorosity::coeff(const volVectorField& U, const word& modelName) const
-// {
-//     auto tcoeff = tmp<volScalarField>::New
-//     (
-//         IOobject
-//         (
-//             typeName + "coeff",
-//             mesh_.time().timeName(),
-//             mesh_,
-//             IOobject::READ_IF_PRESENT,
-//             IOobject::AUTO_WRITE
-//         ),
-//         mesh_,
-//         dimensionedScalar(dimless/dimTime, Zero)
-//     );
-//     auto& coeff = tcoeff.ref();
-//     labelList fluidCellIDs;
-//     // vectorField immersedForce;
-//     label fluidRho;
-//     label beamRadius;
-//     if (Pstream::master())
-//     {
-//         fvMesh& beamMesh = const_cast<fvMesh&>(mesh().time().db().parent().lookupObject<fvMesh>("beamone"));
 
-//         const dictionary& linkToBeamProperties = beamMesh.lookupObject<dictionary>("beamProperties");
-
-//         fluidRho = linkToBeamProperties.subDict("coupledTotalLagNewtonRaphsonBeamCoeffs")
-//         .get<dimensionedScalar>("rhoFluid").value();
-
-//         beamRadius = linkToBeamProperties.get<dimensionedScalar>("R").value();
-
-//         const labelList& gFluidCellIDsIO = beamMesh.lookupObject<labelIOList>("fluidCellIDs");
-
-//         vectorIOList& immersedF = beamMesh.lookupObjectRef<vectorIOList>("immersedForce");
-
-//         fluidCellIDs = gFluidCellIDsIO;
-//         immersedForce.setSize(immersedF.size(), vector::zero);
-//     }
-//     else
-//     {
-//         fluidCellIDs.setSize(0);
-//         immersedForce.setSize(0);
-//         fluidRho(0);
-//         beamRadius(0);
-//     }
-//     Pstream::broadcast(fluidCellIDs);
-//     Pstream::broadcast(immersedForce);
-//     Pstream::broadcast(fluidRho);
-//     Pstream::broadcast(beamRadius);
-
-//     globalIndex gI(mesh_.nCells());
-
-
-//     const volScalarField& cellMarker
-//     (
-//         mesh_.lookupObject<volScalarField>("cellMarker")
-//     );
-//     const volVectorField& beamVelocity
-//     (
-//         mesh_.lookupObject<volVectorField>("beamVelocity")
-//     );
-
-//     if (mesh_.foundObject<volScalarField>("cellMarker"))
-//     {
-//         if (modelName_ == "Darcy")
-//         {
-//             // coeff = ((nu_/perm_) + beta_*mag(U - beamVelocity))*cellMarker;
-//             coeff = (fluidRho * mag(U - beamVelocity)*beamRadius)*cellMarker;
-//         }
-//         // dimensions need to be fixed for fixedCoefficient model!
-//         else if (modelName_ == "fixedCoefficient")
-//         {
-//             coeff = coeff_ * cellMarker;
-//         }
-//     }
-//     else
-//     {
-//         coeff = 0.0;
-//     }
-
-
-//     // forAll(fluidCellIDs, beamCellI)
-//     // {
-//     //     const label gId = fluidCellIDs[beamCellI];
-//     //     if (gId == -1)
-//     //     {
-//     //         continue;
-//     //     }
-
-//     //     const label owner = gI.whichProcID(gId);
-//     //     // only owner should modify
-//     //     if (owner != Pstream::myProcNo())
-//     //     {
-//     //         continue;
-//     //     }
-
-//     //     const label c = gI.toLocal(owner, gId);
-//     //     if (c < 0 || c >= mesh_.nCells())
-//     //     {
-//     //         continue;
-//     //     }
-//     //     if (cellMarker[c] >= 0.001 && cellMarker[c] <= 1)
-//     //     {
-//     //         immersedForce[beamCellI] = coeff[c] * (U[c] - beamVelocity[c]) * mesh_.V()[c];
-//     //     }
-//     // }
-//     // reduce(immersedForce, FieldSumOp<vector>());
-//     //    Pout << "immersed Force on cell 20 = " << immersedForce[20] << endl;
-//     // if (Pstream::master())
-//     // {
-//     //     fvMesh& beamMesh = const_cast<fvMesh&>(mesh().time().db().parent().lookupObject<fvMesh>("beamone"));
-
-//     //     vectorIOList& immersedF =
-//     //         const_cast<vectorIOList&>(beamMesh.lookupObject<vectorIOList>("immersedForce"));
-
-//     //     if (immersedF.size() != immersedForce.size())
-//     //     {
-//     //         immersedF.setSize(immersedForce.size());
-//     //     }
-//     //     vector sumF(vector::zero);
-//     //     forAll(immersedForce, i)
-//     //     {
-//     //         sumF += immersedForce[i];
-//     //     }
-//     //     Info<< "sumF on the fvOptions = " << sumF << endl;
-//     //     forAll(immersedForce, i)
-//     //     {
-//     //         immersedF[i] = immersedForce[i];
-//     //     }
-//     // }
-
-//     // vector integratedForce = vector::zero;
-//     // forAll(cellMarker, cellI)
-//     // {
-//     //     if (cellMarker[cellI] >= 0.001 && cellMarker[cellI] <= 1)
-//     //     {
-//     //         integratedForce += coeff[cellI] * U[cellI] * mesh_.V()[cellI];
-//     //     }
-//     // }
-//     // // For the integrated force, reduce before printing
-//     // reduce(integratedForce, sumOp<vector>());
-//     // if (forceFilePtr_.valid())
-//     // {
-//     //     forceFilePtr_()
-//     //     << mesh_.time().timeOutputValue()
-//     //     << " "
-//     //     << integratedForce
-//     //     << endl;
-//     // }
-
-//     coeff.correctBoundaryConditions();
-//     if(mesh_.time().writeTime())
-//     {
-//         coeff.write();
-//         // immersedF.write();
-//     }
-//     coeff.correctBoundaryConditions();
-
-//     return tcoeff;
-// }
-
-
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::fv::fvBeamPorosity::fvBeamPorosity
-(
-    const word& name,
-    const word& modelType,
-    const dictionary& dict,
-    const fvMesh& mesh
-)
-:
-    fv::option(name, modelType, dict, mesh),
-    forceFilePtr_(),
-    eps_()
-    // active_()
-{
-    read(dict);
-
-    if (Pstream::master())
-    {
-        fileName postProcDir;
-
-        word startTimeName =
-                mesh.time().timeName(mesh.time().startTime().value());
-
-        if (Pstream::parRun())
-        {
-            // Put in undecomposed case (Note: gives problems for
-            // distributed data running)
-            postProcDir = mesh.time().path()/".."/"postProcessing"/startTimeName;
-        }
-        else
-        {
-            postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
-        }
-
-        mkDir(postProcDir);
-        forceFilePtr_.reset
-        (
-            new OFstream
-            (
-                postProcDir/"integratedForce.dat"
-            )
-        );
-        if (forceFilePtr_.valid())
-        {
-            forceFilePtr_()
-                << "# Time"
-                << " "
-                << "force"
-                << endl;
-        }
-    }
-}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void Foam::fv::fvBeamPorosity::addSup
-(
-    fvMatrix<vector>& eqn,
-    const label fieldi
-)
+void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
 {
     //    const volVectorField& U = eqn.psi();
     Info<< "applying ALM force on fluid cells" << endl;
@@ -539,7 +314,74 @@ void Foam::fv::fvBeamPorosity::addSup
         }
         forceField.correctBoundaryConditions();
         forceField.write();
+    }
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::fv::fvBeamPorosity::fvBeamPorosity
+(
+    const word& name,
+    const word& modelType,
+    const dictionary& dict,
+    const fvMesh& mesh
+)
+:
+    fv::option(name, modelType, dict, mesh),
+    forceFilePtr_(),
+    eps_()
+    // active_()
+{
+    read(dict);
+
+    if (Pstream::master())
+    {
+        fileName postProcDir;
+
+        word startTimeName =
+                mesh.time().timeName(mesh.time().startTime().value());
+
+        if (Pstream::parRun())
+        {
+            // Put in undecomposed case (Note: gives problems for
+            // distributed data running)
+            postProcDir = mesh.time().path()/".."/"postProcessing"/startTimeName;
+        }
+        else
+        {
+            postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
+        }
+
+        mkDir(postProcDir);
+        forceFilePtr_.reset
+        (
+            new OFstream
+            (
+                postProcDir/"integratedForce.dat"
+            )
+        );
+        if (forceFilePtr_.valid())
+        {
+            forceFilePtr_()
+                << "# Time"
+                << " "
+                << "force"
+                << endl;
+        }
+    }
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::fv::fvBeamPorosity::addSup
+(
+    fvMatrix<vector>& eqn,
+    const label fieldi
+)
+{
+    applyBeamForce(eqn);
 }
 
 
@@ -550,15 +392,7 @@ void Foam::fv::fvBeamPorosity::addSup
     const label fieldi
 )
 {
-    //    const volVectorField& U = eqn.psi();
-
-    // fvMatrix<vector> mangrovesEqn
-    // (
-    //   - fvm::Sp(rho*coeff(U, modelName_), U)
-    // );
-
-    // Contributions are added to RHS of momentum equation
-    // eqn += mangrovesEqn;
+    applyBeamForce(eqn);
 }
 
 
