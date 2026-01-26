@@ -183,6 +183,8 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
 
         pointPatchDist pDist(pMesh, patchSet_, points0());
 
+	// loop over all points- calculate z coordinate and z relative to CofR. Weight z coordinate so that pDist above is some factor
+	
         // Scaling: 1 up to di then linear down to 0 at do away from patches
         scale_.primitiveFieldRef() =
             min
