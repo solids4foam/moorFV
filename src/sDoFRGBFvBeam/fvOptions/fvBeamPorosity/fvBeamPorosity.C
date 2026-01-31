@@ -266,7 +266,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         eqn.source()[c] += (Sj*V[c]);
         ffvOption += (Sj*V[c]);
     }
-
+    reduce(ffvOption, sumOp<vector>());
     Info<< "Sum of ALM forces applied to Fluid (fvOptions) = " << ffvOption << endl;
     if (mesh_.time().writeTime())
     {
