@@ -33,17 +33,20 @@ nSegments 60; //change this to 20
 
     groundContactActive true;
     groundZ -0.5;
-    gStiffness 1E04;
-    gDamping 1.0;
-    nSegments 60;
+    kNormal 1E03;
+    cNormal 1.0;
+    kTangential 1E03;
+
+    seadbedFrictionActive true;
+    muFriction 0.01;
 
     startPatchName left;
     endPatchName right;
 
-    nCorrectors 200;
+    nCorrectors 10;
     convergenceTol 1e-10;
 
-    debug yes;
+    debug no;
 
     updatedLagrangian no;
 
@@ -60,6 +63,9 @@ nSegments 60; //change this to 20
     // steadyState flag should also be false along with this flag
     // else drag forces will be zero
     dragActive true;
+    beamFluidInteraction false;
+    fractionalMarking false;
+
 
     // Coefficient of drag in normal and tangential directions
     // Default value if not specified is 1.0 for both

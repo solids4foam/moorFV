@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Run the beam initialisation case
+echo "Running cablesInitialisation/beamone"
+(cd cablesInitialisation/beamone && ./Allrun > log.beamMeshing)
+
+# Copy the mesh and fields to the fluid case
+cp -r cablesInitialisation/beamone/0 pitzDailyWithBeam/0.orig/beamone
+cp -r cablesInitialisation/beamone/constant pitzDailyWithBeam/constant/beamone
+
+# Replace W and theta
+cp ./cablesInitialisation/beamone/0/W pitzDailyWithBeam/0.orig/beamone/
+cp ./cablesInitialisation/beamone/0/Theta pitzDailyWithBeam/0.orig/beamone/
+
+# Update the path for dicts
+sed -i 's/fixedDisplacement/fixedValue/g' pitzDailyWithBeam/0.orig/beamone/W
+sed -i "s@constant/timeVsMoment@constant/beamone/timeVsMoment@g" pitzDailyWithBeam/0.orig/beamone/Theta
+
+
+# Run the fluid solver
+echo "Running pitzDailyWithBeam"
+(cd pitzDailyWithBeam && ./Allrun &> log.Allrun)

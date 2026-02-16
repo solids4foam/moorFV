@@ -32,13 +32,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         1;
+endTime         16;
 
 deltaT          0.001;
 
 writeControl    adjustableRunTime; // timeStep; //
 
-writeInterval   0.2;
+writeInterval   0.5;
 
 purgeWrite      0;
 
@@ -57,33 +57,33 @@ runTimeModifiable no;
 adjustTimeStep  yes;
 
 maxCo           0.5;
-maxAlphaCo      0.5;
+maxAlphaCo      0.25;
 maxDeltaT       0.01;
 
 functions
 {
-    sixDoF_History
-    {
-        type           sixDoFRigidBodyStateFvBeam;
-        libs           ("libsixDoFRigidBodyStateFvBeam.so");
-        angleFormat    radians;//radians, degrees
-
-        writeControl   writeTime;
-        //writeInterval  5;
-    }
-
-    interfaceHeight1
-    {
-        type            interfaceHeight;
-
-        libs            ("libfieldFunctionObjects.so");
-
-        locations       ((-2.74 0 0) (-0.05 0 0) (0.07 0 0) (0.55 0 0) (1.9 0 0) (2.9 0 0));
-        alpha           alpha.water;
-
-        writeControl   timeStep;
-        writeInterval  5;
-    }
+//    sixDoF_History
+//    {
+//        type           sixDoFRigidBodyStateFvBeam;
+//        libs           ("libsixDoFRigidBodyStateFvBeam.so");
+//        angleFormat    radians;//radians, degrees
+//
+//        writeControl   timeStep;
+//        writeInterval  1;
+//  }
+//
+//     interfaceHeight1
+//     {
+//      	type            interfaceHeight;
+//
+//        libs            ("libfieldFunctionObjects.so");
+//	direction	(0 0 1);
+//        locations       ((-2.740001 0.0001 0) (-0.050001 0.0001 0) (0.070001 0.0001 0) (0.550001 0.0001 0) (1.90001 0.0001 0) (2.90001 0.0001 0));
+//        alpha           alpha.water;
+//
+//        writeControl   timeStep;
+//        writeInterval  1; 
+//     }
 }
 
 // ************************************************************************* //

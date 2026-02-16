@@ -21,7 +21,17 @@ internalField   uniform 0.1;
 
 boundaryField
 {
-    stationaryWalls
+    frontWall
+    {
+        type            kqRWallFunction;
+        value           uniform 0.1;
+    }
+    backWall
+    {
+        type            kqRWallFunction;
+        value           uniform 0.1;
+    }
+    bottomWall
     {
         type            kqRWallFunction;
         value           uniform 0.1;
