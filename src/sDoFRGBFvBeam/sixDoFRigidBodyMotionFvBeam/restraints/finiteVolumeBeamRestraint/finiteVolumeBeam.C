@@ -31,6 +31,7 @@ License
 #include "fvMesh.H"
 #include "OFstream.H"
 #include "quaternion.H"
+#include "PstreamReduceOps.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -262,6 +263,45 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
 
+    //---------------------------------------------------------------------
+    // Colm: include all rigid body data- not just mooring attachment points
+    //---------------------------------------------------------------------
+    RigidBodyStepData rbData;
+
+    const sixDoFRigidBodyMotionFvBeamState& state = motion.state();
+    const sixDoFRigidBodyMotionFvBeamState& state0 = motion.state0();
+
+    rbData.previous.displacement =
+        state0.centreOfRotation() - motion.initialCentreOfRotation();
+
+    rbData.current.displacement =
+        state.centreOfRotation() - motion.initialCentreOfRotation();
+
+    rbData.previous.orientation = state0.Q();
+    rbData.current.orientation = state.Q();
+
+    rbData.previous.velocity = state0.v();
+    rbData.current.velocity = state.v();
+
+    rbData.previous.angularMomentum = state0.pi();
+    rbData.current.angularMomentum = state.pi();
+
+    rbData.previous.acceleration = state0.a();
+    rbData.current.acceleration = state.a();
+
+    rbData.previous.torque = state0.tau();
+    rbData.current.torque = state.tau();
+
+    //    beamModels::coupledTotalLagNewtonRaphsonBeam& coupledBeam =
+    //    refCast<beamModels::coupledTotalLagNewtonRaphsonBeam>(beam);
+
+    // coupledBeam.setRigidBodyStepData(rbData);
+      
+    beam.setRigidBodyStepData(rbData);
+ 
+//---------------------------------------------------------------------    
+
+    // Call beamFoam- Colm
     beam.evolve();
 
     beam.updateTotalFields();

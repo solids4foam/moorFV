@@ -227,6 +227,12 @@ Foam::sixDoFRigidBodyMotionFvBeam::state() const
     return motionState_;
 }
 
+inline const Foam::sixDoFRigidBodyMotionFvBeamState&
+Foam::sixDoFRigidBodyMotionFvBeam::state0() const
+{
+    return motionState0_;
+}
+
 
 inline const Foam::point& Foam::sixDoFRigidBodyMotionFvBeam::centreOfRotation() const
 {

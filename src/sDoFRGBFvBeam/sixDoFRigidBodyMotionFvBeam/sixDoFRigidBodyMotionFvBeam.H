@@ -79,7 +79,7 @@ class sixDoFRigidBodyMotionFvBeam
         //- Motion state data object
         sixDoFRigidBodyMotionFvBeamState motionState_;
 
-        //- Motion state data object for previous time-step
+        //- Motion state data object. Previous state. Colm
         sixDoFRigidBodyMotionFvBeamState motionState0_;
 
         //- Motion restraints
@@ -167,7 +167,7 @@ class sixDoFRigidBodyMotionFvBeam
                 constraints() const;
 
             //- Return the initial centre of rotation
-            inline const point& initialCentreOfRotation() const;
+  //            inline const point& initialCentreOfRotation() const;
 
             //- Return the initial orientation
             inline const tensor& initialQ() const;
@@ -241,7 +241,10 @@ public:
 
             //- Return the motion state
             inline const sixDoFRigidBodyMotionFvBeamState& state() const;
-
+  
+            // Colm: accessor for previous-step state
+            inline const sixDoFRigidBodyMotionFvBeamState& state0() const;
+  
             //- Return the current centre of rotation
             inline const point& centreOfRotation() const;
 
@@ -273,7 +276,9 @@ public:
 
             //- Return time
             inline const Time& time() const;
-
+  
+            //- Return the initial centre of rotation
+            inline const point& initialCentreOfRotation() const;
 
         // Edit
 
