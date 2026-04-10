@@ -85,10 +85,21 @@ void Foam::fv::fvBeamPorosity::calculateS()
     closestBeamCell_.setSize(nFluid);      // here: store segment index i
     closestBeamCellDist_.setSize(nFluid);  // store r
 
+    boundBox beamBb(beamC_, false);
+    beamBb.inflate(3.0*eps_);
+
     // loop over fluid cells
     forAll(fluidC, fluidCellI)
     {
         const vector& Cj = fluidC[fluidCellI];
+
+        if (!beamBb.contains(Cj))
+        {
+            closestBeamCellDist_[fluidCellI] = GREAT;
+            closestBeamCell_[fluidCellI] = -1;
+            sField_[fluidCellI] = 0.0;
+            continue;
+        }
 
         scalar bestR = GREAT;
         scalar bestS = 0.0;
@@ -196,6 +207,12 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         }
 
         const scalar r = closestBeamCellDist_[c];
+
+        if (r > 3.0*eps_)
+        {
+            continue;
+        }
+
         const scalar etaR = eta(r);
 
         // Optimization: skip negligible contributions
@@ -236,6 +253,12 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         }
 
         const scalar r = closestBeamCellDist_[c];
+
+        if (r > 3.0*eps_)
+        {
+            continue;
+        }
+
         scalar etaR = eta(r);
         if (etaR < SMALL)
         {
@@ -263,6 +286,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         // Interpolation and Applying the force
         const vector Sj = -etaR * ((1.0 - s) * Fi_applied + s * Fip1_applied);
 
+        forceVals[c] = Sj;
         eqn.source()[c] += (Sj*V[c]);
         ffvOption += (Sj*V[c]);
     }
