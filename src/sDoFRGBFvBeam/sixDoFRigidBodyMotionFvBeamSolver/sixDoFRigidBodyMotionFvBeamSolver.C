@@ -222,6 +222,7 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
                 points0(),
                 xDist_,
                 yDist_,
+                outerDistanceDomainCheck_,
                 scale_,
                 xscale_,
                 yscale_

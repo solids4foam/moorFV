@@ -348,6 +348,7 @@ public:
                 const pointField& initialPoints,
                 const scalar& xDist,
                 const scalar& yDist,
+                const bool containOuterDistance,
                 const scalarField& scale,
                 scalarField& xScale,
                 scalarField& yScale

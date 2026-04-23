@@ -485,6 +485,7 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     const pointField& initialPoints,
     const scalar& xDist,
     const scalar& yDist,
+    const bool containOuterDistance,
     const scalarField& scale,
     scalarField& xScale,
     scalarField& yScale
@@ -494,11 +495,19 @@ void Foam::sixDoFRigidBodyMotionFvBeam::updateXYScale
     tmp<pointField> tpoints(new pointField(initialPoints));
     pointField& points = tpoints.ref();
 
-    // Find the bounding box of the inner (or outer) distance from scale
-    // Move all points to inside the slerp scale domain. Then compute boundBox
+    // Find the bounding box used as the start of the x/y translation taper.
+    // With containOuterDistance=true, use the full active morphing envelope
+    // (scale > 0). Otherwise retain the legacy rigid-core behavior.
     forAll(points,pointi)
     {
-        if (scale[pointi] <= 1 - SMALL)
+        const bool keepPoint =
+        (
+            containOuterDistance
+          ? scale[pointi] > SMALL
+          : scale[pointi] > 1 - SMALL
+        );
+
+        if (!keepPoint)
         {
             points[pointi] = initialCentreOfRotation();
         }
