@@ -417,6 +417,7 @@ Foam::tmp<Foam::pointField> Foam::sixDoFRigidBodyMotionFvBeam::transform
     const scalarField& yScale
 ) const
 {
+    Info << "modified morphing's transform" << endl;
     // Get switches for different directions. True means active translation region
     const bool isXScale = xDist > 0;
     const bool isYScale = yDist > 0;

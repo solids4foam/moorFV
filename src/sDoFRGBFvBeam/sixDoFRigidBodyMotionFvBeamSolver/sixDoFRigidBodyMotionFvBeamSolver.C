@@ -180,8 +180,34 @@ Foam::sixDoFRigidBodyMotionFvBeamSolver::sixDoFRigidBodyMotionFvBeamSolver
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     {
         const pointMesh& pMesh = pointMesh::New(mesh);
-
-        pointPatchDist pDist(pMesh, patchSet_, points0());
+	// added
+	//---ModMorph{
+        // Ensure that do_ does not reach beyond the domain. 
+        // Note: This is only applicable for rectangular domains aligned with the main coordinate system. 
+        tensor scales = tensor::I;
+        if (outerDistanceDomainCheck_)
+        {
+            // Modification to avoid outer distance to go beyond the domain. 
+            // Uses boundBox for minimal distance between rectangular domain and body patches. 
+            point minPoint = mesh.bounds().min();
+            point maxPoint = mesh.bounds().max();
+            
+            forAll(patches_,pp) // for all patches of the body, check bounding box and compute scale factor. 
+            {   
+                const label patchi = mesh.boundaryMesh().findPatchID(patches_[pp]);
+                const pointField& pf = pMesh.boundary()[patchi].localPoints(); // get local patch points
+                boundBox bb(pf); // compute bounding box of current patch pointField 
+                point deltaMax = maxPoint-bb.max(); 
+                point deltaMin = bb.min()-minPoint;
+                // Compute scale factor for different coordinate directions 
+                scales.xx() = max(scales.xx(), do_/min(deltaMax.x(), deltaMin.x()));
+                scales.yy() = max(scales.yy(), do_/min(deltaMax.y(), deltaMin.y()));
+                scales.zz() = max(scales.zz(), do_/min(deltaMax.z(), deltaMin.z()));
+            }
+        }
+        pointPatchDist pDist(pMesh, patchSet_, (scales & points0()));
+        //pointPatchDist pDist(pMesh, patchSet_, points0());
+	// added
 
 	// loop over all points- calculate z coordinate and z relative to CofR. Weight z coordinate so that pDist above is some factor
 	
