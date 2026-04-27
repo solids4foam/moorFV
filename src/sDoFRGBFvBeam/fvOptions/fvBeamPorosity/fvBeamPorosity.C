@@ -65,7 +65,7 @@ void Foam::fv::fvBeamPorosity::calculateS()
     if (Pstream::master())
     {
         const fvMesh& beamMesh =
-            mesh().time().db().parent().lookupObject<fvMesh>("beamone");
+            mesh().time().db().parent().lookupObject<fvMesh>("beam_0");
 
         const vectorField& beamCellCoords = beamMesh.C();   // actuator points Pa,i
         const volVectorField& refW =
@@ -85,21 +85,21 @@ void Foam::fv::fvBeamPorosity::calculateS()
     closestBeamCell_.setSize(nFluid);      // here: store segment index i
     closestBeamCellDist_.setSize(nFluid);  // store r
 
-    boundBox beamBb(beamC_, false);
-    beamBb.inflate(3.0*eps_);
+    //    boundBox beamBb(beamC_, false);
+    //    beamBb.inflate(3.0*eps_);
 
     // loop over fluid cells
     forAll(fluidC, fluidCellI)
     {
         const vector& Cj = fluidC[fluidCellI];
 
-        if (!beamBb.contains(Cj))
-        {
-            closestBeamCellDist_[fluidCellI] = GREAT;
-            closestBeamCell_[fluidCellI] = -1;
-            sField_[fluidCellI] = 0.0;
-            continue;
-        }
+        // if (!beamBb.contains(Cj))
+        // {
+        //     closestBeamCellDist_[fluidCellI] = GREAT;
+        //     closestBeamCell_[fluidCellI] = -1;
+        //     sField_[fluidCellI] = 0.0;
+        //     continue;
+        // }
 
         scalar bestR = GREAT;
         scalar bestS = 0.0;
@@ -167,7 +167,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
     if (Pstream::master())
     {
         const fvMesh& beamMesh =
-            mesh().time().db().parent().lookupObject<fvMesh>("beamone");
+            mesh().time().db().parent().lookupObject<fvMesh>("beam_0");
 
         const labelList& gFluidCellIDsIO =
             beamMesh.lookupObject<labelIOList>("fluidCellIDs");
@@ -208,10 +208,10 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
 
         const scalar r = closestBeamCellDist_[c];
 
-        if (r > 3.0*eps_)
-        {
-            continue;
-        }
+        // if (r > 3.0*eps_)
+        // {
+        //     continue;
+        //        }
 
         const scalar etaR = eta(r);
 
@@ -254,10 +254,10 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
 
         const scalar r = closestBeamCellDist_[c];
 
-        if (r > 3.0*eps_)
-        {
-            continue;
-        }
+        // if (r > 3.0*eps_)
+        // {
+        //     continue;
+        // }
 
         scalar etaR = eta(r);
         if (etaR < SMALL)
