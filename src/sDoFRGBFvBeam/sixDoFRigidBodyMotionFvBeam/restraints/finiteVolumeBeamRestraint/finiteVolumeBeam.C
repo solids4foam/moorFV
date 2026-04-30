@@ -263,6 +263,13 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
 
+    Info<< "finiteVolumeBeam debug pre-evolve: attachmentDisp = "
+        << attachmentDisp
+        << ", right W = " << W.boundaryField()[patchID_][0]
+        << ", first internal W = " << W[0]
+        << ", last internal W = " << W[W.size() - 1]
+        << endl;
+
     //---------------------------------------------------------------------
     // Colm: include all rigid body data- not just mooring attachment points
     //---------------------------------------------------------------------
@@ -306,6 +313,12 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     beam.updateTotalFields();
 
+    Info<< "finiteVolumeBeam debug post-evolve: right W = "
+        << W.boundaryField()[patchID_][0]
+        << ", first internal W = " << W[0]
+        << ", last internal W = " << W[W.size() - 1]
+        << endl;
+
 
     // Lookup the surface forces
     const surfaceVectorField& Q =
@@ -321,6 +334,11 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     const vector attachmentForce = Q.boundaryField()[patchID_][0];
     const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
     const vector anchorDisplacement = W.boundaryField()[anchorPatchID_][0];  // first cell of patch
+
+    Info<< "finiteVolumeBeam debug Q: attachment Q = "
+        << attachmentForce
+        << ", anchor Q = " << anchorForce
+        << endl;
 
     restraintForce = -attachmentForce;
     // relax force
