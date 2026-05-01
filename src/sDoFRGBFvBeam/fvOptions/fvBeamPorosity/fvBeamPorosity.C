@@ -65,7 +65,7 @@ void Foam::fv::fvBeamPorosity::calculateS()
     if (Pstream::master())
     {
         const fvMesh& beamMesh =
-            mesh().time().db().parent().lookupObject<fvMesh>("beam_0");
+            mesh().time().db().parent().lookupObject<fvMesh>(beamName_);
 
         const vectorField& beamCellCoords = beamMesh.C();   // actuator points Pa,i
         const volVectorField& refW =
@@ -76,17 +76,19 @@ void Foam::fv::fvBeamPorosity::calculateS()
         beamC_ = beamCellCoords + refW.internalField() + W.internalField();
     }
     Pstream::broadcast(beamC_);
-
-    const vectorField& fluidC = mesh_.C();     // cell centres Cj
+    // cell centres Cj
+    const vectorField& fluidC = mesh_.C();
 
     const label nFluid = mesh_.nCells();
 
     sField_.setSize(nFluid);
-    closestBeamCell_.setSize(nFluid);      // here: store segment index i
-    closestBeamCellDist_.setSize(nFluid);  // store r
+    // here: store segment index i
+    closestBeamCell_.setSize(nFluid);
+    // store r
+    closestBeamCellDist_.setSize(nFluid);
 
-    //    boundBox beamBb(beamC_, false);
-    //    beamBb.inflate(3.0*eps_);
+    // boundBox beamBb(beamC_, false);
+    // beamBb.inflate(3.0*eps_);
 
     // loop over fluid cells
     forAll(fluidC, fluidCellI)
@@ -151,7 +153,6 @@ void Foam::fv::fvBeamPorosity::calculateS()
 }
 Foam::scalar Foam::fv::fvBeamPorosity::eta(const scalar r) const
 {
-    //    const scalar eps = 0.08; // epsilon ~ C * dx
     const scalar re  = r/eps_;
     return (1.0/(eps_*eps_*constant::mathematical::pi)) * exp(-re*re);
 }
@@ -167,7 +168,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
     if (Pstream::master())
     {
         const fvMesh& beamMesh =
-            mesh().time().db().parent().lookupObject<fvMesh>("beam_0");
+            mesh().time().db().parent().lookupObject<fvMesh>(beamName_);
 
         const labelList& gFluidCellIDsIO =
             beamMesh.lookupObject<labelIOList>("fluidCellIDs");
@@ -211,7 +212,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         // if (r > 3.0*eps_)
         // {
         //     continue;
-        //        }
+        // }
 
         const scalar etaR = eta(r);
 
@@ -224,7 +225,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         const scalar s = sField_[c];
         const scalar cellVol = V[c];
 
-        // Distribution logic based on Bral et al. [cite_start]Eq (9) [cite: 158]
+        // Distribution logic based on Bral et al.
         // Node i gets weight (1-s) * eta
         // Node i+1 gets weight (s) * eta
 
@@ -239,7 +240,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
     vectorField forceVals(mesh_.nCells(), vector::zero);
 
     // probably not needed now
-    //    globalIndex gI(mesh_.nCells());
+    // globalIndex gI(mesh_.nCells());
 
     // once the calculateS() has been called, apply momentum source to all
     // fluid cells, based on their s and eta
@@ -275,7 +276,7 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         const scalar ds = mag(Pb - Pa);
 
         // Retrieve Force Density (N/m)
-        const vector Fi_density   = almF[segI];
+        const vector Fi_density = almF[segI];
         const vector Fip1_density = almF[segI+1];
 
         // Normalize: (Density * Length) / Weight
@@ -287,8 +288,8 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         const vector Sj = -etaR * ((1.0 - s) * Fi_applied + s * Fip1_applied);
 
         forceVals[c] = Sj;
-        eqn.source()[c] += (Sj*V[c]);
-        ffvOption += (Sj*V[c]);
+        eqn.source()[c] += (fluidRho_*Sj*V[c]);
+        ffvOption += (fluidRho_*Sj*V[c]);
     }
     reduce(ffvOption, sumOp<vector>());
     Info<< "Sum of ALM forces applied to Fluid (fvOptions) = " << ffvOption << endl;
@@ -354,7 +355,9 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
 :
     fv::option(name, modelType, dict, mesh),
     forceFilePtr_(),
-    eps_()
+    eps_(),
+    beamName_(),
+    fluidRho_()
     // active_()
 {
     read(dict);
@@ -431,6 +434,8 @@ bool Foam::fv::fvBeamPorosity::read(const dictionary& dict)
         }
         fv::option::resetApplied();
         coeffs_.readEntry("epsilon", eps_);
+        coeffs_.readEntry("beamName", beamName_);
+        coeffs_.readEntry("rho", fluidRho_);
         return true;
     }
     return false;

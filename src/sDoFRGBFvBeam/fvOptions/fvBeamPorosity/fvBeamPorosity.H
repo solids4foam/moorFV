@@ -99,6 +99,12 @@ protected:
     // Gaussian kernel width epsilon
     scalar eps_;
 
+    // Beam mesh name
+    word beamName_;
+
+    // Fluid density
+    scalar fluidRho_;
+
     // Beam cell center coordinates
     mutable vectorField beamC_;
 
