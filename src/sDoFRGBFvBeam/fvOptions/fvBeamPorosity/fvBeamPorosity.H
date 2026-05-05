@@ -97,8 +97,13 @@ class fvBeamPorosity
 :
     public fv::option
 {
-    // Private Member Functions
+    // Private data
+
+        //- Optional output stream for integrated/source-force diagnostics
         mutable autoPtr<OFstream> forceFilePtr_;
+
+
+    // Private Member Functions
 
         //- No copy construct
         fvBeamPorosity(const fvBeamPorosity&) = delete;
@@ -111,35 +116,41 @@ protected:
 
     // Protected data
 
+        //- Local coordinate of the closest point on the nearest beam segment
+        //  for each fluid cell. Values are clipped to the range [0, 1].
+        Foam::scalarField sField_;
+
+        //- Distance from each fluid-cell centre to its nearest beam segment
+        Foam::scalarField closestBeamCellDist_;
+
+        //- Index of the nearest beam segment associated with each fluid cell
+        Foam::labelList closestBeamCell_;
+
+        //- Gaussian spreading-kernel width
+        scalar eps_;
+
+        //- Name of the beam mesh/object registry used for beam fields
+        word beamName_;
+
+        //- Constant fluid density used when assembling the momentum source
+        scalar fluidRho_;
+
+        //- Current beam-cell/actuator-point coordinates
+        mutable vectorField beamC_;
+
 
     // Protected Member Functions
-    // Geometric mapping data
-    Foam::scalarField sField_;
-    Foam::scalarField closestBeamCellDist_;
-    Foam::labelList   closestBeamCell_;
 
-    // Gaussian kernel width epsilon
-    scalar eps_;
+        //- Return the 2-D Gaussian radial kernel value at distance r
+        inline Foam::scalar eta(const scalar r) const;
 
-    // Beam mesh name
-    word beamName_;
+        //- Calculate nearest beam segment, segment coordinate and distance
+        //  for all fluid cells
+        void calculateS();
 
-    // Fluid density
-    scalar fluidRho_;
-
-    // Beam cell center coordinates
-    mutable vectorField beamC_;
-
-    // Protected Member Functions
-
-    // Gaussian kernel
-    inline Foam::scalar eta(const scalar r) const;
-
-    // Compute s, r and segment index
-    void calculateS();
-
-    // Helper function to apply the force
-    void applyBeamForce(fvMatrix<vector>& eqn);
+        //- Spread the beam force to the fluid cells and add it to the
+        //  momentum-equation source term
+        void applyBeamForce(fvMatrix<vector>& eqn);
 
 
 public:
@@ -168,14 +179,14 @@ public:
 
         // Add explicit and implicit contributions
 
-            //- Add implicit contribution to momentum equation
+            //- Add source contribution to the momentum equation
             virtual void addSup
             (
                 fvMatrix<vector>& eqn,
                 const label fieldi
             );
 
-            //- Add implicit contribution to phase momentum equation
+            //- Add source contribution to a density-weighted momentum equation
             virtual void addSup
             (
                 const volScalarField& rho,
@@ -186,7 +197,7 @@ public:
 
         // IO
 
-            //- Read dictionary
+            //- Read fvOption coefficients from dictionary
             virtual bool read(const dictionary& dict);
 };
 
