@@ -1,5 +1,43 @@
 #!/bin/bash
-cd "${0%/*}" || exit 1  # Run from this directory
+cd "$(dirname "$0")" || exit 1  # Run from this directory
+
+# If BEAMFOAM_DIR is not set, use the bundled beamFoam submodule.
+if [[ -z "${BEAMFOAM_DIR:-}" ]]; then
+    candidate="./beamFoam"
+    if [[ -d "${candidate}" && -n "$(ls -A "${candidate}" 2>/dev/null)" ]]; then
+        export BEAMFOAM_DIR="$(cd "${candidate}" && pwd -P)"
+        echo "BEAMFOAM_DIR is not set; using bundled beamFoam submodule:"
+        echo "    ${BEAMFOAM_DIR}"
+        echo "To use your own beamFoam copy, set it before building, e.g."
+        echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+    else
+        echo "BEAMFOAM_DIR is not set."
+        echo "beamFoam is provided as a git submodule at src/beamFoam."
+        echo "Initialise it with:"
+        echo "    git submodule update --init --recursive src/beamFoam"
+        echo "Or use your own beamFoam copy by setting:"
+        echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+        exit 1
+    fi
+else
+    if [[ ! -d "${BEAMFOAM_DIR}" ]]; then
+        echo "BEAMFOAM_DIR='${BEAMFOAM_DIR}' does not exist or is not a directory."
+        echo "Set it to a valid beamFoam path, e.g."
+        echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+        echo "Or unset it to use the bundled submodule at src/beamFoam."
+        exit 1
+    fi
+
+    export BEAMFOAM_DIR="$(cd "${BEAMFOAM_DIR}" && pwd -P)"
+fi
+
+if [[ ! -d "${BEAMFOAM_DIR}/src/wireBunchingModels/lnInclude" ]]; then
+    echo "The required beamFoam include directory was not found:"
+    echo "    ${BEAMFOAM_DIR}/src/wireBunchingModels/lnInclude"
+    echo "Compile beamFoam first with:"
+    echo "    (cd ${BEAMFOAM_DIR} && ./Allwmake -j)"
+    exit 1
+fi
 
 # Compile libraries
 wmake -j libso sDoFRGBFvBeam

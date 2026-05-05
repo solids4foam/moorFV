@@ -25,11 +25,52 @@ The [`beamFoam`](https://github.com/solids4foam/beamFoam) submodule is located a
 src/beamFoam
 ```
 
+By default, moorFV builds against this bundled submodule. If you want to use
+your own beamFoam checkout instead, set `BEAMFOAM_DIR` before building:
+
+```bash
+export BEAMFOAM_DIR=/path/to/beamFoam
+```
+
+The selected beamFoam installation must already be compiled, because moorFV
+uses beamFoam headers from:
+
+```text
+$BEAMFOAM_DIR/src/wireBunchingModels/lnInclude
+```
+
+If that directory is missing, compile beamFoam first:
+
+```bash
+cd "$BEAMFOAM_DIR"
+./Allwmake -j
+```
+
 ## Building
 
 Load your OpenFOAM environment first, then build from the repository root:
 
 ```bash
+./Allwmake
+```
+
+The root `Allwmake` delegates to `src/Allwmake`. The `src/Allwmake` script
+resolves `BEAMFOAM_DIR` as follows:
+
+- If `BEAMFOAM_DIR` is set, it validates and uses that path.
+- If `BEAMFOAM_DIR` is not set, it uses the bundled submodule at
+  `src/beamFoam`.
+- If the submodule is missing or uninitialized, it prints the required
+  `git submodule update --init --recursive src/beamFoam` command.
+
+This means both of the following are valid:
+
+```bash
+./Allwmake
+```
+
+```bash
+cd src
 ./Allwmake
 ```
 
