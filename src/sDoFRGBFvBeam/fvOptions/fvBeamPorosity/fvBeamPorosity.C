@@ -308,8 +308,8 @@ void fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
         const vector Sj = -etaR*((1.0 - s)*Fi_applied + s*Fip1_applied);
 
         forceVals[c] = Sj;
-        eqn.source()[c] += (fluidRho_*Sj*V[c]);
-        ffvOption += (fluidRho_*Sj*V[c]);
+        eqn.source()[c] += ((Sj/fluidRho_)*V[c]);
+        ffvOption += ((Sj/fluidRho_)*V[c]);
     }
     reduce(ffvOption, sumOp<vector>());
     Info<< "Sum of ALM forces applied to Fluid (fvOptions) = "
