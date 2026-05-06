@@ -95,7 +95,7 @@ namespace fv
 
 class fvBeamPorosity
 :
-    public fv::option
+    public option
 {
     // Private data
 
@@ -118,13 +118,13 @@ protected:
 
         //- Local coordinate of the closest point on the nearest beam segment
         //  for each fluid cell. Values are clipped to the range [0, 1].
-        Foam::scalarField sField_;
+        scalarField sField_;
 
         //- Distance from each fluid-cell centre to its nearest beam segment
-        Foam::scalarField closestBeamCellDist_;
+        scalarField closestBeamCellDist_;
 
         //- Index of the nearest beam segment associated with each fluid cell
-        Foam::labelList closestBeamCell_;
+        labelList closestBeamCell_;
 
         //- Gaussian spreading-kernel width
         scalar eps_;
@@ -142,7 +142,7 @@ protected:
     // Protected Member Functions
 
         //- Return the 2-D Gaussian radial kernel value at distance r
-        inline Foam::scalar eta(const scalar r) const;
+        inline scalar eta(const scalar r) const;
 
         //- Calculate nearest beam segment, segment coordinate and distance
         //  for all fluid cells
