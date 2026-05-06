@@ -1,0 +1,54 @@
+# Build moorFV using the bundled beamFoam submodule
+name: Building moorFV
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        container-image:
+          - name: "OpenFOAM-v2312"
+            image: "opencfd/openfoam-dev:2312"
+            source: "/usr/lib/openfoam/openfoam2312/etc/bashrc"
+
+    container:
+      image: ${{ matrix.container-image.image }}
+
+    steps:
+      - name: Install git on container
+        run: |
+          apt update
+          apt install -y git
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Switch beamFoam submodule to alm-on-main
+        shell: bash
+        run: |
+          git -C src/beamFoam fetch origin alm-on-main
+          git -C src/beamFoam switch alm-on-main || git -C src/beamFoam switch --track origin/alm-on-main
+          git -C src/beamFoam pull --ff-only origin alm-on-main
+          git -C src/beamFoam status --short --branch
+
+      - name: Build beamFoam and moorFV
+        shell: bash -l {0}
+        env:
+          BEAMFOAM_DIR: ${{ github.workspace }}/src/beamFoam
+        run: |
+          echo "Using OpenFOAM version: ${{ matrix.container-image.name }}"
+          source ${{ matrix.container-image.source }}
+
+          cd "${BEAMFOAM_DIR}"
+          ./Allwmake -j
+
+          cd "${GITHUB_WORKSPACE}"
+          ./Allwmake

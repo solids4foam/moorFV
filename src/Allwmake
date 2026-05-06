@@ -31,8 +31,6 @@ if [[ -z "${BEAMFOAM_DIR:-}" ]]; then
     echo "For the bundled submodule, use:"
     echo "    git submodule update --init --recursive src/beamFoam"
     echo "    export BEAMFOAM_DIR=${bundledBeamFoamDir}"
-    echo
-    printBeamFoamBranchHelp "${bundledBeamFoamDir}"
     exit 1
 fi
 
@@ -52,7 +50,6 @@ if ! git -C "${BEAMFOAM_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; t
     echo "    ${BEAMFOAM_DIR}"
     echo
     echo "Use a git checkout of beamFoam so moorFV can verify the required branch."
-    printBeamFoamBranchHelp "${BEAMFOAM_DIR}"
     exit 1
 fi
 
