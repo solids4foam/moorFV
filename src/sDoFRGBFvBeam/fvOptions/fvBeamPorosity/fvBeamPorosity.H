@@ -5,7 +5,6 @@
     \\  /    A nd           | www.openfoam.com
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-    Copyright (C) 2017 IH-Cantabria
     Copyright (C) 2017 OpenCFD Ltd.
 -------------------------------------------------------------------------------
 License
@@ -31,15 +30,41 @@ Group
     grpFvOptionsSources
 
 Description
-    fvOption to subtract the momentum from the momentum equation, similar to porosity effects.
-    based on mangrove models for porosity.
+    Adds an actuator-line momentum source from a beam region to the fluid
+    momentum equation.
+
+    The beam region specified by \c beamName must provide the fields
+    \c refW, \c W and \c almForce, and the \c fluidCellIDs label list.
+    The force is distributed to the fluid cells with a Gaussian kernel of
+    width \c epsilon.
 
 Usage
-    beamPorosity
-    {
-        type            fvBeamPorosity;
-        active          yes;
-    }
+    Example usage:
+    \verbatim
+        beamPorosity
+        {
+            type            fvBeamPorosity;
+            active          yes;
+
+            fvBeamPorosityCoeffs
+            {
+                // Optional velocity field name, default is U
+                U               U;
+
+                // Optional list of velocity field names
+                // UNames       (U);
+
+                // Gaussian kernel width
+                epsilon         0.05;
+
+                // Beam region name
+                beamName        beam;
+
+                // Fluid density used to scale the momentum source
+                rho             1000;
+            }
+        }
+    \endverbatim
 
 Author
     Amirhossein Taran, UCD
@@ -60,9 +85,6 @@ SourceFiles
 
 namespace Foam
 {
-
-// Forward Declarations
-class MangrovesModel;
 
 namespace fv
 {

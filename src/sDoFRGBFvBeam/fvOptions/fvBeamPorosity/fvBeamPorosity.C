@@ -67,7 +67,8 @@ void Foam::fv::fvBeamPorosity::calculateS()
         const fvMesh& beamMesh =
             mesh().time().db().parent().lookupObject<fvMesh>(beamName_);
 
-        const vectorField& beamCellCoords = beamMesh.C();   // actuator points Pa,i
+        // Actuator points Pa,i
+        const vectorField& beamCellCoords = beamMesh.C();
         const volVectorField& refW =
             beamMesh.lookupObject<volVectorField>("refW");
         const volVectorField& W =
@@ -111,7 +112,7 @@ void Foam::fv::fvBeamPorosity::calculateS()
         for (label i = 0; i < beamC_.size() - 1; ++i)
         {
             const vector& Pa = beamC_[i];
-            const vector& Pb = beamC_[i+1];
+            const vector& Pb = beamC_[i + 1];
             const vector Ei = Pb - Pa;
             const scalar magEi2 = magSqr(Ei);
             //skip
@@ -151,11 +152,14 @@ void Foam::fv::fvBeamPorosity::calculateS()
 
     }
 }
+
+
 Foam::scalar Foam::fv::fvBeamPorosity::eta(const scalar r) const
 {
-    const scalar re  = r/eps_;
-    return (1.0/(eps_*eps_*constant::mathematical::pi)) * exp(-re*re);
+    const scalar re = r/eps_;
+    return 1.0/(eps_*eps_*constant::mathematical::pi)*exp(-re*re);
 }
+
 
 void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
 {
@@ -272,27 +276,30 @@ void Foam::fv::fvBeamPorosity::applyBeamForce(fvMatrix<vector>& eqn)
 
         // We need this to convert Density (N/m) to Force (N)
         const vector& Pa = beamC_[segI];
-        const vector& Pb = beamC_[segI+1];
+        const vector& Pb = beamC_[segI + 1];
         const scalar ds = mag(Pb - Pa);
 
         // Retrieve Force Density (N/m)
         const vector Fi_density = almF[segI];
-        const vector Fip1_density = almF[segI+1];
+        const vector Fip1_density = almF[segI + 1];
 
         // Normalize: (Density * Length) / Weight
         // This ensures the volume integral equals (Density * Length)
-        const vector Fi_applied   = (Fi_density*ds) / (nodeWeights[segI] + VSMALL);
-        const vector Fip1_applied = (Fip1_density*ds) / (nodeWeights[segI + 1] + VSMALL);
+        const vector Fi_applied =
+            Fi_density*ds/(nodeWeights[segI] + VSMALL);
+        const vector Fip1_applied =
+            Fip1_density*ds/(nodeWeights[segI + 1] + VSMALL);
 
         // Interpolation and Applying the force
-        const vector Sj = -etaR * ((1.0 - s) * Fi_applied + s * Fip1_applied);
+        const vector Sj = -etaR*((1.0 - s)*Fi_applied + s*Fip1_applied);
 
         forceVals[c] = Sj;
         eqn.source()[c] += (fluidRho_*Sj*V[c]);
         ffvOption += (fluidRho_*Sj*V[c]);
     }
     reduce(ffvOption, sumOp<vector>());
-    Info<< "Sum of ALM forces applied to Fluid (fvOptions) = " << ffvOption << endl;
+    Info<< "Sum of ALM forces applied to Fluid (fvOptions) = "
+        << ffvOption << endl;
     if (mesh_.time().writeTime())
     {
         volScalarField etaField
@@ -367,13 +374,17 @@ Foam::fv::fvBeamPorosity::fvBeamPorosity
         fileName postProcDir;
 
         word startTimeName =
-                mesh.time().timeName(mesh.time().startTime().value());
+            mesh.time().timeName(mesh.time().startTime().value());
 
         if (Pstream::parRun())
         {
             // Put in undecomposed case (Note: gives problems for
             // distributed data running)
-            postProcDir = mesh.time().path()/".."/"postProcessing"/startTimeName;
+            postProcDir =
+                mesh.time().path()
+               /".."
+               /"postProcessing"
+               /startTimeName;
         }
         else
         {
