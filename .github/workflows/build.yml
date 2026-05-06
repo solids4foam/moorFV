@@ -15,6 +15,7 @@ jobs:
           - name: "OpenFOAM-v2312"
             image: "opencfd/openfoam-dev:2312"
             source: "/usr/lib/openfoam/openfoam2312/etc/bashrc"
+            buildflags: "-j"
 
     container:
       image: ${{ matrix.container-image.image }}
