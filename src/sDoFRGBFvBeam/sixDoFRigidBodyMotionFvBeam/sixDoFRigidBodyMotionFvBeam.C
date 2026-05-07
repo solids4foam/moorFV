@@ -226,6 +226,33 @@ void Foam::sixDoFRigidBodyMotionFvBeam::addRestraints
 }
 
 
+void Foam::sixDoFRigidBodyMotionFvBeam::applyBlockEigenSolution
+(
+    const RigidBodySolution& rigidBodySolution
+)
+{
+    centreOfRotation() =
+        initialCentreOfRotation_
+      + (tConstraints_ & rigidBodySolution.displacement);
+
+    v() = tConstraints_ & rigidBodySolution.velocity;
+    a() = tConstraints_ & rigidBodySolution.acceleration;
+
+    pi() = rConstraints_ & rigidBodySolution.angularMomentum;
+    tau() = rConstraints_ & rigidBodySolution.torque;
+
+    Tuple2<tensor, vector> Qpi =
+        rotate
+        (
+            motionState0_.Q(),
+            rConstraints_ & rigidBodySolution.rotationCorrection,
+            1
+        );
+
+    Q() = Qpi.first();
+}
+
+
 void Foam::sixDoFRigidBodyMotionFvBeam::addConstraints
 (
     const dictionary& dict

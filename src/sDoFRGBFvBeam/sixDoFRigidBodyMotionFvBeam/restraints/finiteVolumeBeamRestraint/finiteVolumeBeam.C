@@ -222,7 +222,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::
 
 void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 (
-    const sixDoFRigidBodyMotionFvBeam& motion,
+    sixDoFRigidBodyMotionFvBeam& motion,
     vector& restraintPosition,
     vector& restraintForce,
     vector& restraintMoment
@@ -263,13 +263,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
 
-    Info<< "finiteVolumeBeam debug pre-evolve: attachmentDisp = "
-        << attachmentDisp
-        << ", right W = " << W.boundaryField()[patchID_][0]
-        << ", first internal W = " << W[0]
-        << ", last internal W = " << W[W.size() - 1]
-        << endl;
-
     //---------------------------------------------------------------------
     // Colm: include all rigid body data- not just mooring attachment points
     //---------------------------------------------------------------------
@@ -277,12 +270,13 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     const sixDoFRigidBodyMotionFvBeamState& state = motion.state();
     const sixDoFRigidBodyMotionFvBeamState& state0 = motion.state0();
+    const sixDoFRigidBodyMotionFvBeam& constMotion = motion;
 
     rbData.previous.displacement =
-        state0.centreOfRotation() - motion.initialCentreOfRotation();
+        state0.centreOfRotation() - constMotion.initialCentreOfRotation();
 
     rbData.current.displacement =
-        state.centreOfRotation() - motion.initialCentreOfRotation();
+        state.centreOfRotation() - constMotion.initialCentreOfRotation();
 
     rbData.previous.orientation = state0.Q();
     rbData.current.orientation = state.Q();
@@ -299,6 +293,12 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     rbData.previous.torque = state0.tau();
     rbData.current.torque = state.tau();
 
+    rbData.mass = motion.mass();
+    rbData.momentOfInertia = motion.momentOfInertia();
+    rbData.initialCentreOfRotation = constMotion.initialCentreOfRotation();
+    rbData.centreOfRotation = motion.centreOfRotation();
+    rbData.attachmentPoint = restraintPosition;
+
     //    beamModels::coupledTotalLagNewtonRaphsonBeam& coupledBeam =
     //    refCast<beamModels::coupledTotalLagNewtonRaphsonBeam>(beam);
 
@@ -311,14 +311,44 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     // Call beamFoam- Colm
     beam.evolve();
 
+    const Switch blockEigenAuthoritativeMotion
+    (
+        sDoFRBMRCoeffs_.getOrDefault<Switch>
+        (
+            "blockEigenAuthoritativeMotion",
+            false
+        )
+    );
+
+    RigidBodySolution rigidBodySolution;
+    bool blockEigenMotionApplied = false;
+
+    if (blockEigenAuthoritativeMotion)
+    {
+        if (beam.getRigidBodySolution(rigidBodySolution))
+        {
+            motion.applyBlockEigenSolution(rigidBodySolution);
+            restraintPosition = motion.transform(refAttachmentPt_);
+            blockEigenMotionApplied = true;
+
+            Info<< "finiteVolumeBeam using authoritative BlockEigen "
+                << "rigid-body solution" << nl
+                << "    centreOfRotation = "
+                << motion.centreOfRotation() << nl
+                << "    velocity = " << motion.v() << nl
+                << "    acceleration = " << motion.state().a()
+                << endl;
+        }
+        else
+        {
+            WarningInFunction
+                << "blockEigenAuthoritativeMotion requested, but the beam "
+                << "model did not provide a valid rigid-body solution"
+                << endl;
+        }
+    }
+
     beam.updateTotalFields();
-
-    Info<< "finiteVolumeBeam debug post-evolve: right W = "
-        << W.boundaryField()[patchID_][0]
-        << ", first internal W = " << W[0]
-        << ", last internal W = " << W[W.size() - 1]
-        << endl;
-
 
     // Lookup the surface forces
     const surfaceVectorField& Q =
@@ -335,18 +365,18 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
     const vector anchorDisplacement = W.boundaryField()[anchorPatchID_][0];  // first cell of patch
 
-    Info<< "finiteVolumeBeam debug Q: attachment Q = "
-        << attachmentForce
-        << ", anchor Q = " << anchorForce
-        << endl;
-
-    restraintForce = -attachmentForce;
+    const vector beamReactionForce = -attachmentForce;
+    restraintForce = beamReactionForce;
     // relax force
     // store and lookup alpha from dict
     //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
-    Info<< "attachment force = " << attachmentForce << endl;
+    if (blockEigenMotionApplied)
+    {
+        restraintForce = vector::zero;
+        restraintMoment = vector::zero;
+    }
 
     if (forceFilePtr_.valid())
     {

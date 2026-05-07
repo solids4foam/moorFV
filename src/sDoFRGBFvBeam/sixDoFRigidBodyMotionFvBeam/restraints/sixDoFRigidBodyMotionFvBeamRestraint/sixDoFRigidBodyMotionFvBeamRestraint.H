@@ -137,7 +137,7 @@ public:
         //  Global reference frame vectors.
         virtual void restrain
         (
-            const sixDoFRigidBodyMotionFvBeam& motion,
+            sixDoFRigidBodyMotionFvBeam& motion,
             vector& restraintPosition,
             vector& restraintForce,
             vector& restraintMoment

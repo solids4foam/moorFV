@@ -3,7 +3,9 @@ EXE_INC = \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
     -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
-    -I../sDoFRGBFvBeam/lnInclude
+    -I../sDoFRGBFvBeam/lnInclude \
+    -I$(BEAMFOAM_DIR)/src/wireBunchingModels/lnInclude \
+    -I$(BEAMFOAM_DIR)/src/wireBunchingModels/beamModels/coupledTotalLagNewtonRaphsonBeam
 
 LIB_LIBS = \
     -lfiniteVolume \
