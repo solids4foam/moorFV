@@ -173,7 +173,7 @@ scalar beamActuatorLine::eta(const scalar r) const
 }
 
 // Apply beam force to fluid cell
-void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn)
+void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn, const scalar rhoVal)
 {
     //    const volVectorField& U = eqn.psi();
     Info<< "applying ALM force on fluid cells" << endl;
@@ -299,8 +299,8 @@ void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn)
         const vector Sj = -etaR*((1.0 - s)*Fi_applied + s*Fip1_applied);
 
         forceVals[c] = Sj;
-        eqn.source()[c] += ((Sj/fluidRho_)*V[c]);
-        ffvOption += ((Sj/fluidRho_)*V[c]);
+        eqn.source()[c] += ((Sj/rhoVal)*V[c]);
+        ffvOption += ((Sj/rhoVal)*V[c]);
     }
     reduce(ffvOption, sumOp<vector>());
     Info<< "Sum of ALM forces applied to Fluid (fvOptions) = "
@@ -384,7 +384,8 @@ void beamActuatorLine::addSup
     const label fieldi
 )
 {
-    applyBeamForce(eqn);
+    // Incompressible: equation is dU/dt + ... = f/rho
+    applyBeamForce(eqn, fluidRho_);
 }
 
 
@@ -395,7 +396,8 @@ void beamActuatorLine::addSup
     const label fieldi
 )
 {
-    applyBeamForce(eqn);
+    // Density-weighted: equation is rho*(dU/dt + ...) = f
+    applyBeamForce(eqn, 1.0);
 }
 
 

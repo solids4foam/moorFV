@@ -153,16 +153,16 @@ Key implementation points:
 - `eta(r)` — 2D Gaussian kernel: `(1/(ε²π)) exp(-(r/ε)²)`
 - `calculateS()` — for each fluid cell, finds the closest beam segment (index,
   normalized coordinate `s ∈ [0,1]`, radial distance `r`).
-- `applyBeamForce()` — reads `almForce` from the beam mesh, distributes via
-  kernel-weighted interpolation, adds `(Sj/fluidRho_)*V[c]` to `eqn.source()`.
+- `applyBeamForce(eqn, rhoVal)` — reads `almForce` from the beam mesh,
+  distributes via kernel-weighted interpolation, adds `(Sj/rhoVal)*V[c]`
+  to `eqn.source()`.
 - Writes `eta` and `beamActuatorForce` fields at write times.
 
 Required fields on the beam mesh: `refW`, `W`, `almForce`.
 
-**Known limitation**: both `addSup` overloads (incompressible and
-density-weighted) call the same `applyBeamForce` which divides by the
-hard-coded scalar `fluidRho_`. The density-weighted path (interFoam) should
-instead add `Sj*V[c]` without dividing by rho — this is a pending fix.
+The two `addSup` overloads pass different `rhoVal`:
+- Incompressible (`addSup(eqn)`): passes `fluidRho_` — equation is `dU/dt = f/ρ`
+- Density-weighted (`addSup(rho, eqn)`): passes `1.0` — equation is `ρ dU/dt = f`
 
 Dictionary usage:
 

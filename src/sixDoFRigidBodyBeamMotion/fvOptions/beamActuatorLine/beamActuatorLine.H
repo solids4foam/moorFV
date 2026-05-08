@@ -142,8 +142,10 @@ protected:
         void calculateS();
 
         //- Spread the beam force to the fluid cells and add it to the
-        //  momentum-equation source term
-        void applyBeamForce(fvMatrix<vector>& eqn);
+        //  momentum-equation source term.
+        //  rhoVal = fluidRho_ for incompressible (velocity equation),
+        //  rhoVal = 1 for density-weighted (momentum equation).
+        void applyBeamForce(fvMatrix<vector>& eqn, const scalar rhoVal);
 
 
 public:
