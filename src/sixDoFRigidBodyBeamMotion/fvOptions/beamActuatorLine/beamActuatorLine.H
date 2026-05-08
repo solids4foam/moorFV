@@ -41,7 +41,7 @@ Description
 Usage
     Example usage:
     \verbatim
-        beamPorosity
+        beamActuatorLine
         {
             type            beamActuatorLine;
             active          yes;
