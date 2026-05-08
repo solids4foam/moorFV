@@ -34,7 +34,7 @@ Description
     momentum equation.
 
     The beam region specified by \c beamName must provide the fields
-    \c refW, \c W and \c almForce, and the \c fluidCellIDs label list.
+    \c refW, \c W and \c almForce.
     The force is distributed to the fluid cells with a Gaussian kernel of
     width \c epsilon.
 
@@ -79,7 +79,6 @@ SourceFiles
 
 #include "fvOption.H"
 #include "volFields.H"
-#include "OFstream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -97,12 +96,6 @@ class beamActuatorLine
 :
     public option
 {
-    // Private data
-
-        //- Optional output stream for integrated/source-force diagnostics
-        mutable autoPtr<OFstream> forceFilePtr_;
-
-
     // Private Member Functions
 
         //- No copy construct

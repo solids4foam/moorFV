@@ -33,7 +33,6 @@ License
 #include "fvmSup.H"
 #include "addToRunTimeSelectionTable.H"
 #include "samplingFluid.H"
-#include "vectorIOList.H"
 #include "FieldSumOp.H"
 #include "fvcSup.H"
 #include "mathematicalConstants.H"
@@ -180,7 +179,6 @@ void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn)
     Info<< "applying ALM force on fluid cells" << endl;
 
     // 1) Get ALM forces from beam mesh
-    labelList fluidCellIDs;
     vectorField almF;
 
     if (Pstream::master())
@@ -188,22 +186,16 @@ void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn)
         const fvMesh& beamMesh =
             mesh().time().db().parent().lookupObject<fvMesh>(beamName_);
 
-        const labelList& gFluidCellIDsIO =
-            beamMesh.lookupObject<labelIOList>("fluidCellIDs");
-
         const volVectorField& almForce =
             beamMesh.lookupObject<volVectorField>("almForce");
 
         almF = almForce.internalField();
-        fluidCellIDs = gFluidCellIDsIO;
     }
     else
     {
-        fluidCellIDs.setSize(0);
         almF.setSize(0);
     }
 
-    Pstream::broadcast(fluidCellIDs);
     Pstream::broadcast(almF);
 
     // Updating s,r and segmentID's
@@ -342,7 +334,7 @@ void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn)
         (
             IOobject
             (
-                "ffield",
+                "beamActuatorForce",
                 mesh_.time().timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -375,53 +367,12 @@ beamActuatorLine::beamActuatorLine
 )
 :
     option(name, modelType, dict, mesh),
-    forceFilePtr_(),
     eps_(),
     beamName_(),
     fluidRho_()
     // active_()
 {
     read(dict);
-
-    if (Pstream::master())
-    {
-        fileName postProcDir;
-
-        word startTimeName =
-            mesh.time().timeName(mesh.time().startTime().value());
-
-        if (Pstream::parRun())
-        {
-            // Put in undecomposed case (Note: gives problems for
-            // distributed data running)
-            postProcDir =
-                mesh.time().path()
-               /".."
-               /"postProcessing"
-               /startTimeName;
-        }
-        else
-        {
-            postProcDir = mesh.time().path()/"postProcessing"/startTimeName;
-        }
-
-        mkDir(postProcDir);
-        forceFilePtr_.reset
-        (
-            new OFstream
-            (
-                postProcDir/"integratedForce.dat"
-            )
-        );
-        if (forceFilePtr_.valid())
-        {
-            forceFilePtr_()
-                << "# Time"
-                << " "
-                << "force"
-                << endl;
-        }
-    }
 }
 
 

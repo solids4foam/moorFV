@@ -154,9 +154,15 @@ Key implementation points:
 - `calculateS()` — for each fluid cell, finds the closest beam segment (index,
   normalized coordinate `s ∈ [0,1]`, radial distance `r`).
 - `applyBeamForce()` — reads `almForce` from the beam mesh, distributes via
-  kernel-weighted interpolation, adds to `eqn.source()` divided by `fluidRho_`.
+  kernel-weighted interpolation, adds `(Sj/fluidRho_)*V[c]` to `eqn.source()`.
+- Writes `eta` and `beamActuatorForce` fields at write times.
 
-Required fields on the beam mesh: `refW`, `W`, `almForce`, `fluidCellIDs`.
+Required fields on the beam mesh: `refW`, `W`, `almForce`.
+
+**Known limitation**: both `addSup` overloads (incompressible and
+density-weighted) call the same `applyBeamForce` which divides by the
+hard-coded scalar `fluidRho_`. The density-weighted path (interFoam) should
+instead add `Sj*V[c]` without dividing by rho — this is a pending fix.
 
 Dictionary usage:
 
