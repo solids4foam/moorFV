@@ -1,4 +1,4 @@
-# Build and test the solver using Docker containers
+# Build moorFV using the bundled beamFoam submodule
 name: Building moorFV
 
 on:
@@ -7,7 +7,7 @@ on:
   push:
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -25,34 +25,31 @@ jobs:
         run: |
           apt update
           apt install -y git
+
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.CLONER_SECRET }}
-          submodules: true
+          submodules: recursive
           fetch-depth: 0
 
-      - name: Source OpenFOAM environment and compile Submodule
+      - name: Switch beamFoam submodule to alm-on-main
+        shell: bash
+        run: |
+          git -C src/beamFoam fetch origin alm-on-main
+          git -C src/beamFoam switch alm-on-main || git -C src/beamFoam switch --track origin/alm-on-main
+          git -C src/beamFoam pull --ff-only origin alm-on-main
+          git -C src/beamFoam status --short --branch
+
+      - name: Build beamFoam and moorFV
         shell: bash -l {0}
+        env:
+          BEAMFOAM_DIR: ${{ github.workspace }}/src/beamFoam
         run: |
           echo "Using OpenFOAM version: ${{ matrix.container-image.name }}"
           source ${{ matrix.container-image.source }}
 
-          # Set BEAMFOAM_DIR to the submodule location
-          export BEAMFOAM_DIR=$(pwd)/src/beamFoam
-          echo "BEAMFOAM_DIR set to $BEAMFOAM_DIR"
+          cd "${BEAMFOAM_DIR}"
+          ./Allwmake -j
 
-          # Compile the submodule
-          (cd src/beamFoam && ./Allwmake)
-
-      - name: Compile moorFV
-        shell: bash -l {0}
-        run: |
-          source ${{ matrix.container-image.source }}
-
-          # Ensure BEAMFOAM_DIR is still available
-          export BEAMFOAM_DIR=$(pwd)/src/beamFoam
-          echo "BEAMFOAM_DIR set to $BEAMFOAM_DIR"
-
-          # Compile the main solver
-          (cd src && ./Allwmake ${{ matrix.container-image.buildflags }})
+          cd "${GITHUB_WORKSPACE}"
+          ./Allwmake

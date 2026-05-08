@@ -75,6 +75,15 @@ class sixDoFRigidBodyMotionFvBeamSolver
 
         //- Outer morphing distance (limit of linear interpolation region)
         const scalar do_;
+        
+        //- Switch to use the domain check for the outer distance
+        bool outerDistanceDomainCheck_;
+
+        //- Morphing distances of x- and y-directions respectively
+        //  (length of linear interpolation region),
+        //  -1 makes it inactive
+        const scalar xDist_;
+        const scalar yDist_;
 
         //- Test-mode in which only the gravitational body-force is applied
         bool test_;
@@ -90,6 +99,12 @@ class sixDoFRigidBodyMotionFvBeamSolver
 
         //- Current interpolation scale (1 at patches, 0 at distance_)
         pointScalarField scale_;
+
+        //- X-coordinate scale field (1 is rigid body transform, 0 is static mesh)
+        pointScalarField xscale_;
+
+        //- Y-coordinate scale field (1 is rigid body transform, 0 is static mesh)
+        pointScalarField yscale_;
 
         //- Current time index (used for updating)
         label curTimeIndex_;
@@ -108,6 +123,11 @@ class sixDoFRigidBodyMotionFvBeamSolver
 
         //- No copy assignment
         void operator=(const sixDoFRigidBodyMotionFvBeamSolver&) = delete;
+
+        //- convert scale function to a cosine
+        void cosineTransition(pointScalarField& scale);
+
+
 
 
 public:

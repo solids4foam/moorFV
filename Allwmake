@@ -1,16 +1,8 @@
 #!/bin/bash
-cd ${0%/*} || exit 1    # run from this directory
-
-# Check if the beamFoam installation directory has been set
-if [[ -z "${BEAMFOAM_DIR}" ]]
-then
-    echo "Please set BEAMFOAM_DIR, e.g."
-    echo "    export BEAMFOAM_DIR=/Users/philipc/code/moorFV/bali-beamSolver"
-    exit 1
-fi
+cd "$(dirname "$0")" || exit 1    # run from this directory
 
 # Compile libraries
 echo; echo "Compiling src"; echo
-(cd src && ./Allwmake)
+(cd src && ./Allwmake) || exit 1
 
 echo

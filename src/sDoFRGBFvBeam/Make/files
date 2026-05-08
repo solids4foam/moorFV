@@ -29,7 +29,7 @@ sixDoFFvBeamSolvers/symplectic/symplectic.C
 sixDoFFvBeamSolvers/CrankNicolson/CrankNicolson.C
 */
 sixDoFFvBeamSolvers/FvBeamNewmark/FvBeamNewmark.C
-
+fvOptions/fvBeamPorosity/fvBeamPorosity.C
 
 
 LIB = $(FOAM_USER_LIBBIN)/libfiniteVolumeBeamMooring

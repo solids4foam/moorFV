@@ -47,17 +47,29 @@ edges
 
 boundary
 (
-    stationaryWalls
+    frontWall
     {
         type wall;
         faces
         (
-            (0 3 2 1) // bottom
-            //(2 6 5 1) // outlet
             (1 5 4 0) // front
-            (3 7 6 2) // back
-            //(0 4 7 3) // inlet
         );
+    }
+    backWall
+    {
+        type wall;
+        faces
+        (
+            (3 7 6 2) // back
+        );
+    }
+    bottomWall
+    {
+	type  wall;
+	faces
+	(
+            (0 3 2 1) //bottom
+	);
     }
     inlet
     {
@@ -83,15 +95,6 @@ boundary
             (4 5 6 7)
         );
     }
-    // sides
-    // {
-	//       type empty;
-	//       faces
-    //     (
-    //         (1 5 4 0) // front
-    //         (3 7 6 2) // back
-    //     );
-    // }
     floatingObject
     {
         type wall;

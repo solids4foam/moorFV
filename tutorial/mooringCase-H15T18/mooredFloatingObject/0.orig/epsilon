@@ -21,7 +21,7 @@ internalField   uniform 0.1;
 
 boundaryField
 {
-    stationaryWalls
+    frontWall
     {
         type            epsilonWallFunction;
         Cmu             0.09;
@@ -29,6 +29,23 @@ boundaryField
         E               9.8;
         value           uniform 0.1;
     }
+    backWall
+    {
+        type            epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 0.1;
+    }
+    bottomWall
+    {
+        type            epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 0.1;
+    }
+
     inlet
     {
         type            inletOutlet;

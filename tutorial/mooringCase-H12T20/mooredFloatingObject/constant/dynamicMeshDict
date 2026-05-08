@@ -23,40 +23,28 @@ motionSolver        sixDoFRigidBodyMotionFvBeam;
 sixDoFRigidBodyMotionFvBeamCoeffs
 {
     patches         (floatingObject);
-    innerDistance   0.05;
-    outerDistance   0.45;//0.5 worked up to 5.2s//0.35;
+    innerDistance   0.03;
+    outerDistance   0.45;
+
+    //- modified mesh morphing parameters
+    //-----------------------------------
+    containOuterDistance   1;
+    xDistance    0.9;
+    yDistance    0.1;
+    //-----------------------------------
 
     centreOfMass    (0.0 0.0 -0.016);
 
     // Cuboid dimensions
-        Lx              0.2;
-	Ly              0.2;
-	Lz              0.132;
-    // Density of the solid
-    // rhoSolid        131.6666666667;
+    Lx              0.2;
+    Ly              0.2;
+    Lz              0.132;
 
     // Cuboid mass
-    mass           3.144;// #calc "$rhoSolid*$Lx*$Ly*$Lz";
+    mass           3.144;
 
     // Cuboid moment of inertia about the centre of mass
     momentOfInertia (0.015 0.015 0.021);
-    // momentOfInertia #codeStream
-    // {
-    //     codeInclude
-    //     #{
-    //         #include "diagTensor.H"
-    //     #};
-
-    //     code
-    //     #{
-    //         scalar sqrLx = sqr($Lx);
-    //         scalar sqrLy = sqr($Ly);
-    //         scalar sqrLz = sqr($Lz);
-    //         os  <<
-    //             $mass
-    //            *diagTensor(sqrLy + sqrLz, sqrLx + sqrLz, sqrLx + sqrLy)/12.0;
-    //     #};
-    // };
 
     report          on;
 
@@ -68,76 +56,60 @@ sixDoFRigidBodyMotionFvBeamCoeffs
         type FvBeamNewmark;
     }
 
-    constraints
-    {
-	//      //translation contrained on a plane around CoR
-    //     fixedPlane
-    //     {
-    //         sixDoFRigidBodyMotionFvBeamConstraint plane;
-    //         normal (0 1 0);
-    //     }
+    constraints {}
 
-	// // rotation constraint
-    //     fixedAxis
-    //     {
-    //         sixDoFRigidBodyMotionFvBeamConstraint axis;
-    //         axis (0 1 0);
-    //     }
+        restraints
+        {
+                beam1
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+
+                    attachmentPatch	right;
+
+                    anchorPatch left;
+
+                    beamRegion  "beamone";
+
+                    refAttachmentPt (-0.1 -0.1 -0.0786);
+            }
+                beam2
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+
+                    attachmentPatch	left;
+
+                    anchorPatch	right;
+
+                    beamRegion  "beamtwo";
+
+                    refAttachmentPt (0.1 -0.1 -0.0786);
+            }
+            beam3
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+
+                    attachmentPatch	right;
+
+                    anchorPatch	left;
+
+                    beamRegion  "beamthree";
+
+                    refAttachmentPt (-0.1 0.1 -0.0786);
+            }
+            beam4
+            {
+                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+
+                    attachmentPatch	left;
+
+                    anchorPatch	right;
+
+                    beamRegion  "beamfour";
+
+                    refAttachmentPt (0.1 0.1 -0.0786);
+            }
+
     }
-
-	restraints
-	{
-		beam1
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-
-		attachmentPatch	right;
-		
-		anchorPatch left;
-		
-		beamRegion 	"beamone";
-
-		refAttachmentPt (-0.1 -0.1 -0.0786);
-	}
-		beam2
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-
-		attachmentPatch	left;
-		
-		anchorPatch	right;		
-
-		beamRegion 	"beamtwo";
-
-		refAttachmentPt (0.1 -0.1 -0.0786);
-	}
-   	beam3
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-
-		attachmentPatch	right;
-		
-		anchorPatch	left;		
-
-		beamRegion 	"beamthree";
-
-		refAttachmentPt (-0.1 0.1 -0.0786);
-	}
-   	beam4
-	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
-
-		attachmentPatch	left;
-
-		anchorPatch	right;
-
-		beamRegion 	"beamfour";
-
-		refAttachmentPt (0.1 0.1 -0.0786);
-	}
-
-//
-}
 }
 
 // ************************************************************************* //

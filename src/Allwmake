@@ -1,14 +1,86 @@
 #!/bin/bash
-cd ${0%/*} || exit 1    # run from this directory
+cd "$(dirname "$0")" || exit 1  # Run from this directory
 
-# Check if the beamFoam installation directory has been set
-if [[ -z "${BEAMFOAM_DIR}" ]]
-then
-    echo "Please set BEAMFOAM_DIR, e.g."
-    echo "    export BEAMFOAM_DIR=/Users/philipc/code/moorFV/bali-beamSolver"
+requiredBeamFoamBranch="alm-on-main"
+bundledBeamFoamDir="$(pwd -P)/beamFoam"
+
+printMissingBeamFoamMessage()
+{
+    echo "BEAMFOAM_DIR is not set and the bundled beamFoam submodule was not found:"
+    echo "    ${bundledBeamFoamDir}"
+    echo
+    echo "Either set BEAMFOAM_DIR manually:"
+    echo "    export BEAMFOAM_DIR=/path/to/beamFoam"
+    echo
+    echo "Or initialise the bundled beamFoam submodule from the moorFV root:"
+    echo "    git submodule init"
+    echo "    git submodule update"
+}
+
+printBranchMessage()
+{
+    local beamFoamDir="$1"
+
+    echo "beamFoam is not on the required branch for compiling moorFV."
+    echo "    path: ${beamFoamDir}"
+    echo "    required branch: ${requiredBeamFoamBranch}"
+    if [[ -n "${beamFoamBranch}" ]]; then
+        echo "    current branch: ${beamFoamBranch}"
+    else
+        echo "    current branch: detached HEAD"
+    fi
+    echo
+    echo "Switch beamFoam to '${requiredBeamFoamBranch}' with:"
+    echo "    cd ${beamFoamDir}"
+    echo "    git fetch origin ${requiredBeamFoamBranch}"
+    echo "    git switch ${requiredBeamFoamBranch} || git switch --track origin/${requiredBeamFoamBranch}"
+    echo "    git pull --ff-only origin ${requiredBeamFoamBranch}"
+}
+
+if [[ -n "${BEAMFOAM_DIR:-}" ]]; then
+    if [[ ! -d "${BEAMFOAM_DIR}" ]]; then
+        echo "BEAMFOAM_DIR does not exist or is not a directory:"
+        echo "    ${BEAMFOAM_DIR}"
+        exit 1
+    fi
+    export BEAMFOAM_DIR="$(cd "${BEAMFOAM_DIR}" && pwd -P)"
+elif [[ -d "${bundledBeamFoamDir}" && -n "$(ls -A "${bundledBeamFoamDir}" 2>/dev/null)" ]]; then
+    export BEAMFOAM_DIR="${bundledBeamFoamDir}"
+else
+    printMissingBeamFoamMessage
     exit 1
 fi
 
+if ! git -C "${BEAMFOAM_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "beamFoam directory is not a git working tree:"
+    echo "    ${BEAMFOAM_DIR}"
+    echo
+    echo "Use a git checkout of beamFoam, or initialise the bundled submodule:"
+    echo "    git submodule init"
+    echo "    git submodule update"
+    exit 1
+fi
+
+beamFoamBranch="$(git -C "${BEAMFOAM_DIR}" branch --show-current)"
+if [[ "${beamFoamBranch}" != "${requiredBeamFoamBranch}" ]]; then
+    printBranchMessage "${BEAMFOAM_DIR}"
+    exit 1
+fi
+
+if [[ ! -d "${BEAMFOAM_DIR}/src/wireBunchingModels/lnInclude" ]]; then
+    echo "The required beamFoam include directory was not found:"
+    echo "    ${BEAMFOAM_DIR}/src/wireBunchingModels/lnInclude"
+    echo
+    echo "Compile beamFoam first with:"
+    echo "    cd ${BEAMFOAM_DIR}"
+    echo "    ./Allwmake -j"
+    exit 1
+fi
+
+echo "Using beamFoam:"
+echo "    ${BEAMFOAM_DIR}"
+echo "    branch: ${beamFoamBranch}"
+
 # Compile libraries
-wmake libso sDoFRGBFvBeam
-wmake libso sDoFRGBState
+wmake -j libso sDoFRGBFvBeam
+wmake -j libso sDoFRGBState

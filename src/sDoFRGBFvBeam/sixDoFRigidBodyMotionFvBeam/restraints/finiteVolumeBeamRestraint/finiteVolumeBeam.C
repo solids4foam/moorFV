@@ -31,6 +31,7 @@ License
 #include "fvMesh.H"
 #include "OFstream.H"
 #include "quaternion.H"
+#include "PstreamReduceOps.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -222,13 +223,10 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     {
         Info<< "Storing initial W" << endl;
         storeInitialW_ = false;
-        if (beam.solutionW().boundaryField()[patchID_].size() == 0)
+        if (beam.solutionW().boundaryField()[patchID_].size() != 0)
         {
-            FatalError
-                << "W.boundaryField()[patchID_].size() == 0!"
-                << abort(FatalError);
+            initialW_ = beam.solutionW().boundaryField()[patchID_][0];
         }
-        initialW_ = beam.solutionW().boundaryField()[patchID_][0];
 
         // Update the state
         state_.add("initialW", initialW_);
@@ -243,33 +241,33 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     // consider relaxing the displacement...
     W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
-
     beam.evolve();
 
     beam.updateTotalFields();
 
-
+    vector localAnchorForce(vector::zero);
+    vector localAttachmentForce(vector::zero);
     // Lookup the surface forces
     const surfaceVectorField& Q =
         beam.mesh().lookupObject<surfaceVectorField>("Q");
 
-    if (Q.boundaryField()[patchID_].size() != 1)
+    if (Q.boundaryField()[patchID_].size() == 1)
     {
-        FatalError
-            << "Q.boundaryField()[patchID_].size() != 1: "
-            << "this needs to be parallelised" << abort(FatalError);
+        localAnchorForce = Q.boundaryField()[anchorPatchID_][0];
+        localAttachmentForce = Q.boundaryField()[patchID_][0];
+        // FatalError
+        //     << "Q.boundaryField()[patchID_].size() != 1: "
+        //     << "this needs to be parallelised" << abort(FatalError);
     }
+    reduce(localAttachmentForce, sumOp<vector>());
+    reduce(localAnchorForce,     sumOp<vector>());
 
-    const vector attachmentForce = Q.boundaryField()[patchID_][0];
-    const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
+    vector anchorForce     = localAnchorForce;
+    vector attachmentForce = localAttachmentForce;
 
     restraintForce = -attachmentForce;
-    // relax force
-    // store and lookup alpha from dict
-    //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
-    Info<< "attachment force = " << attachmentForce << endl;
 
     if (forceFilePtr_.valid())
     {
