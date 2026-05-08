@@ -1,0 +1,35 @@
+sixDoFRigidBodyBeamMotion/sixDoFRigidBodyBeamMotion.C
+sixDoFRigidBodyBeamMotion/sixDoFRigidBodyBeamMotionIO.C
+sixDoFRigidBodyBeamMotion/sixDoFRigidBodyBeamMotionState.C
+sixDoFRigidBodyBeamMotion/sixDoFRigidBodyBeamMotionStateIO.C
+
+restraints = sixDoFRigidBodyBeamMotion/restraints
+
+$(restraints)/sixDoFRigidBodyBeamMotionRestraint/sixDoFRigidBodyBeamMotionRestraint.C
+$(restraints)/sixDoFRigidBodyBeamMotionRestraint/sixDoFRigidBodyBeamMotionRestraintNew.C
+
+$(restraints)/finiteVolumeBeamRestraint/finiteVolumeBeam.C
+
+constraints = sixDoFRigidBodyBeamMotion/constraints
+
+$(constraints)/sixDoFRigidBodyBeamMotionConstraint/sixDoFRigidBodyBeamMotionConstraint.C
+$(constraints)/sixDoFRigidBodyBeamMotionConstraint/sixDoFRigidBodyBeamMotionConstraintNew.C
+$(constraints)/axisFvBeam/sixDoFRigidBodyBeamMotionAxisConstraint.C
+$(constraints)/planeFvBeam/sixDoFRigidBodyBeamMotionPlaneConstraint.C
+$(constraints)/pointFvBeam/sixDoFRigidBodyBeamMotionPointConstraint.C
+$(constraints)/orientationFvBeam/sixDoFRigidBodyBeamMotionOrientationConstraint.C
+
+FvBeamPointPatchFields/derived/finiteVolumeSixDoFRigidBodyDisplacement/finiteVolumeSixDoFRigidBodyDisplacementPointPatchVectorField.C
+sixDoFRigidBodyBeamMotionSolver/sixDoFRigidBodyBeamMotionSolver.C
+
+sixDoFFvBeamSolvers/sixDoFFvBeamSolver/sixDoFFvBeamSolver.C
+sixDoFFvBeamSolvers/sixDoFFvBeamSolver/sixDoFFvBeamSolverNew.C
+/*
+sixDoFFvBeamSolvers/symplectic/symplectic.C
+sixDoFFvBeamSolvers/CrankNicolson/CrankNicolson.C
+*/
+sixDoFFvBeamSolvers/FvBeamNewmark/FvBeamNewmark.C
+fvOptions/beamActuatorLine/beamActuatorLine.C
+
+
+LIB = $(FOAM_USER_LIBBIN)/libsixDoFRigidBodyBeamMotion

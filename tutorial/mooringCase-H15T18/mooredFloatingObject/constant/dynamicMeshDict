@@ -16,11 +16,11 @@ FoamFile
 
 dynamicFvMesh       dynamicMotionSolverFvMesh;
 
-motionSolverLibs    ("libfiniteVolumeBeamMooring");
+motionSolverLibs    ("libsixDoFRigidBodyBeamMotion");
 
-motionSolver        sixDoFRigidBodyMotionFvBeam;
+motionSolver        sixDoFRigidBodyBeamMotion;
 
-sixDoFRigidBodyMotionFvBeamCoeffs
+sixDoFRigidBodyBeamMotionCoeffs
 {
     patches         (floatingObject);
     innerDistance   0.03;
@@ -62,7 +62,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
         {
                 beam1
             {
-                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
                     attachmentPatch	right;
 
@@ -74,7 +74,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
             }
                 beam2
             {
-                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
                     attachmentPatch	left;
 
@@ -86,7 +86,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
             }
             beam3
             {
-                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
                     attachmentPatch	right;
 
@@ -98,7 +98,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
             }
             beam4
             {
-                    sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+                    sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
                     attachmentPatch	left;
 

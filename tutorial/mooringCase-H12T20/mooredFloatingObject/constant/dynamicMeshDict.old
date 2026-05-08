@@ -16,11 +16,11 @@ FoamFile
 
 dynamicFvMesh       dynamicMotionSolverFvMesh;
 
-motionSolverLibs    ("libfiniteVolumeBeamMooring");
+motionSolverLibs    ("libsixDoFRigidBodyBeamMotion");
 
-motionSolver        sixDoFRigidBodyMotionFvBeam;
+motionSolver        sixDoFRigidBodyBeamMotion;
 
-sixDoFRigidBodyMotionFvBeamCoeffs
+sixDoFRigidBodyBeamMotionCoeffs
 {
     patches         (floatingObject);
     innerDistance   0.05;
@@ -57,14 +57,14 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 	     //translation contrained on a plane around CoR
         fixedPlane
         {
-            sixDoFRigidBodyMotionFvBeamConstraint plane;
+            sixDoFRigidBodyBeamMotionConstraint plane;
             normal (0 1 0);
         }
 
 	// rotation constraint
         fixedAxis
         {
-            sixDoFRigidBodyMotionFvBeamConstraint axis;
+            sixDoFRigidBodyBeamMotionConstraint axis;
             axis (0 1 0);
         }
     }
@@ -73,7 +73,7 @@ sixDoFRigidBodyMotionFvBeamCoeffs
 	{
 		beam1
 	{
-		sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+		sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
 		attachmentPatch	right;
 
