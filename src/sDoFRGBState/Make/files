@@ -1,3 +1,0 @@
-sixDoFRigidBodyStateFvBeam.C
-
-LIB = $(FOAM_USER_LIBBIN)/libsixDoFRigidBodyStateFvBeam

@@ -16,7 +16,7 @@ FoamFile
 
 Mangroves
 {
-    type            fvBeamPorosity;
+    type            beamActuatorLine;
     active          yes;
     modelName    Darcy;
     k 1e-08;

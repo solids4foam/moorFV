@@ -82,5 +82,5 @@ echo "    ${BEAMFOAM_DIR}"
 echo "    branch: ${beamFoamBranch}"
 
 # Compile libraries
-wmake -j libso sDoFRGBFvBeam
-wmake -j libso sDoFRGBState
+wmake -j libso sixDoFRigidBodyBeamMotion
+wmake -j libso sixDoFRigidBodyBeamMotionState

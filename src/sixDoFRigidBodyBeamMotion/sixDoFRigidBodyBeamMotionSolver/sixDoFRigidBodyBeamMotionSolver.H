@@ -1,0 +1,184 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2013-2017 OpenFOAM Foundation
+    Copyright (C) 2019-2020 OpenCFD Ltd.
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::sixDoFRigidBodyBeamMotionSolver
+
+Group
+   grpMeshMotionSolvers
+
+Description
+    6-DoF solid-body mesh motion solver for an fvMesh.
+
+    Applies SLERP interpolation of movement as function of distance to
+    the object surface.
+
+SourceFiles
+    sixDoFRigidBodyBeamMotionSolver.C
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef sixDoFRigidBodyBeamMotionSolver_H
+#define sixDoFRigidBodyBeamMotionSolver_H
+
+#include "displacementMotionSolver.H"
+#include "sixDoFRigidBodyBeamMotion.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
+/*---------------------------------------------------------------------------*\
+                 Class sixDoFRigidBodyBeamMotionSolver Declaration
+\*---------------------------------------------------------------------------*/
+
+class sixDoFRigidBodyBeamMotionSolver
+:
+    public displacementMotionSolver
+{
+    // Private data
+
+        //- Six DoF motion object
+        sixDoFRigidBodyBeamMotion motion_;
+
+        wordRes patches_;
+
+        //- Patches to integrate forces
+        const labelHashSet patchSet_;
+
+        //- Inner morphing distance (limit of solid-body region)
+        const scalar di_;
+
+        //- Outer morphing distance (limit of linear interpolation region)
+        const scalar do_;
+        
+        //- Switch to use the domain check for the outer distance
+        bool outerDistanceDomainCheck_;
+
+        //- Morphing distances of x- and y-directions respectively
+        //  (length of linear interpolation region),
+        //  -1 makes it inactive
+        const scalar xDist_;
+        const scalar yDist_;
+
+        //- Test-mode in which only the gravitational body-force is applied
+        bool test_;
+
+        //- Reference density required by the forces object for
+        //  incompressible calculations, required if rho == rhoInf
+        scalar rhoInf_;
+
+        //- Name of density field, optional unless used for an
+        //  incompressible simulation, when this needs to be specified
+        //  as rhoInf
+        word rhoName_;
+
+        //- Current interpolation scale (1 at patches, 0 at distance_)
+        pointScalarField scale_;
+
+        //- X-coordinate scale field (1 is rigid body transform, 0 is static mesh)
+        pointScalarField xscale_;
+
+        //- Y-coordinate scale field (1 is rigid body transform, 0 is static mesh)
+        pointScalarField yscale_;
+
+        //- Current time index (used for updating)
+        label curTimeIndex_;
+
+        //- Name of the uniformVectorField for CofG velocity
+        word CofGvelocity_;
+
+
+    // Private Member Functions
+
+        //- No copy construct
+        sixDoFRigidBodyBeamMotionSolver
+        (
+            const sixDoFRigidBodyBeamMotionSolver&
+        ) = delete;
+
+        //- No copy assignment
+        void operator=(const sixDoFRigidBodyBeamMotionSolver&) = delete;
+
+        //- convert scale function to a cosine
+        void cosineTransition(pointScalarField& scale);
+
+
+
+
+public:
+
+    //- Runtime type information
+    TypeName("sixDoFRigidBodyBeamMotion");
+
+
+    // Constructors
+
+        //- Construct from polyMesh and IOdictionary
+        sixDoFRigidBodyBeamMotionSolver
+        (
+            const polyMesh&,
+            const IOdictionary& dict
+        );
+
+
+    //- Destructor
+    ~sixDoFRigidBodyBeamMotionSolver() = default;
+
+
+    // Member Functions
+
+        //- Return the six DoF motion object
+        const sixDoFRigidBodyBeamMotion& motion() const;
+
+        //- Return point location obtained from the current motion field
+        virtual tmp<pointField> curPoints() const;
+
+        //- Solve for motion
+        virtual void solve();
+
+        //- Write state using stream options
+        virtual bool writeObject
+        (
+            IOstreamOption streamOpt,
+            const bool valid
+        ) const;
+
+        //- Read dynamicMeshDict dictionary
+        virtual bool read();
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //

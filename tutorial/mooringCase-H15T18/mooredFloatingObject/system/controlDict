@@ -17,8 +17,8 @@ FoamFile
 
 libs
 (
-    libfiniteVolumeBeamMooring.so
-    libsixDoFRigidBodyStateFvBeam.so
+    libsixDoFRigidBodyBeamMotion.so
+    libsixDoFRigidBodyBeamMotionState.so
 	//libmyScotchDecomp.so
 	libwireBunchingModels.so
 );
@@ -64,8 +64,8 @@ functions
 {
 //    sixDoF_History
 //    {
-//        type           sixDoFRigidBodyStateFvBeam;
-//        libs           ("libsixDoFRigidBodyStateFvBeam.so");
+//        type           sixDoFRigidBodyBeamMotionState;
+//        libs           ("libsixDoFRigidBodyBeamMotionState.so");
 //        angleFormat    radians;//radians, degrees
 //
 //        writeControl   timeStep;

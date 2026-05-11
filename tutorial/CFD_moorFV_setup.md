@@ -41,7 +41,7 @@ restraints
 {
     beamone
     {
-        sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+        sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
         attachmentPatch right;
 
@@ -53,7 +53,7 @@ restraints
     }
     beamtwo
     {
-        sixDoFRigidBodyMotionFvBeamRestraint finiteVolumeBeam;
+        sixDoFRigidBodyBeamMotionRestraint finiteVolumeBeam;
 
         attachmentPatch left;
 
@@ -68,12 +68,12 @@ restraints
 Also need to ensure that the following are set corrrectly within :
 
 ```cpp
-motionSolverLibs    ("libfiniteVolumeBeamMooring");
+motionSolverLibs    ("libsixDoFRigidBodyBeamMotion");
 
-motionSolver        sixDoFRigidBodyMotionFvBeam;
+motionSolver        sixDoFRigidBodyBeamMotion;
 ```
 
-Please note that the title for the coefficients sub-dict needs to be set as `sixDoFRigidBodyMotionFvBeamCoeffs`.
+Please note that the title for the coefficients sub-dict needs to be set as `sixDoFRigidBodyBeamMotionCoeffs`.
 
 
 ## Step 7:
