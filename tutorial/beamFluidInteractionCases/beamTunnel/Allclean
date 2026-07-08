@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Clean the beam initialisation cse
+echo "Cleaning beamInitialisation/beam_0"
+(cd beamInitialisation/beam_0 && ./Allclean)
+(cd beamTunnel && rm -rf constant/beam_0)
+(cd beamTunnel && rm -rf 0.orig/beam_0)

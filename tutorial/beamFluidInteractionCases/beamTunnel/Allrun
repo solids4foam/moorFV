@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Run the beam initialisation case
+echo "Running beamInitialisation/beam_0"
+(cd beamInitialisation/beam_0 && ./Allrun > log.beamMeshing)
+
+# Copy the mesh and fields to the fluid case
+cp -r beamInitialisation/beam_0/0 beamTunnel/0.orig/beam_0
+cp -r beamInitialisation/beam_0/constant beamTunnel/constant/beam_0
+
+# Replace W and theta
+cp ./beamInitialisation/beam_0/0/W beamTunnel/0.orig/beam_0/
+cp ./beamInitialisation/beam_0/0/Theta beamTunnel/0.orig/beam_0/
