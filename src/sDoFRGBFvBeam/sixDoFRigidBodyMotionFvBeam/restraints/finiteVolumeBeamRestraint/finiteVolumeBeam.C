@@ -85,6 +85,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     refAttachmentPt_(),
     attachmentPatch_(),
     anchorPatch_(),
+    beamAttachmentKinematics_("prescribedByRigidBody"),
     patchID_(-1),
     anchorPatchID_(-1),
     initialW_(vector::zero),
@@ -92,6 +93,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     initialQ_(vector::zero),
     forceFilePtr_(),
     anchorForceFilePtr_(),
+    attachmentForceFilePtr_(),
     displacementFilePtr_()
 {
     if (debug)
@@ -159,6 +161,13 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 historyDir/"anchorForce" + name + ".dat"
             )
         );
+        attachmentForceFilePtr_.reset
+        (
+            new OFstream
+            (
+                historyDir/"attachmentForce" + name + ".dat"
+            )
+        );
         
         displacementFilePtr_.reset
         (
@@ -188,6 +197,15 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 << " " << "anchorForceZ"
                 << endl;
         }
+        if (attachmentForceFilePtr_.valid())
+        {
+            attachmentForceFilePtr_()
+                << "# Time"
+                << " " << "attachmentForceX"
+                << " " << "attachmentForceY"
+                << " " << "attachmentForceZ"
+                << endl;
+        }
         if (displacementFilePtr_.valid())
         {
             displacementFilePtr_()
@@ -204,6 +222,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     state_.add("refAttachmentPt", refAttachmentPt_);
     state_.add("attachmentPatch", attachmentPatch_);
     state_.add("anchorPatch", anchorPatch_);
+    state_.add("beamAttachmentKinematics", beamAttachmentKinematics_);
     state_.add("patchID", patchID_);
     state_.add("anchorPatchID", anchorPatchID_);
     state_.add("initialQ", initialQ_);
@@ -260,8 +279,24 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     volVectorField& W = beam.solutionW();
 
-    // consider relaxing the displacement...
-    W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
+    if (beamAttachmentKinematics_ == "prescribedByRigidBody")
+    {
+        // consider relaxing the displacement...
+        W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
+    }
+    else if (beamAttachmentKinematics_ == "solvedByBlockEigen")
+    {
+        Info<< "finiteVolumeBeam: attachment kinematics owned by BlockEigen"
+            << endl;
+    }
+    else
+    {
+        FatalErrorInFunction
+            << "Unknown beamAttachmentKinematics "
+            << beamAttachmentKinematics_ << nl
+            << "Valid options are prescribedByRigidBody and solvedByBlockEigen"
+            << abort(FatalError);
+    }
 
     //---------------------------------------------------------------------
     // Colm: include all rigid body data- not just mooring attachment points
@@ -298,6 +333,8 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     rbData.initialCentreOfRotation = constMotion.initialCentreOfRotation();
     rbData.centreOfRotation = motion.centreOfRotation();
     rbData.attachmentPoint = restraintPosition;
+    rbData.solveAttachmentKinematicsInBlockEigen =
+        beamAttachmentKinematics_ == "solvedByBlockEigen";
 
     //    beamModels::coupledTotalLagNewtonRaphsonBeam& coupledBeam =
     //    refCast<beamModels::coupledTotalLagNewtonRaphsonBeam>(beam);
@@ -396,6 +433,15 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << " " << anchorForce.z()
             << endl;
     }
+    if (attachmentForceFilePtr_.valid())
+    {
+        attachmentForceFilePtr_()
+            << t
+            << " " << attachmentForce.x()
+            << " " << attachmentForce.y()
+            << " " << attachmentForce.z()
+            << endl;
+    }
     if (displacementFilePtr_.valid())
     {
         displacementFilePtr_()
@@ -419,6 +465,12 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
     sDoFRBMRCoeffs_.readEntry("anchorPatch", anchorPatch_);
+    beamAttachmentKinematics_ =
+        sDoFRBMRCoeffs_.getOrDefault<word>
+        (
+            "beamAttachmentKinematics",
+            "prescribedByRigidBody"
+        );
     sDoFRBMRCoeffs_.readIfPresent("patchID", patchID_);
     sDoFRBMRCoeffs_.readIfPresent("anchorPatchID", anchorPatchID_);
     sDoFRBMRCoeffs_.readIfPresent("initialW", initialW_);
@@ -430,6 +482,11 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     state_.readIfPresent("refAttachmentPt", refAttachmentPt_);
     state_.readIfPresent("attachmentPatch", attachmentPatch_);
     state_.readIfPresent("anchorPatch", anchorPatch_);
+    state_.readIfPresent
+    (
+        "beamAttachmentKinematics",
+        beamAttachmentKinematics_
+    );
     state_.readIfPresent("patchID", patchID_);
     state_.readIfPresent("anchorPatchID", anchorPatchID_);
     state_.readIfPresent("initialW", initialW_);

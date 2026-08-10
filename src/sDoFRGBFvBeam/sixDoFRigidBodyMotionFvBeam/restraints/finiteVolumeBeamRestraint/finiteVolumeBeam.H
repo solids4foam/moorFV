@@ -71,6 +71,9 @@ class finiteVolumeBeam
         word attachmentPatch_;
         word anchorPatch_;
 
+        //- Owner of beam attachment kinematics
+        word beamAttachmentKinematics_;
+
         //- Index of attachment patch
         label patchID_;
         label anchorPatchID_;
@@ -87,6 +90,7 @@ class finiteVolumeBeam
         //- File for writing attachment force
         mutable autoPtr<OFstream> forceFilePtr_;
         mutable autoPtr<OFstream> anchorForceFilePtr_;
+        mutable autoPtr<OFstream> attachmentForceFilePtr_;
         mutable autoPtr<OFstream> displacementFilePtr_;
 
 
