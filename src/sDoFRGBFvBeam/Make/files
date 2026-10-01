@@ -29,6 +29,7 @@ sixDoFFvBeamSolvers/symplectic/symplectic.C
 sixDoFFvBeamSolvers/CrankNicolson/CrankNicolson.C
 */
 sixDoFFvBeamSolvers/FvBeamNewmark/FvBeamNewmark.C
+sixDoFFvBeamSolvers/beamFoamCoupled/beamFoamCoupled.C
 
 
 

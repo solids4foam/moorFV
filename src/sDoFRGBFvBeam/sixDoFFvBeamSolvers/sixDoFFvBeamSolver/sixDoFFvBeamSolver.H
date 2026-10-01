@@ -88,6 +88,15 @@ protected:
         //- Return the centre of rotation at previous time-step
         inline const point& centreOfRotation0() const;
 
+        //- Return the initial centre of rotation
+        inline const point& initialCentreOfRotation() const;
+
+        //- Return the body's restraints and constraints
+        inline const PtrList<sixDoFRigidBodyMotionFvBeamRestraint>&
+            restraints() const;
+        inline const PtrList<sixDoFRigidBodyMotionFvBeamConstraint>&
+            constraints() const;
+
         //- Return the orientation at previous time-step
         inline const tensor& Q0() const;
 

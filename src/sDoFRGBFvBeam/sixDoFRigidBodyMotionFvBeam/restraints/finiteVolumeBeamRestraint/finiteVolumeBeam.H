@@ -93,6 +93,10 @@ class finiteVolumeBeam
         mutable autoPtr<OFstream> attachmentForceFilePtr_;
         mutable autoPtr<OFstream> displacementFilePtr_;
 
+        //- True once beamFoam's rigidBodyEnd has been set up for the
+        //  beamFoamCoupled solver
+        mutable bool monolithicInitialised_;
+
 
 public:
 
@@ -137,6 +141,20 @@ public:
             vector& restraintPosition,
             vector& restraintForce,
             vector& restraintMoment
+        ) const;
+
+        //- Monolithic coupling (beamFoamCoupled solver): solve the beam and
+        //  the body together in beamFoam for an applied force and moment
+        //  (global axes, moment about the centre of mass) and return the
+        //  accepted body state. On the first call the body is set up in
+        //  beamFoam from the motion; solverDict gives its Newmark and
+        //  damping settings
+        RigidBodyEndState solveMonolithic
+        (
+            const sixDoFRigidBodyMotionFvBeam& motion,
+            const vector& force,
+            const vector& moment,
+            const dictionary& solverDict
         ) const;
 
         //- Update properties from given dictionary

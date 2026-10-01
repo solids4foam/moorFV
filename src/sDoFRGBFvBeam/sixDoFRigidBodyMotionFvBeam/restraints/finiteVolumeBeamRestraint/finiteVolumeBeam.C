@@ -94,7 +94,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     forceFilePtr_(),
     anchorForceFilePtr_(),
     attachmentForceFilePtr_(),
-    displacementFilePtr_()
+    displacementFilePtr_(),
+    monolithicInitialised_(false)
 {
     if (debug)
     {
@@ -452,6 +453,126 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << endl;
     }
 
+}
+
+
+Foam::RigidBodyEndState
+Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
+(
+    const sixDoFRigidBodyMotionFvBeam& motion,
+    const vector& force,
+    const vector& moment,
+    const dictionary& solverDict
+) const
+{
+    beamModel& beam = beam_();
+    const scalar t = motion.time().timeOutputValue();
+
+    if (!monolithicInitialised_)
+    {
+        monolithicInitialised_ = true;
+
+        const point centreOfMass = motion.centreOfMass();
+
+        if (mag(motion.centreOfRotation() - centreOfMass) > SMALL)
+        {
+            FatalErrorInFunction
+                << "beamFoamCoupled needs the centre of rotation at the "
+                << "centre of mass; got centreOfRotation "
+                << motion.centreOfRotation() << ", centreOfMass "
+                << centreOfMass << abort(FatalError);
+        }
+
+        if (mag(centreOfMass - motion.initialCentreOfMass()) > SMALL)
+        {
+            FatalErrorInFunction
+                << "beamFoamCoupled must start from the initial body state; "
+                << "restarts are not supported yet" << abort(FatalError);
+        }
+
+        // The body in beamFoam: moorFV passes the weight in the applied
+        // force, so beamFoam applies no gravity of its own
+        dictionary bodyDict;
+        bodyDict.add("patch", attachmentPatch_);
+        bodyDict.add("mass", motion.mass());
+        bodyDict.add("momentOfInertia", motion.momentOfInertia());
+        bodyDict.add("orientation", motion.orientation());
+        bodyDict.add("centreOfMass", centreOfMass);
+        bodyDict.add("velocity", motion.v());
+        bodyDict.add("angularVelocity", motion.omega());
+        bodyDict.add("newmarkBeta", solverDict.getOrDefault<scalar>("beta", 0.25));
+        bodyDict.add("newmarkGamma", solverDict.getOrDefault<scalar>("gamma", 0.5));
+        bodyDict.add
+        (
+            "linearDamping",
+            solverDict.getOrDefault<scalar>("linearDamping", 0)
+        );
+        bodyDict.add
+        (
+            "angularDamping",
+            solverDict.getOrDefault<scalar>("angularDamping", 0)
+        );
+        bodyDict.add
+        (
+            "jacobianCheck",
+            solverDict.getOrDefault<label>("jacobianCheck", 0)
+        );
+
+        beam.initialiseRigidBodyEnd(bodyDict, vector::zero);
+
+        // The attachment point beamFoam uses is the beam end; the moorFV
+        // attachment point should coincide with it
+        const point beamEnd =
+            beam.mesh().Cf().boundaryField()[patchID_][0]
+          + beam.solutionW().boundaryField()[patchID_][0];
+
+        if (mag(beamEnd - refAttachmentPt_) > 1e-6*mag(beamEnd))
+        {
+            WarningInFunction
+                << "refAttachmentPt " << refAttachmentPt_
+                << " differs from the beam end " << beamEnd
+                << "; beamFoam attaches the body at the beam end" << endl;
+        }
+    }
+
+    beam.setRigidBodyEndExternalLoad(force, moment);
+
+    beam.evolve();
+
+    beam.updateTotalFields();
+
+    RigidBodyEndState state;
+    if (!beam.getRigidBodyEndState(state))
+    {
+        FatalErrorInFunction
+            << "The beam model returned no rigidBodyEnd state"
+            << abort(FatalError);
+    }
+
+    // Histories, as for the partitioned restraint: forcebeam is the force
+    // from the beam on the body
+    const surfaceVectorField& Q =
+        beam.mesh().lookupObject<surfaceVectorField>("Q");
+    const volVectorField& W = beam.solutionW();
+
+    const vector attachmentForce = Q.boundaryField()[patchID_][0];
+    const vector anchorForce = Q.boundaryField()[anchorPatchID_][0];
+    const vector anchorDisplacement = W.boundaryField()[anchorPatchID_][0];
+
+    auto writeVector = [t](autoPtr<OFstream>& os, const vector& v)
+    {
+        if (os.valid())
+        {
+            os() << t << " " << v.x() << " " << v.y() << " " << v.z() << endl;
+        }
+    };
+
+    writeVector(forceFilePtr_, state.beamForce);
+    writeVector(anchorForceFilePtr_, anchorForce);
+    writeVector(attachmentForceFilePtr_, attachmentForce);
+    writeVector(displacementFilePtr_, anchorDisplacement);
+
+    return state;
 }
 
 

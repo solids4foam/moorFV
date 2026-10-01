@@ -63,6 +63,27 @@ inline const Foam::point& Foam::sixDoFFvBeamSolver::centreOfRotation0() const
     return body_.motionState0_.centreOfRotation();
 }
 
+
+inline const Foam::point&
+Foam::sixDoFFvBeamSolver::initialCentreOfRotation() const
+{
+    return body_.initialCentreOfRotation_;
+}
+
+
+inline const Foam::PtrList<Foam::sixDoFRigidBodyMotionFvBeamRestraint>&
+Foam::sixDoFFvBeamSolver::restraints() const
+{
+    return body_.restraints_;
+}
+
+
+inline const Foam::PtrList<Foam::sixDoFRigidBodyMotionFvBeamConstraint>&
+Foam::sixDoFFvBeamSolver::constraints() const
+{
+    return body_.constraints_;
+}
+
 inline const Foam::tensor& Foam::sixDoFFvBeamSolver::Q0() const
 {
     return body_.motionState0_.Q();
