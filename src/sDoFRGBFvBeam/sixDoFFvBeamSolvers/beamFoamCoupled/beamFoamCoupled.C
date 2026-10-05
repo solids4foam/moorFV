@@ -65,13 +65,6 @@ void Foam::sixDoFFvBeamSolvers::beamFoamCoupled::solve
     typedef sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam
         finiteVolumeBeam;
 
-    if (constraints().size())
-    {
-        FatalErrorInFunction
-            << "beamFoamCoupled does not support motion constraints"
-            << abort(FatalError);
-    }
-
     // Applied load: fluid force and moment with the weight, plus any other
     // restraints at the current state (explicit). Moments about the centre
     // of rotation, which is the centre of mass
@@ -117,8 +110,13 @@ void Foam::sixDoFFvBeamSolvers::beamFoamCoupled::solve
             << abort(FatalError);
     }
 
+    // Constraint projections: translation in global axes; rotation is held
+    // in body axes (it acts on pi), so turn it into global axes
+    const tensor tC = tConstraints();
+    const tensor rC = (Q() & rConstraints() & Q().T());
+
     const RigidBodyEndState state =
-        beamRestraint->solveMonolithic(body_, force, moment, dict_);
+        beamRestraint->solveMonolithic(body_, force, moment, tC, rC, dict_);
 
     // Accept beamFoam's state as it is. The motion stores the angular
     // momentum and torque in body axes

@@ -148,12 +148,15 @@ public:
         //  (global axes, moment about the centre of mass) and return the
         //  accepted body state. On the first call the body is set up in
         //  beamFoam from the motion; solverDict gives its Newmark and
-        //  damping settings
+        //  damping settings. tConstraints and rConstraints project onto the
+        //  free translation and rotation directions (global axes)
         RigidBodyEndState solveMonolithic
         (
             const sixDoFRigidBodyMotionFvBeam& motion,
             const vector& force,
             const vector& moment,
+            const tensor& tConstraints,
+            const tensor& rConstraints,
             const dictionary& solverDict
         ) const;
 

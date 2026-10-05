@@ -29,6 +29,7 @@ License
 #include "sixDoFRigidBodyMotionFvBeam.H"
 #include "Time.H"
 #include "fvMesh.H"
+#include "surfaceFields.H"
 #include "OFstream.H"
 #include "quaternion.H"
 #include "PstreamReduceOps.H"
@@ -462,6 +463,8 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
     const sixDoFRigidBodyMotionFvBeam& motion,
     const vector& force,
     const vector& moment,
+    const tensor& tConstraints,
+    const tensor& rConstraints,
     const dictionary& solverDict
 ) const
 {
@@ -520,11 +523,19 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
 
         beam.initialiseRigidBodyEnd(bodyDict, vector::zero);
 
-        // The attachment point beamFoam uses is the beam end; the moorFV
-        // attachment point should coincide with it
-        const point beamEnd =
+        // The attachment point beamFoam uses is the beam end, including the
+        // reference displacement refWf; the moorFV attachment point should
+        // coincide with it
+        point beamEnd =
             beam.mesh().Cf().boundaryField()[patchID_][0]
           + beam.solutionW().boundaryField()[patchID_][0];
+
+        if (beam.mesh().foundObject<surfaceVectorField>("refWf"))
+        {
+            beamEnd +=
+                beam.mesh().lookupObject<surfaceVectorField>("refWf")
+               .boundaryField()[patchID_][0];
+        }
 
         if (mag(beamEnd - refAttachmentPt_) > 1e-6*mag(beamEnd))
         {
@@ -535,6 +546,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
         }
     }
 
+    beam.setRigidBodyEndConstraints(tConstraints, rConstraints);
     beam.setRigidBodyEndExternalLoad(force, moment);
 
     beam.evolve();

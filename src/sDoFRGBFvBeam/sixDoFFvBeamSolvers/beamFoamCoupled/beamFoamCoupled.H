@@ -38,8 +38,11 @@ Description
     state is copied into the motion as it is: there is no separate Newmark
     update and no acceleration relaxation.
 
-    Requires one finiteVolumeBeam restraint, the centre of rotation at the
-    centre of mass, and no constraints.
+    Motion constraints are applied inside the monolithic solve: the body's
+    Newton increments are projected onto the free directions.
+
+    Requires one finiteVolumeBeam restraint and the centre of rotation at the
+    centre of mass.
 
 Usage
     \verbatim
