@@ -1,0 +1,3 @@
+sixDoFRigidBodyMotionModifiedMorphingSolver/sixDoFRigidBodyMotionModifiedMorphingSolver.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsixDoFModifiedMorphing

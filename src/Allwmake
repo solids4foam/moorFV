@@ -12,3 +12,4 @@ fi
 # Compile libraries
 wmake libso sDoFRGBFvBeam
 wmake libso sDoFRGBState
+wmake libso sixDoFModifiedMorphing
