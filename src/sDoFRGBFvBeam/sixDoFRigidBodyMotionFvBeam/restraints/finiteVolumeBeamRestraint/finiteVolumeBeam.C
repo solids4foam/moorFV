@@ -33,6 +33,7 @@ License
 #include "OFstream.H"
 #include "quaternion.H"
 #include "PstreamReduceOps.H"
+#include "vector2D.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -96,6 +97,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     anchorForceFilePtr_(),
     attachmentForceFilePtr_(),
     displacementFilePtr_(),
+    axialForceFilePtr_(),
     monolithicInitialised_(false)
 {
     if (debug)
@@ -178,6 +180,13 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 historyDir/"displacement" + name + ".dat"
             )
         );
+        axialForceFilePtr_.reset
+        (
+            new OFstream
+            (
+                historyDir/"axialForce" + name + ".dat"
+            )
+        );
 
 
         // Add headers to output data
@@ -217,6 +226,18 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
                 << " " << "dispZ"
                 << endl;
         }
+        if (axialForceFilePtr_.valid())
+        {
+            axialForceFilePtr_()
+                << "# Axial force (along the line, positive in tension) and"
+                << " shear force magnitude at each end" << nl
+                << "# Time"
+                << " " << "anchorAxial"
+                << " " << "anchorShear"
+                << " " << "attachmentAxial"
+                << " " << "attachmentShear"
+                << endl;
+        }
 
     }
 
@@ -236,6 +257,55 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
 Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::
 ~finiteVolumeBeam()
 {}
+
+
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::
+writeAxialForce(const scalar t) const
+{
+    if (!axialForceFilePtr_.valid())
+    {
+        return;
+    }
+
+    beamModel& beam = beam_();
+    const fvMesh& mesh = beam.mesh();
+
+    const surfaceVectorField& Q = mesh.lookupObject<surfaceVectorField>("Q");
+
+    // Reference tangent; on boundary faces it is the outward snGrad of the
+    // reference position, so it points out of the line at both ends
+    const surfaceVectorField& dR0Ds =
+        mesh.lookupObject<surfaceVectorField>("dR0Ds");
+
+    const volVectorField& W = beam.solutionW();
+
+    // Q on an end face is the force from outside on the line; along the
+    // outward tangent it is positive when the line is in tension
+    auto axialAndShear = [&](const label patchI)
+    {
+        const vector Qb = Q.boundaryField()[patchI][0];
+        const vector dRdS =
+            dR0Ds.boundaryField()[patchI][0]
+          + W.boundaryField()[patchI].snGrad()()[0];
+        const vector tangent = dRdS/(mag(dRdS) + VSMALL);
+        const scalar axial = Qb & tangent;
+
+        return vector2D(axial, mag(Qb - axial*tangent));
+    };
+
+    const vector2D anchor = axialAndShear(anchorPatchID_);
+    const vector2D attachment = axialAndShear(patchID_);
+
+    axialForceFilePtr_()
+        << t
+        << " " << anchor.x()
+        << " " << anchor.y()
+        << " " << attachment.x()
+        << " " << attachment.y()
+        << endl;
+}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -454,6 +524,7 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             << endl;
     }
 
+    writeAxialForce(t);
 }
 
 
@@ -583,6 +654,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
     writeVector(anchorForceFilePtr_, anchorForce);
     writeVector(attachmentForceFilePtr_, attachmentForce);
     writeVector(displacementFilePtr_, anchorDisplacement);
+    writeAxialForce(t);
 
     return state;
 }

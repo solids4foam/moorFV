@@ -93,9 +93,22 @@ class finiteVolumeBeam
         mutable autoPtr<OFstream> attachmentForceFilePtr_;
         mutable autoPtr<OFstream> displacementFilePtr_;
 
+        //- File for writing the axial (along the line) and shear force at
+        //  the anchor and attachment ends
+        mutable autoPtr<OFstream> axialForceFilePtr_;
+
         //- True once beamFoam's rigidBodyEnd has been set up for the
         //  beamFoamCoupled solver
         mutable bool monolithicInitialised_;
+
+
+    // Private Member Functions
+
+        //- Write the axial and shear force at both ends of the line.
+        //  Q on an end face is the whole internal force (axial plus
+        //  shear); the axial part is Q along the current line tangent,
+        //  positive in tension
+        void writeAxialForce(const scalar t) const;
 
 
 public:
