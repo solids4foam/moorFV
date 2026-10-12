@@ -88,6 +88,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     attachmentPatch_(),
     anchorPatch_(),
     beamAttachmentKinematics_("prescribedByRigidBody"),
+    joint_("pin"),
     patchID_(-1),
     anchorPatchID_(-1),
     initialW_(vector::zero),
@@ -246,6 +247,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     state_.add("attachmentPatch", attachmentPatch_);
     state_.add("anchorPatch", anchorPatch_);
     state_.add("beamAttachmentKinematics", beamAttachmentKinematics_);
+    state_.add("joint", joint_);
     state_.add("patchID", patchID_);
     state_.add("anchorPatchID", anchorPatchID_);
     state_.add("initialQ", initialQ_);
@@ -355,6 +357,17 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     {
         // consider relaxing the displacement...
         W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
+
+        // Welded: the end face also turns with the body, by the body's
+        // rotation since the start of the time step
+        if (joint_ == "welded")
+        {
+            beam.setEndStepRotation
+            (
+                patchID_,
+                (motion.state().Q() & motion.state0().Q().T())
+            );
+        }
     }
     else if (beamAttachmentKinematics_ == "solvedByBlockEigen")
     {
@@ -481,6 +494,15 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
     //restraintForce = alpha*restraintForce + (1 - alpha)*restraintForcePrevious;
     restraintMoment = vector::zero;
 
+    // Welded: the beam also acts on the body with minus its end-face moment
+    if (joint_ == "welded")
+    {
+        const surfaceVectorField& M =
+            beam.mesh().lookupObject<surfaceVectorField>("M");
+
+        restraintMoment = -M.boundaryField()[patchID_][0];
+    }
+
     if (blockEigenMotionApplied)
     {
         restraintForce = vector::zero;
@@ -568,6 +590,7 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::solveMonolithic
         // force, so beamFoam applies no gravity of its own
         dictionary bodyDict;
         bodyDict.add("patch", attachmentPatch_);
+        bodyDict.add("joint", joint_);
         bodyDict.add("mass", motion.mass());
         bodyDict.add("momentOfInertia", motion.momentOfInertia());
         bodyDict.add("orientation", motion.orientation());
@@ -676,6 +699,22 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
             "beamAttachmentKinematics",
             "prescribedByRigidBody"
         );
+    joint_ = sDoFRBMRCoeffs_.getOrDefault<word>("joint", "pin");
+
+    if (joint_ != "pin" && joint_ != "welded")
+    {
+        FatalIOErrorInFunction(sDoFRBMRCoeffs_)
+            << "Invalid joint " << joint_ << nl
+            << "Valid options are pin and welded" << exit(FatalIOError);
+    }
+
+    if (joint_ == "welded" && beamAttachmentKinematics_ != "prescribedByRigidBody")
+    {
+        FatalIOErrorInFunction(sDoFRBMRCoeffs_)
+            << "A welded joint needs beamAttachmentKinematics "
+            << "prescribedByRigidBody" << exit(FatalIOError);
+    }
+
     sDoFRBMRCoeffs_.readIfPresent("patchID", patchID_);
     sDoFRBMRCoeffs_.readIfPresent("anchorPatchID", anchorPatchID_);
     sDoFRBMRCoeffs_.readIfPresent("initialW", initialW_);
