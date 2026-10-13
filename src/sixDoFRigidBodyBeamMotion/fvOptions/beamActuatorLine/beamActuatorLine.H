@@ -131,6 +131,11 @@ protected:
         //- Current beam-cell/actuator-point coordinates
         mutable vectorField beamC_;
 
+        //- Has the beam-region decomposition been checked? The check is run
+        //  once, on the first momentum-source assembly, where the beam region
+        //  is guaranteed to be registered
+        bool decompositionChecked_;
+
 
     // Protected Member Functions
 

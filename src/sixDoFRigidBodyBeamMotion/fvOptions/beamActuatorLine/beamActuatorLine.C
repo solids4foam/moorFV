@@ -33,6 +33,7 @@ License
 #include "fvmSup.H"
 #include "addToRunTimeSelectionTable.H"
 #include "samplingFluid.H"
+#include "beamParallelChecks.H"
 #include "FieldSumOp.H"
 #include "fvcSup.H"
 #include "mathematicalConstants.H"
@@ -177,6 +178,20 @@ void beamActuatorLine::applyBeamForce(fvMatrix<vector>& eqn, const scalar rhoVal
 {
     //    const volVectorField& U = eqn.psi();
     Info<< "applying ALM force on fluid cells" << endl;
+
+    // The actuator points and forces below are read on the master and
+    // broadcast, so the beam region must not be split across processors.
+    // Collective, hence outside any master guard.
+    if (!decompositionChecked_)
+    {
+        checkBeamOnMasterProcessor
+        (
+            mesh().time().db().parent().lookupObject<fvMesh>(beamName_),
+            "The " + typeName + " fvOption"
+        );
+
+        decompositionChecked_ = true;
+    }
 
     // 1) Get ALM forces from beam mesh
     vectorField almF;
@@ -369,7 +384,8 @@ beamActuatorLine::beamActuatorLine
     option(name, modelType, dict, mesh),
     eps_(),
     beamName_(),
-    fluidRho_()
+    fluidRho_(),
+    decompositionChecked_(false)
     // active_()
 {
     read(dict);

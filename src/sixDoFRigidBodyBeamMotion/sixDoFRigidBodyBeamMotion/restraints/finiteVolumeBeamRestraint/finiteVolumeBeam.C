@@ -32,6 +32,7 @@ License
 #include "OFstream.H"
 #include "quaternion.H"
 #include "PstreamReduceOps.H"
+#include "beamParallelChecks.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -120,6 +121,15 @@ Foam::sixDoFRigidBodyBeamMotionRestraints::finiteVolumeBeam::finiteVolumeBeam
                 anchorPatch_
             );
     }
+
+    // restrain() reads the anchor and attachment end forces from whichever
+    // rank owns the attachment patch, so both ends - and hence the whole beam
+    // - must be on processor 0. Collective, hence outside any master guard.
+    checkBeamOnMasterProcessor
+    (
+        beam_->mesh(),
+        "The " + typeName + " mooring restraint"
+    );
 
     // Create force file
     if (Pstream::master())
