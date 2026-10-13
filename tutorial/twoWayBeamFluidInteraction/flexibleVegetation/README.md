@@ -10,12 +10,14 @@ Other wave conditions are run by changing `constant/waveProperties` and `Cdn` in
 ## Run
 
 ```sh
-cd mimic3-H040T20-cd4
-./Allrun.decompose
+./Allrun
 ```
 
+This generates the beam in `beamInitialisation/`, copies its mesh and fields into
+`mimic3-H040T20-cd4/`, and runs it. `./Allclean` removes them again.
+
 The case runs on 32 ranks. If you change this, update both `system/decomposeParDict` and
-`system/beam_0/decomposeParDict`, and regenerate `constant/cellDecomposition.beams`.
+`system/beam_0/decomposeParDict`. The whole beam is kept on processor 0.
 
 ## Citation
 

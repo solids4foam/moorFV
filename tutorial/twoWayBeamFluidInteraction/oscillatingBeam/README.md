@@ -10,17 +10,19 @@ flow. Reference: Zhang & Gay (2007), J. Fluids Struct. 23, 839-857, Section 3.2.
 | `C3` | 1 | 0.5 | 2 |
 | `C4` | 10 | 0.5 | 2 |
 
-`dragCalib/` holds the steady `simpleFoam` runs used to obtain Cdn: `topView` (cross-section in
-free stream) and `sideView-Re10`, `sideView-Re1` (rigid plate in the channel).
+`beamInitialisation/` generates the beam mesh and initial beam fields, shared by all four
+cases. `dragCalib/` holds the steady `simpleFoam` runs used to obtain Cdn: `topView`
+(cross-section in free stream) and `sideView-Re10`, `sideView-Re1` (rigid plate in the channel).
 
 ## Run
 
 ```sh
-cd C1
-./Allrun
+./Allrun C1
 ```
 
-The tip displacement is extracted with `bash_tip.sh`.
+This generates the beam, copies its mesh and fields into `C1/`, and runs `C1/`. Without
+arguments, all four cases are run. `./Allclean` cleans all cases. The tip displacement is
+extracted with `bash_tip.sh`.
 
 ## Citation
 

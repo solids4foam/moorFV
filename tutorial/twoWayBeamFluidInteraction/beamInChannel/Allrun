@@ -1,13 +1,23 @@
-#!/bin/bash
+#!/bin/sh
+cd "${0%/*}" || exit 1                              # Run from this directory
 
-# Run the beam initialisation case
+# Fluid cases to run: all by default, or those given on the command line
+cases="${*:-beamTunnel}"
+
+# Generate the beam mesh and the initial beam fields
 echo "Running beamInitialisation/beam_0"
-(cd beamInitialisation/beam_0 && ./Allrun > log.beamMeshing)
+beamInitialisation/beam_0/Allrun || exit 1
 
-# Copy the mesh and fields to the fluid case
-cp -r beamInitialisation/beam_0/0 beamTunnel/0.orig/beam_0
-cp -r beamInitialisation/beam_0/constant beamTunnel/constant/beam_0
+for caseI in $cases
+do
+    # Copy the beam mesh and fields to the fluid case
+    rm -rf $caseI/0.orig/beam_0 $caseI/constant/beam_0/polyMesh
+    cp -r beamInitialisation/beam_0/0 $caseI/0.orig/beam_0
+    cp -r beamInitialisation/beam_0/constant/polyMesh $caseI/constant/beam_0/
 
-# Replace W and theta
-cp ./beamInitialisation/beam_0/0/W beamTunnel/0.orig/beam_0/
-cp ./beamInitialisation/beam_0/0/Theta beamTunnel/0.orig/beam_0/
+    # Run the fluid case
+    echo "Running $caseI"
+    $caseI/Allrun || exit 1
+done
+
+#------------------------------------------------------------------------------
