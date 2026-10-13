@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Side-view (x-y plane) drag calibration: flow past rigid plate in channel.
+// Matches FSI leaflet domain geometry.
+//
+// t = 2.12e-4 m  (plate thickness = beam b = h)
+// L = 0.008 m    (beam length, wall-normal, y-direction)
+//
+// Domain (same x,y extents as FSI case):
+//   x ∈ [0, 0.04] m       (flow direction,  150 cells, dx ≈ 1.26t)
+//   y ∈ [0, 0.01] m       (wall-normal,       38 cells, dy ≈ 1.24t)
+//   z ∈ [-1.06e-4, 1.06e-4] m  (beam axis, 4 cells, symmetry BCs)
+//
+// Plate: x∈[0.02, 0.020212], y∈[0,0.008], z∈[-1.06e-4,1.06e-4]
+// snappyHexMesh adds conformal refinement around the plate.
+//
+// Vertex numbering:
+//   v0:(xmin,ymin,zmin)  v1:(xmax,ymin,zmin)  v2:(xmax,ymax,zmin)  v3:(xmin,ymax,zmin)
+//   v4:(xmin,ymin,zmax)  v5:(xmax,ymin,zmax)  v6:(xmax,ymax,zmax)  v7:(xmin,ymax,zmax)
+//   i = v0→v1 (+x, 150 cells)
+//   j = v0→v3 (+y,  38 cells)
+//   k = v0→v4 (+z,   4 cells)
+
+scale 1;
+
+vertices
+(
+    // z = -1.06e-4 (zmin) plane
+    ( 0.0000   0.0000   -1.06e-4 )  // 0  (xmin, ymin, zmin)
+    ( 0.0400   0.0000   -1.06e-4 )  // 1  (xmax, ymin, zmin)
+    ( 0.0400   0.0100   -1.06e-4 )  // 2  (xmax, ymax, zmin)
+    ( 0.0000   0.0100   -1.06e-4 )  // 3  (xmin, ymax, zmin)
+    // z = +1.06e-4 (zmax) plane
+    ( 0.0000   0.0000   +1.06e-4 )  // 4  (xmin, ymin, zmax)
+    ( 0.0400   0.0000   +1.06e-4 )  // 5  (xmax, ymin, zmax)
+    ( 0.0400   0.0100   +1.06e-4 )  // 6  (xmax, ymax, zmax)
+    ( 0.0000   0.0100   +1.06e-4 )  // 7  (xmin, ymax, zmax)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (150 38 1) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)   // x = 0 (xmin), outward normal -x
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (1 2 6 5)   // x = 0.04 (xmax), outward normal +x
+        );
+    }
+    lowerWall
+    {
+        type symmetry;
+        faces
+        (
+            (0 1 5 4)   // y = 0 (ymin), outward normal -y
+        );
+    }
+    upperWall
+    {
+        type wall;
+        faces
+        (
+            (3 7 6 2)   // y = 0.01 (ymax), outward normal +y
+        );
+    }
+    frontAndBack
+    {
+        type symmetry;
+        faces
+        (
+            (0 3 2 1)   // z = -1.06e-4 (zmin), outward normal -z
+            (4 5 6 7)   // z = +1.06e-4 (zmax), outward normal +z
+        );
+    }
+);
+
+// ************************************************************************* //

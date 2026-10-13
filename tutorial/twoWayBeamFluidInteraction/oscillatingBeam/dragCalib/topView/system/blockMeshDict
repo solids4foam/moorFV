@@ -1,0 +1,106 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Drag calibration: 2D (x-z) flow past square plate cross-section.
+// t = 2.12e-4 m (plate thickness = almDragReferenceLength).
+//
+// Domain:  x in [-100t, 200t] = [-0.0212,  0.0424] m  (flow direction)
+//          z in [ -50t,  50t] = [-0.0106,  0.0106] m  (transverse)
+//          y in [    0,    t] = [    0,  2.12e-4 ] m  (beam axis, 1 cell, empty)
+//
+// Background: 150 (x) x 1 (y) x 50 (z)  ->  dx = dz = ~2t
+// snappyHexMesh adds refinement around plate -> ~t/16 near surface
+//
+// Vertex ordering for hex (0 1 2 3 4 5 6 7):
+//   i: v0->v1 = +x (150 cells)
+//   j: v0->v3 = +y (  1 cell , empty)
+//   k: v0->v4 = +z ( 50 cells)
+//
+//   v3------v2    v7------v6    (z = -Lz, z = +Lz)
+//    |      |      |      |
+//   v0------v1    v4------v5
+
+scale 1;
+
+// t = 2.12e-4 m
+// Upstream: 100t = 0.0212 m   Downstream: 200t = 0.0424 m   Half-width: 50t = 0.0106 m
+vertices
+(
+    // z = -Lz (zmin) plane
+    ( -0.0212   0.0000   -0.0106 )  // 0  (xmin, ymin, zmin)
+    (  0.0424   0.0000   -0.0106 )  // 1  (xmax, ymin, zmin)
+    (  0.0424   2.12e-4  -0.0106 )  // 2  (xmax, ymax, zmin)
+    ( -0.0212   2.12e-4  -0.0106 )  // 3  (xmin, ymax, zmin)
+    // z = +Lz (zmax) plane
+    ( -0.0212   0.0000    0.0106 )  // 4  (xmin, ymin, zmax)
+    (  0.0424   0.0000    0.0106 )  // 5  (xmax, ymin, zmax)
+    (  0.0424   2.12e-4   0.0106 )  // 6  (xmax, ymax, zmax)
+    ( -0.0212   2.12e-4   0.0106 )  // 7  (xmin, ymax, zmax)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (150 1 50) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)   // x = xmin, outward normal -x
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (1 2 6 5)   // x = xmax, outward normal +x
+        );
+    }
+    // y-faces: beam direction, symmetry (enforces d/dy=0 = infinite cylinder)
+    frontAndBack
+    {
+        type symmetry;
+        faces
+        (
+            (0 1 5 4)   // y = 0     (ymin face, outward normal -y)
+            (3 7 6 2)   // y = t     (ymax face, outward normal +y)
+        );
+    }
+    // z-faces: transverse, treated as symmetry
+    bottom
+    {
+        type symmetry;
+        faces
+        (
+            (0 3 2 1)   // z = -Lz   (zmin face, outward normal -z)
+        );
+    }
+    top
+    {
+        type symmetry;
+        faces
+        (
+            (4 5 6 7)   // z = +Lz   (zmax face, outward normal +z)
+        );
+    }
+);
+
+// ************************************************************************* //

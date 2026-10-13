@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   500;
+
+purgeWrite      3;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+functions
+{
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            (forces);
+
+        writeControl    timeStep;
+        writeInterval   10;
+
+        patches         (plate);
+
+        rho             rhoInf;
+        rhoInf          1000;         // water density (kg/m3)
+
+        // Drag in +x (flow direction), lift in +y (wall-normal)
+        liftDir         (0 1 0);
+        dragDir         (1 0 0);
+        CofR            (0.02 0.004 0);  // upstream face, mid-height
+
+        pitchAxis       (0 0 1);
+
+        // Reference: U = 0.01 m/s, t = 2.12e-4 m, L = 0.008 m
+        // Aref = t * L = 2.12e-4 * 0.008 = 1.696e-6 m^2
+        // Cd output = Cdn for Morison (F = 0.5*rho*Cdn*t*U^2*L)
+        magUInf         0.001;
+        lRef            2.12e-4;
+        Aref            1.696e-6;
+    }
+
+    residuals
+    {
+        type            solverInfo;
+        libs            (utilityFunctionObjects);
+        fields          (U p);
+    }
+}
+
+// ************************************************************************* //

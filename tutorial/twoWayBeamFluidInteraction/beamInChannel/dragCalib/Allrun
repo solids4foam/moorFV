@@ -1,0 +1,27 @@
+#!/bin/bash
+cd "${0%/*}" || exit 1
+. "${WM_PROJECT_DIR:?}/bin/tools/RunFunctions"
+
+# 1. Generate plate STL (rigid beam in x-y plane, t=4e-4, L=8e-3, at x=0.01)
+python3 gen_stl.py
+
+# 2. Background mesh (150x38x1 cells matching FSI domain x-y extents)
+runApplication blockMesh
+
+# 3. Extract surface features
+runApplication surfaceFeatureExtract
+
+# 4. snappyHexMesh: conformal body-fitted mesh around plate
+runApplication snappyHexMesh -overwrite
+
+# 5. Restore initial fields
+restore0Dir
+
+# 6. simpleFoam (steady laminar)
+runApplication simpleFoam
+
+echo ""
+echo "Done. Cd in postProcessing/forceCoeffs/0/forceCoeffs.dat"
+echo "  Reference: U_max = 0.015 m/s, Aref = t*L = 3.2e-6 m^2"
+echo "  Total drag force: postProcessing/forces/0/force.dat (col: Time Fx_p Fy_p ... Fx_v Fy_v ...)"
+echo "  Convergence usually around 5000-10000 iters."

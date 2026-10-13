@@ -235,5 +235,5 @@ Before finalizing, verify:
 - Point patch BC: `src/sixDoFRigidBodyBeamMotion/FvBeamPointPatchFields/derived/finiteVolumeSixDoFRigidBodyDisplacement/finiteVolumeSixDoFRigidBodyDisplacementPointPatchVectorField.H`
 - Build lists: `src/sixDoFRigidBodyBeamMotion/Make/files`, `src/sixDoFRigidBodyBeamMotionState/Make/files`
 - Build scripts: `Allwmake`, `src/Allwmake`, `src/Allwclean`
-- Tutorial mooring case: `tutorial/mooringCase-H12T20/mooredFloatingObject/`
-- Tutorial beam-fluid case: `tutorial/beamFluidInteractionCases/pitzDailyWithBeam/`
+- Tutorial mooring case: `tutorial/mooring/mooringCase-H12T20/mooredFloatingObject/`
+- Tutorial beam-fluid case: `tutorial/twoWayBeamFluidInteraction/` (`beamInChannel`, `oscillatingBeam`, `flexibleVegetation`)

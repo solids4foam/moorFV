@@ -88,11 +88,12 @@ Example cases are provided in:
 tutorial/
 ```
 
-The current tutorial structure includes mooring cases and beam-fluid interaction cases, including:
+The tutorials are grouped by application:
 
-- `tutorial/mooringCase-H12T20`
-- `tutorial/mooringCase-H15T18`
-- `tutorial/beamFluidInteractionCases/pitzDailyWithBeam`
+- `tutorial/mooring/`: moored floating body cases (`mooringCase-H12T20`, `mooringCase-H15T18`)
+- `tutorial/twoWayBeamFluidInteraction/`: two-way actuator-line coupling of a flexible beam
+  with the flow (`beamInChannel`, `oscillatingBeam`, `flexibleVegetation`); each has its own
+  `README.md`
 
 Each case should be run from its own directory using the local `Allrun` and `Allclean` scripts when available.
 

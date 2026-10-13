@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   500;
+
+purgeWrite      3;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+functions
+{
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            (forces);
+
+        writeControl    timeStep;
+        writeInterval   10;
+
+        patches         (plate);
+
+        rho             rhoInf;
+        rhoInf          1000;          // water density [kg/m3]
+
+        // Drag in +x (flow direction), lift in +y (wall-normal / vertical)
+        liftDir         (0 1 0);
+        dragDir         (1 0 0);
+        CofR            (0.010 0.004 0);   // upstream face, mid-height
+
+        pitchAxis       (0 0 1);
+
+        // Reference: U_max = 0.015 m/s (peak parabolic inlet velocity at y = H)
+        //            t     = 4e-4 m   (beam thickness)
+        //            L     = 0.008 m  (beam length)
+        // Aref = t * L = 4e-4 * 0.008 = 3.2e-6 m^2
+        // Cd here = F_drag / (0.5*rho*U_max^2*Aref)
+        //         = Morison-Cdn referenced to U_max (NOT directly Cdn_ALM,
+        //           since ALM samples the local velocity, see notes).
+        magUInf         0.015;
+        lRef            4e-4;
+        Aref            3.2e-6;
+    }
+
+    // Also report force directly so we can re-normalise Cd against any U_ref
+    forces
+    {
+        type            forces;
+        libs            (forces);
+
+        writeControl    timeStep;
+        writeInterval   10;
+
+        patches         (plate);
+        rho             rhoInf;
+        rhoInf          1000;
+        CofR            (0.010 0.004 0);
+    }
+
+    residuals
+    {
+        type            solverInfo;
+        libs            (utilityFunctionObjects);
+        fields          (U p);
+    }
+}
+
+// ************************************************************************* //

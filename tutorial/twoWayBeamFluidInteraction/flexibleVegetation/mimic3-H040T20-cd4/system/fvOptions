@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+flexibleStem
+{
+    type            beamActuatorLine;
+    active          yes;
+
+    beamActuatorLineCoeffs
+    {
+        U               U;
+
+        // Gaussian kernel width (= 2.5 * dx, dx = 0.006)
+        epsilon         0.015;
+
+        // Beam region name (as defined in dynamicMeshDict)
+        beamName        beam_0;
+
+        // Fluid density [kg/m^3]
+        rho             1000;
+    }
+}
+
+
+// ************************************************************************* //
