@@ -21,3 +21,11 @@ cd C1
 ```
 
 The tip displacement is extracted with `bash_tip.sh`.
+
+## Citation
+
+This case is described in:
+
+Taran, A., Bali, S., Tuković, Ž., Pakrashi, V., and Cardiff, P. (2026). Two-way actuator-line
+coupling of a geometrically exact finite-volume beam with incompressible and free-surface flow.
+arXiv:2609.39443. https://doi.org/10.48550/arXiv.2609.39443
