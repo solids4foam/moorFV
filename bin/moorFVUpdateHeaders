@@ -1,0 +1,242 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     moorFVUpdateHeaders
+#     adapted from solids4FoamChangeCopyright and
+#     solids4FoamUpdateCaseFileHeader in solids4foam
+#
+# Description
+#     Updates the header of moorFV files:
+#       - .C and .H files: the License block (OpenFOAM banners and copyright
+#         lines above it are removed; Class, Description, etc. are kept)
+#       - OpenFOAM dictionaries: the banner above FoamFile
+#       - scripts (#! on the first line): the License block below the
+#         shebang, inserted if missing
+#     Other files are skipped.
+#
+#     Update all files:
+#
+#     $ bin/moorFVUpdateHeaders $(git ls-files ':!src/beamFoam')
+#
+#     Only report files with an outdated header (exits 1 if there are any):
+#
+#     $ bin/moorFVUpdateHeaders -check $(git ls-files ':!src/beamFoam')
+#
+#------------------------------------------------------------------------------
+
+usage()
+{
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] <file1> ... <fileN>
+
+options:
+  -check              report files with an outdated header, do not modify
+  -description <text> Description written when a script header is inserted
+  -help               print the usage
+
+USAGE
+    exit 1
+}
+
+checkOnly=false
+description=""
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -check)
+        checkOnly=true
+        ;;
+    -description)
+        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        description="$2"
+        shift
+        ;;
+    -h | -help)
+        usage
+        ;;
+    --)
+        shift
+        break
+        ;;
+    -*)
+        usage "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+[ "$#" -ge 1 ] || usage "No files specified"
+
+
+# * * * * * * * * * * * * * * * * Headers  * * * * * * * * * * * * * * * * * //
+
+export sourceHeader='/*---------------------------------------------------------------------------*\
+License
+    This file is part of moorFV.
+
+    moorFV is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation, either version 3 of the License, or (at your
+    option) any later version.
+
+    moorFV is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with moorFV.  If not, see <http://www.gnu.org/licenses/>.
+'
+
+export dictHeader='/*--------------------------------*- C++ -*----------------------------------*\
+| moorFV: finite-volume beams for mooring and beam-fluid interaction          |
+| Web:         https://github.com/solids4foam/moorFV                          |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+'
+
+export scriptLicense='# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+'
+
+export scriptRule='#------------------------------------------------------------------------------'
+
+
+# * * * * * * * * * * * * * * * * Functions  * * * * * * * * * * * * * * * * //
+
+# Write the file $1 with an updated header to stdout.
+# Returns 2 if the file has the expected type but no header could be found.
+updateSource()
+{
+    perl -0777 -ne '
+        s{\A/\*-[^\n]*\n.*?^License\n.*?If not, see <http://www\.gnu\.org/licenses/>\.\n}
+         {$ENV{sourceHeader}}ms
+            or exit 2;
+        print;
+    ' "$1"
+}
+
+updateDict()
+{
+    perl -0777 -ne '
+        s{\A(?:/\*[^\n]*\n(?:[^\n]*\n)*?\\\*-+\*/\n)?(?=FoamFile\b)}
+         {$ENV{dictHeader}}s
+            or exit 2;
+        print;
+    ' "$1"
+}
+
+updateScript()
+{
+    scriptName="${1##*/}" perl -0777 -ne '
+        my $rule = $ENV{scriptRule};
+        my $license = $ENV{scriptLicense};
+
+        # Header present: replace its License block
+        unless (s{\A(#![^\n]*\n#-+\n)# License\n(?:#[^\n]*\n)*?#\n}{$1$license}s)
+        {
+            # Header missing: insert one below the shebang
+            my $header = "$rule\n$license# Script\n#     $ENV{scriptName}\n#\n";
+            if (length $ENV{description})
+            {
+                (my $text = $ENV{description}) =~ s/^/#     /mg;
+                $header .= "# Description\n$text\n#\n";
+            }
+            $header .= "$rule\n";
+            s{\A(#![^\n]*\n)}{$1$header} or exit 2;
+        }
+        print;
+    ' "$1"
+}
+
+
+# * * * * * * * * * * * * * * * * * * Main * * * * * * * * * * * * * * * * * //
+
+export description
+tmpFile="$(mktemp)" || exit 1
+trap 'rm -f "$tmpFile"' EXIT
+
+nChecked=0
+nOutdated=0
+nFailed=0
+
+for file
+do
+    [ -f "$file" ] || continue
+
+    case "$file" in
+    *.C | *.H)
+        fileType=source
+        ;;
+    *)
+        if head -c 2 "$file" | grep -q '^#!'
+        then
+            fileType=script
+        elif head -n 20 "$file" | grep -q '^FoamFile'
+        then
+            fileType=dict
+        else
+            continue
+        fi
+        ;;
+    esac
+
+    nChecked=$((nChecked + 1))
+
+    case "$fileType" in
+    source) updateSource "$file" > "$tmpFile" ;;
+    dict)   updateDict   "$file" > "$tmpFile" ;;
+    script) updateScript "$file" > "$tmpFile" ;;
+    esac
+
+    if [ "$?" -ne 0 ]
+    then
+        echo "No $fileType header found: $file" 1>&2
+        nFailed=$((nFailed + 1))
+        continue
+    fi
+
+    if ! cmp -s "$file" "$tmpFile"
+    then
+        nOutdated=$((nOutdated + 1))
+
+        if "$checkOnly"
+        then
+            echo "Outdated header: $file"
+        else
+            echo "Updated header: $file"
+            # Use cat to keep the permissions and soft-links of the file
+            cat "$tmpFile" >| "$file"
+        fi
+    fi
+done
+
+echo "Checked $nChecked files: $nOutdated outdated, $nFailed without a header"
+
+if "$checkOnly" && [ "$nOutdated" -gt 0 ]
+then
+    echo "Update them with: bin/moorFVUpdateHeaders <file1> ... <fileN>"
+fi
+
+if [ "$nFailed" -gt 0 ] || { "$checkOnly" && [ "$nOutdated" -gt 0 ]; }
+then
+    exit 1
+fi
+
+#------------------------------------------------------------------------------
