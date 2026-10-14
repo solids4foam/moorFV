@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         8000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   500;
+
+purgeWrite      3;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+functions
+{
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            (forces);
+
+        writeControl    timeStep;
+        writeInterval   10;
+
+        patches         (plate);
+
+        rho             rhoInf;
+        rhoInf          1000;         // water density (kg/m3)
+
+        // Drag in +x (flow direction), lift in +z (transverse)
+        liftDir         (0 0 1);
+        dragDir         (1 0 0);
+        CofR            (0 1.06e-4 0);  // centre of plate
+
+        pitchAxis       (0 1 0);
+
+        // Reference: U = 0.01 m/s, t = 2.12e-4 m
+        // Aref = t * Ly = t * t = t^2 = (2.12e-4)^2 = 4.4944e-8 m^2
+        // Cd output = Cdn for Morison with D = t
+        magUInf         0.01;
+        lRef            2.12e-4;
+        Aref            4.4944e-8;
+    }
+
+    residuals
+    {
+        type            solverInfo;
+        libs            (utilityFunctionObjects);
+        fields          (U p);
+    }
+}
+
+// ************************************************************************* //

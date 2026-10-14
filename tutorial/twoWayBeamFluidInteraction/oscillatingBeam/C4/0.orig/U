@@ -1,0 +1,82 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            codedFixedValue;
+        //        type            fixedValue;
+        value           uniform (0 0 0);
+        //        value           uniform (0.1 0 0);
+        name            leafletInlet_Zhang2007;
+
+        code
+        #{
+            const fvPatch& p = patch();
+            vectorField& Uf = *this;
+            const scalar time = this->db().time().value();
+
+            // Paper-like sinusoid: period = 2 s
+            const scalar T    = 2.0;  // [s]
+            const scalar omega = 2.0*constant::mathematical::pi/T;  // = pi
+
+            const scalar Uamp = 0.01; // [m/s]
+
+            // Phase shift: +pi/2 (starts at +Uamp)                                                                                                
+            const scalar phase = constant::mathematical::pi/2.0;
+
+            const scalar Ux = Uamp * sin(omega*time + phase);
+
+            forAll(Uf, faceI)
+            {
+                Uf[faceI] = vector(Ux, 0, 0);
+            }
+        #};
+    }
+
+    outlet
+    {
+        //        type            zeroGradient;
+        type pressureInletOutletVelocity;
+        value   uniform (0 0 0);
+    }
+
+    upperWall
+    {
+        // type            symmetry;
+        type      noSlip;
+    }
+
+    lowerWall
+    {
+        // type            noSlip;
+        type     symmetry;
+    }
+
+    frontAndBack
+    {
+        //  type            empty;
+        type        symmetry;
+    }
+}
+
+
+// ************************************************************************* //

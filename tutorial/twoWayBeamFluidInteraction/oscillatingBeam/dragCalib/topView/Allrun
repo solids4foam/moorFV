@@ -1,0 +1,26 @@
+#!/bin/bash
+cd "${0%/*}" || exit 1
+. "${WM_PROJECT_DIR:?}/bin/tools/RunFunctions"
+
+# 1. Generate plate STL
+python3 gen_stl.py
+
+# 2. Background mesh
+runApplication blockMesh
+
+# 3. Extract surface features for snappyHexMesh
+runApplication surfaceFeatureExtract
+
+# 4. Snap mesh around plate
+runApplication snappyHexMesh -overwrite
+
+# 5. Restore initial fields
+restore0Dir
+
+# 6. Run simpleFoam
+runApplication simpleFoam
+
+echo ""
+echo "Done. Cd (= Cdn for Morison) is in postProcessing/forceCoeffs/0/forceCoeffs.dat"
+echo "Column order: Time  Cm  Cd  Cl  ClPerpendicular"
+echo "Steady Cd should converge after ~1000 iterations."

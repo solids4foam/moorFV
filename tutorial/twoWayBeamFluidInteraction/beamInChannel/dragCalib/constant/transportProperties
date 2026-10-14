@@ -1,0 +1,26 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Zhang 2012 sec 6.4: rho_f = 1.0 g/cm^3 = 1000 kg/m^3, mu_f = 0.1 g/(cm s) = 0.01 Pa.s
+// nu = mu/rho = 1e-5 m^2/s
+//
+// Re_d = U_max * t / nu = 0.015 * 4e-4 / 1e-5 = 0.6   (at peak inlet velocity)
+
+transportModel  Newtonian;
+
+nu              1e-5;
+
+// ************************************************************************* //

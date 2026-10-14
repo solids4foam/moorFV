@@ -1,0 +1,134 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   500;
+
+purgeWrite      3;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+functions
+{
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            (forces);
+
+        writeControl    timeStep;
+        writeInterval   10;
+
+        patches         (plate);
+
+        rho             rhoInf;
+        rhoInf          1000;         // water density (kg/m3)
+
+        // Drag in +x (flow direction), lift in +y (wall-normal)
+        liftDir         (0 1 0);
+        dragDir         (1 0 0);
+        CofR            (0.02 0.004 0);  // upstream face, mid-height
+
+        pitchAxis       (0 0 1);
+
+        // Reference: U = 0.01 m/s, t = 2.12e-4 m, L = 0.008 m
+        // Aref = t * L = 2.12e-4 * 0.008 = 1.696e-6 m^2
+        // Cd output = Cdn for Morison (F = 0.5*rho*Cdn*t*U^2*L)
+        magUInf         0.01;
+        lRef            2.12e-4;
+        Aref            1.696e-6;
+    }
+
+    residuals
+    {
+        type            solverInfo;
+        libs            (utilityFunctionObjects);
+        fields          (U p);
+    }
+
+    // Sample U(y) along a vertical line at the ALM sampling x-location
+    // (3.18 mm = 30*almSamplingReferenceLength upstream of plate at x=0.02).
+    // Output: postProcessing/samplingLine/<time>/line_U.xy
+    //   col 1: y [m], cols 2-4: Ux, Uy, Uz [m/s]
+    samplingLine
+    {
+        type            sets;
+        libs            (sampling);
+        writeControl    writeTime;       // write at every fluid write step
+        interpolationScheme cellPoint;   // smooth profile across cells
+
+        fields          (U);
+
+        setFormat       raw;             // simple ASCII columns
+
+        sets
+        (
+            ALMSampleLine
+            {
+                type        uniform;
+                axis        y;            // x-column = y coordinate
+                start       (0.01682  0.0    0);   // y = 0   (beam root, symmetry)
+                end         (0.01682  0.008  0);   // y = 0.008 (beam tip)
+                nPoints     81;                    // dy = 1e-4 m (matches beam segment ds)
+            }
+        );
+    }
+
+    // Backup: a few discrete probes at root / quarter / mid / 3/4 / tip
+    // Output: postProcessing/probes/<time>/U  (time series — use for convergence)
+    probes
+    {
+        type            probes;
+        libs            (sampling);
+        writeControl    timeStep;
+        writeInterval   100;
+
+        fields          (U p);
+
+        probeLocations
+        (
+            (0.01682 0.000 0)   // root  (symmetry plane)
+            (0.01682 0.002 0)   // 1/4
+            (0.01682 0.004 0)   // mid
+            (0.01682 0.006 0)   // 3/4
+            (0.01682 0.008 0)   // tip
+        );
+    }
+}
+
+// ************************************************************************* //

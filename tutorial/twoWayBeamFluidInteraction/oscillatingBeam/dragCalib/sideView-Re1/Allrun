@@ -1,0 +1,27 @@
+#!/bin/bash
+cd "${0%/*}" || exit 1
+. "${WM_PROJECT_DIR:?}/bin/tools/RunFunctions"
+
+# 1. Generate plate STL (side-view: full beam geometry in x-y plane)
+python3 gen_stl.py
+
+# 2. Background mesh (150x38x4 cells matching FSI domain x-y extents)
+runApplication blockMesh
+
+# 3. Extract surface features for snappyHexMesh
+runApplication surfaceFeatureExtract
+
+# 4. Snap mesh around plate (conformal body-fitted)
+runApplication snappyHexMesh -overwrite
+
+# 5. Restore initial fields
+restore0Dir
+
+# 6. Run simpleFoam (steady laminar)
+runApplication simpleFoam
+
+echo ""
+echo "Done. Cd (= Cdn for Morison) is in postProcessing/forceCoeffs/0/forceCoeffs.dat"
+echo "Column order: Time  Cm  Cd  Cl  ClPerpendicular"
+echo "Aref = t*L = 1.696e-6 m^2, so Cd here is directly the Cdn for Morison drag."
+echo "Steady Cd should converge after ~2000-3000 iterations."

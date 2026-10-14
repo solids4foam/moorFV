@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit 1                              # Run from this directory
+
+# Clean the beam initialisation case
+echo "Cleaning beamInitialisation/beam_0"
+beamInitialisation/beam_0/Allclean
+
+# Clean the fluid cases and remove the copied beam mesh and fields
+for caseI in beamTunnel
+do
+    echo "Cleaning $caseI"
+    $caseI/Allclean
+    rm -rf $caseI/0.orig/beam_0 $caseI/constant/beam_0/polyMesh \
+        $caseI/constant/beam_0/cellDecomposition
+done
+
+#------------------------------------------------------------------------------

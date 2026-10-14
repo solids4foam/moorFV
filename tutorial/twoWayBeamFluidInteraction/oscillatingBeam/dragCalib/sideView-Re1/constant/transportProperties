@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Re_d = U * t / nu = 0.01 * 2.12e-4 / 1e-5 = 0.212   (Re=10 leaflet case)
+// For Re=1 leaflet case: change nu to 1e-4  (Re_d = 0.0212)
+
+transportModel  Newtonian;
+
+nu              1e-5;   // kinematic viscosity [m^2/s]  (Re=10 case)
+
+// ************************************************************************* //

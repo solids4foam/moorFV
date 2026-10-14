@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Beam-tunnel drag calibration (Zhang/Liu/Khoo 2012, sec 6.4).
+// Same x-y extents as the FSI fluid case.
+//
+//   x in [0, 0.04] m         150 cells, dx = 2.67e-4 m
+//   y in [0, 0.01] m          38 cells, dy = 2.63e-4 m
+//   z in [-2.0e-4, +2.0e-4]    1 cell, symmetry on both sides
+//
+// Plate occupies x in [0.010, 0.0104], y in [0, 0.008]
+// snappyHexMesh refines around the plate.
+//
+// BCs (match FSI case):
+//   lowerWall = wall   (no-slip; beam ROOT attached here)
+//   upperWall = symmetry (paper: v2f=0 at top)
+//   frontAndBack = symmetry (2D)
+
+scale 1;
+
+vertices
+(
+    ( 0.0000   0.0000   -2.0e-4 )  // 0
+    ( 0.0400   0.0000   -2.0e-4 )  // 1
+    ( 0.0400   0.0100   -2.0e-4 )  // 2
+    ( 0.0000   0.0100   -2.0e-4 )  // 3
+    ( 0.0000   0.0000   +2.0e-4 )  // 4
+    ( 0.0400   0.0000   +2.0e-4 )  // 5
+    ( 0.0400   0.0100   +2.0e-4 )  // 6
+    ( 0.0000   0.0100   +2.0e-4 )  // 7
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (150 38 1) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (1 2 6 5)
+        );
+    }
+    lowerWall
+    {
+        type wall;
+        faces
+        (
+            (0 1 5 4)
+        );
+    }
+    upperWall
+    {
+        type symmetry;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    frontAndBack
+    {
+        type symmetry;
+        faces
+        (
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+// ************************************************************************* //
