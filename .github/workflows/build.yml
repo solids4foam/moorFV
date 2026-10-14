@@ -32,12 +32,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Switch beamFoam submodule to alm-on-main
+      - name: Switch beamFoam submodule to main
         shell: bash
         run: |
-          git -C src/beamFoam fetch origin alm-on-main
-          git -C src/beamFoam switch alm-on-main || git -C src/beamFoam switch --track origin/alm-on-main
-          git -C src/beamFoam pull --ff-only origin alm-on-main
+          git -C src/beamFoam fetch origin main
+          git -C src/beamFoam switch main || git -C src/beamFoam switch --track origin/main
+          git -C src/beamFoam pull --ff-only origin main
           git -C src/beamFoam status --short --branch
 
       - name: Build beamFoam and moorFV
