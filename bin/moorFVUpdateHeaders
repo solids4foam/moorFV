@@ -150,7 +150,7 @@ updateSource()
 updateDict()
 {
     perl -0777 -ne '
-        s{\A(?:/\*[^\n]*\n(?:[^\n]*\n)*?\\\*-+\*/\n)?(?=FoamFile\b)}
+        s{\A(?:/\*[^\n]*\n(?:[^\n]*\n)*?\\\*-+\*/\n)?\s*(?=FoamFile\b)}
          {$ENV{dictHeader}}s
             or exit 2;
         print;
