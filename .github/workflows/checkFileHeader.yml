@@ -5,6 +5,10 @@ on:
   workflow_dispatch:
   pull_request:
   push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   check-headers:
@@ -15,4 +19,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check file headers
-        run: bin/moorFVUpdateHeaders -check $(git ls-files ':!src/beamFoam')
+        run: git ls-files -z ':!src/beamFoam' | xargs -0 bin/moorFVUpdateHeaders -check

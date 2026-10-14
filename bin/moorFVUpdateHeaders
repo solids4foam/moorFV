@@ -21,11 +21,12 @@
 #
 #     Update all files:
 #
-#     $ bin/moorFVUpdateHeaders $(git ls-files ':!src/beamFoam')
+#     $ git ls-files -z ':!src/beamFoam' | xargs -0 bin/moorFVUpdateHeaders
 #
 #     Only report files with an outdated header (exits 1 if there are any):
 #
-#     $ bin/moorFVUpdateHeaders -check $(git ls-files ':!src/beamFoam')
+#     $ git ls-files -z ':!src/beamFoam' \
+#           | xargs -0 bin/moorFVUpdateHeaders -check
 #
 #------------------------------------------------------------------------------
 
