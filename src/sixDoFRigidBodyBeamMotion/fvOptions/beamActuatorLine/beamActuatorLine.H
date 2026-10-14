@@ -1,4 +1,7 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2017 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 multiphaseMangrovesSource.H
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

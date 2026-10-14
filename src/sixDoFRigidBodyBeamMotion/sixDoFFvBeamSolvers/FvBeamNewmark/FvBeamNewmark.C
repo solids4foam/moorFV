@@ -1,4 +1,8 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2015-2016 OpenFOAM Foundation
+    Copyright (C) 2020 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 Newmark.C
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

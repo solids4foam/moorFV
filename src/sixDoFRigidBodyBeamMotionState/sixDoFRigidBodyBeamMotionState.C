@@ -1,4 +1,8 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2017 OpenFOAM Foundation
+    Copyright (C) 2018-2020 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 sixDoFRigidBodyState.C
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

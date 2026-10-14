@@ -1,4 +1,8 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2011-2015 OpenFOAM Foundation
+    Copyright (C) 2019 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 sixDoFRigidBodyMotionConstraintNew.C
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

@@ -1,4 +1,7 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2019 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 linearSpringDamper.H
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

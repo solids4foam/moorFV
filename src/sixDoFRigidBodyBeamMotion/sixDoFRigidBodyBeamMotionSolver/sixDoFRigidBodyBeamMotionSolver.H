@@ -1,4 +1,8 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2013-2017 OpenFOAM Foundation
+    Copyright (C) 2019-2020 OpenCFD Ltd.
+    Derived from OpenFOAM-v2306 sixDoFRigidBodyMotionSolver.H
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 

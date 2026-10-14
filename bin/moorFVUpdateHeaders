@@ -11,8 +11,9 @@
 #
 # Description
 #     Updates the header of moorFV files:
-#       - .C and .H files: the License block (OpenFOAM banners and copyright
-#         lines above it are removed; Class, Description, etc. are kept)
+#       - .C and .H files: the License block. Copyright lines and other
+#         notices above it are kept; the OpenFOAM banner is removed. Class,
+#         Description, etc. are kept
 #       - OpenFOAM dictionaries: the banner above FoamFile
 #       - scripts (#! on the first line): the License block below the
 #         shebang, inserted if missing
@@ -125,8 +126,22 @@ export scriptRule='#------------------------------------------------------------
 updateSource()
 {
     perl -0777 -ne '
-        s{\A/\*-[^\n]*\n.*?^License\n.*?If not, see <http://www\.gnu\.org/licenses/>\.\n}
-         {$ENV{sourceHeader}}ms
+        # Keep the notice lines above License (copyright lines and notes),
+        # dropping the OpenFOAM banner, separators and blank lines
+        s{\A/\*-[^\n]*\n(.*?)^License\n.*?If not, see <http://www\.gnu\.org/licenses/>\.\n}
+         {
+            my @notice = grep
+            {
+                /\S/ && !/^-+$/
+             && !/=========|F ield|O peration|A nd|M anipulation/
+            } split /^/m, $1;
+
+            my ($rule, $license) = split /\n/, $ENV{sourceHeader}, 2;
+
+            "$rule\n"
+          . (@notice ? join("", @notice) . ("-" x 79) . "\n" : "")
+          . $license
+         }mse
             or exit 2;
         print;
     ' "$1"

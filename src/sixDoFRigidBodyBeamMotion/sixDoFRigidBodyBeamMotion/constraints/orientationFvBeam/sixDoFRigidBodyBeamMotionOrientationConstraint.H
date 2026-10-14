@@ -1,4 +1,7 @@
 /*---------------------------------------------------------------------------*\
+    Copyright (C) 2011-2014 OpenFOAM Foundation
+    Derived from OpenFOAM-v2306 sixDoFRigidBodyMotionOrientationConstraint.H
+-------------------------------------------------------------------------------
 License
     This file is part of moorFV.
 
