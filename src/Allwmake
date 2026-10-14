@@ -1,7 +1,20 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allwmake
+#
+# Description
+#     Find beamFoam (BEAMFOAM_DIR, or the bundled submodule), check that it is
+#     on the main branch and compiled, then compile the moorFV libraries.
+#
+#------------------------------------------------------------------------------
 cd "$(dirname "$0")" || exit 1  # Run from this directory
 
-requiredBeamFoamBranch="alm-on-main"
+requiredBeamFoamBranch="main"
 bundledBeamFoamDir="$(pwd -P)/beamFoam"
 
 printMissingBeamFoamMessage()

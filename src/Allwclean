@@ -1,4 +1,17 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allwclean
+#
+# Description
+#     Clean the sixDoFRigidBodyBeamMotion and sixDoFRigidBodyBeamMotionState
+#     libraries.
+#
+#------------------------------------------------------------------------------
 cd ${0%/*} || exit 1    # run from this directory
 
 wclean lib sixDoFRigidBodyBeamMotion

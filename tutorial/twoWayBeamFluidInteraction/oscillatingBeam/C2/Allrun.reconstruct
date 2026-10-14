@@ -1,4 +1,16 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allrun.reconstruct
+#
+# Description
+#     Reconstruct the fluid and beam regions of a finished parallel run.
+#
+#------------------------------------------------------------------------------
 cd ${0%/*} || exit 1    # Run from this directory
 
 # Source tutorial run functions

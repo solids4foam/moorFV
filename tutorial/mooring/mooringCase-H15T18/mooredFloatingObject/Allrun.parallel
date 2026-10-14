@@ -1,4 +1,18 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allrun.parallel
+#
+# Description
+#     Same as Allrun, but decompose the fluid and every beam region (using
+#     constant/cellDecomposition.beams), run in parallel and reconstruct. Run
+#     ../prepareBeams first to generate the mooring lines.
+#
+#------------------------------------------------------------------------------
 cd ${0%/*} || exit 1    # Run from this directory
 
 # Source tutorial run functions

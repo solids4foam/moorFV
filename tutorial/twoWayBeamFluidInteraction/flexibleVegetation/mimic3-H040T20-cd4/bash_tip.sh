@@ -1,4 +1,17 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     bash_tip.sh
+#
+# Description
+#     Write the x-component of W on beam patch left at each time to
+#     left_W_x.dat.
+#
+#------------------------------------------------------------------------------
 
 outFile="left_W_x.dat"
 tmpFile=$(mktemp)

@@ -1,4 +1,16 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allclean
+#
+# Description
+#     Remove the beam mesh, results and generated reference fields.
+#
+#------------------------------------------------------------------------------
 
 # Source tutorial clean functions
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions

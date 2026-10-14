@@ -1,4 +1,16 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allwmake
+#
+# Description
+#     Compile the moorFV libraries in src.
+#
+#------------------------------------------------------------------------------
 cd "$(dirname "$0")" || exit 1    # run from this directory
 
 # Compile libraries

@@ -1,4 +1,18 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allrun
+#
+# Description
+#     Mesh the channel, decompose the fluid and beam regions (whole beam on
+#     processor 0), run pimpleFoam in parallel and reconstruct. Run ../Allrun
+#     first to generate the beam mesh and fields.
+#
+#------------------------------------------------------------------------------
 cd ${0%/*} || exit 1    # Run from this directory
 
 # Source tutorial run functions

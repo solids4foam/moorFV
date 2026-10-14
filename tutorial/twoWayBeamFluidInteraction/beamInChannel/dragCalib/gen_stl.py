@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     gen_stl.py
+#
+# Description
+#     Write constant/triSurface/plate.stl, the rigid beam used for the drag
+#     calibration.
+#
+#------------------------------------------------------------------------------
 """Generate plate.stl for the beamTunnel drag calibration (Zhang 2012, sec 6.4).
 
 Plate geometry (rigid beam in side-view x-y plane):

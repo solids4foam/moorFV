@@ -1,4 +1,17 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allclean
+#
+# Description
+#     Clean beamInitialisation/beam_0 and the fluid cases, and remove the
+#     beam mesh and fields copied into them.
+#
+#------------------------------------------------------------------------------
 cd "${0%/*}" || exit 1                              # Run from this directory
 
 # Clean the beam initialisation case

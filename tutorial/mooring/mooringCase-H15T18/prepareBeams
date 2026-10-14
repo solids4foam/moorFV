@@ -1,4 +1,18 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     prepareBeams
+#
+# Description
+#     Mesh and solve each mooring line in cables_initialization with
+#     beamFoam, then copy its final fields and constant files into
+#     mooredFloatingObject.
+#
+#------------------------------------------------------------------------------
 
 # Base directory to look for beam folders
 base_dir="./cables_initialization"
@@ -27,8 +41,8 @@ process_beam()
     fi
 
     mkdir -p "$case_dir/0.orig/$beam" "$case_dir/constant/$beam"
-    cp -r "$beam_dir/$max_time_folder/" "$case_dir/0.orig/$beam"
-    cp -r "$beam_dir/constant/" "$case_dir/constant/$beam"    
+    cp -r "$beam_dir/$max_time_folder/"* "$case_dir/0.orig/$beam"
+    cp -r "$beam_dir/constant/"* "$case_dir/constant/$beam"    
     sed -i 's/fixedDisplacement/fixedValue/g' "$case_dir/0.orig/$beam/W"
     sed -i "s@constant/timeVsMoment@constant/$beam/timeVsMoment@g" "$case_dir/0.orig/$beam/Theta"
 }
