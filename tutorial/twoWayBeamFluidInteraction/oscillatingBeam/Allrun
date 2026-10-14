@@ -1,4 +1,18 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allrun
+#
+# Description
+#     Generate the beam mesh and fields in beamInitialisation/beam_0, copy
+#     them into each fluid case and run it. Runs C1 to C4 by default, or the
+#     cases given as arguments.
+#
+#------------------------------------------------------------------------------
 cd "${0%/*}" || exit 1                              # Run from this directory
 
 # Fluid cases to run: all by default, or those given on the command line

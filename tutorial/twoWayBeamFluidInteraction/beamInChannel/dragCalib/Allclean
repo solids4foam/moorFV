@@ -1,4 +1,17 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allclean
+#
+# Description
+#     Clean the case and remove the generated plate surface and feature
+#     files.
+#
+#------------------------------------------------------------------------------
 cd "${0%/*}" || exit 1
 . "${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions"
 

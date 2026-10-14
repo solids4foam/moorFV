@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     gen_stl.py
+#
+# Description
+#     Write constant/triSurface/plate.stl, the square leaflet cross-section
+#     used for the top-view drag calibration.
+#
+#------------------------------------------------------------------------------
 """Generate plate.stl: a box representing the square beam cross-section."""
 
 import os

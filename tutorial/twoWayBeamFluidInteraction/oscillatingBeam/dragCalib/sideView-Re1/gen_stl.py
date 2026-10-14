@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     gen_stl.py
+#
+# Description
+#     Write constant/triSurface/plate.stl, the rigid leaflet used for the
+#     side-view drag calibration.
+#
+#------------------------------------------------------------------------------
 """Generate plate.stl for sideView drag calibration.
 
 Plate geometry (full beam cross-section in x-y plane):

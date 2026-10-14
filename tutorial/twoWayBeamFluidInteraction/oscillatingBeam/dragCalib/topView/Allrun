@@ -1,4 +1,18 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allrun
+#
+# Description
+#     Steady drag calibration (top view): mesh the square leaflet
+#     cross-section in a free stream with snappyHexMesh and run simpleFoam to
+#     obtain Cdn.
+#
+#------------------------------------------------------------------------------
 cd "${0%/*}" || exit 1
 . "${WM_PROJECT_DIR:?}/bin/tools/RunFunctions"
 

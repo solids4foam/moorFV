@@ -1,4 +1,16 @@
 #!/bin/sh
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Allclean
+#
+# Description
+#     Clean the case, including the 0 directory restored from 0.orig.
+#
+#------------------------------------------------------------------------------
 cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
 

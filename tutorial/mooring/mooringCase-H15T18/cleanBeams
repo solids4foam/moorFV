@@ -1,4 +1,17 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     cleanBeams
+#
+# Description
+#     Clean each mooring line in cables_initialization and remove its copied
+#     fields and constant files from mooredFloatingObject.
+#
+#------------------------------------------------------------------------------
 
 base_dir="./cables_initialization"
 case_dir="mooredFloatingObject"

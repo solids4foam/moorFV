@@ -1,4 +1,18 @@
 #!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     prepareBeams
+#
+# Description
+#     Mesh and solve each mooring line in cables_initialization with
+#     beamFoam, then copy its final fields and constant files into
+#     mooredFloatingObject.
+#
+#------------------------------------------------------------------------------
 
 # Base directory to look for beam folders
 base_dir="./cables_initialization"
