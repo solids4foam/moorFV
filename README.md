@@ -19,6 +19,21 @@ Initialize the required submodule after cloning:
 git submodule update --init --recursive
 ```
 
+This checks out the beamFoam commit that moorFV is pinned to, which is a
+commit on the beamFoam `main` branch. The submodule is then on a detached
+HEAD, which is expected. This is the combination that CI builds and tests on
+every pull request.
+
+To use the latest beamFoam `main` instead (the `branch = main` entry in
+`.gitmodules`), run:
+
+```bash
+git submodule update --remote src/beamFoam
+```
+
+If beamFoam `main` has moved on since the pinned commit, `git status` in
+moorFV then shows `src/beamFoam` as modified.
+
 The [`beamFoam`](https://github.com/solids4foam/beamFoam) submodule is located at:
 
 ```text
