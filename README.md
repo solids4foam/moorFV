@@ -63,6 +63,10 @@ resolves `BEAMFOAM_DIR` as follows:
 - If the submodule is missing or uninitialized, it prints the required
   `git submodule update --init --recursive src/beamFoam` command.
 
+It then checks that beamFoam is on its `main` branch, or at a commit on
+`main`. The bundled submodule passes this check as it is after
+`git submodule update`, which leaves it at the pinned commit.
+
 This means both of the following are valid:
 
 ```bash
