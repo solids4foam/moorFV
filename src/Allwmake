@@ -9,7 +9,8 @@
 #
 # Description
 #     Find beamFoam (BEAMFOAM_DIR, or the bundled submodule), check that it is
-#     on the main branch and compiled, then compile the moorFV libraries.
+#     on the main branch, or at a commit on it, and compiled, then compile the
+#     moorFV libraries.
 #
 #------------------------------------------------------------------------------
 cd "$(dirname "$0")" || exit 1  # Run from this directory
@@ -34,16 +35,19 @@ printBranchMessage()
 {
     local beamFoamDir="$1"
 
-    echo "beamFoam is not on the required branch for compiling moorFV."
+    echo "beamFoam is not on the required branch, or at a commit on it."
     echo "    path: ${beamFoamDir}"
     echo "    required branch: ${requiredBeamFoamBranch}"
     if [[ -n "${beamFoamBranch}" ]]; then
         echo "    current branch: ${beamFoamBranch}"
     else
-        echo "    current branch: detached HEAD"
+        echo "    current branch: detached HEAD at ${beamFoamCommit}"
     fi
     echo
-    echo "Switch beamFoam to '${requiredBeamFoamBranch}' with:"
+    echo "If origin/${requiredBeamFoamBranch} is out of date, fetching it may be enough:"
+    echo "    git -C ${beamFoamDir} fetch origin ${requiredBeamFoamBranch}"
+    echo
+    echo "Otherwise switch beamFoam to '${requiredBeamFoamBranch}' with:"
     echo "    cd ${beamFoamDir}"
     echo "    git fetch origin ${requiredBeamFoamBranch}"
     echo "    git switch ${requiredBeamFoamBranch} || git switch --track origin/${requiredBeamFoamBranch}"
@@ -74,8 +78,13 @@ if ! git -C "${BEAMFOAM_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; t
     exit 1
 fi
 
+# Accept the required branch, or a commit on it: "git submodule update" leaves
+# the bundled submodule at the pinned commit, with a detached HEAD
 beamFoamBranch="$(git -C "${BEAMFOAM_DIR}" branch --show-current)"
-if [[ "${beamFoamBranch}" != "${requiredBeamFoamBranch}" ]]; then
+beamFoamCommit="$(git -C "${BEAMFOAM_DIR}" rev-parse --short HEAD)"
+if [[ "${beamFoamBranch}" != "${requiredBeamFoamBranch}" ]] \
+    && ! git -C "${BEAMFOAM_DIR}" merge-base --is-ancestor \
+        HEAD "origin/${requiredBeamFoamBranch}" 2>/dev/null; then
     printBranchMessage "${BEAMFOAM_DIR}"
     exit 1
 fi
@@ -92,8 +101,9 @@ fi
 
 echo "Using beamFoam:"
 echo "    ${BEAMFOAM_DIR}"
-echo "    branch: ${beamFoamBranch}"
+echo "    branch: ${beamFoamBranch:-detached HEAD}"
+echo "    commit: ${beamFoamCommit}"
 
 # Compile libraries
-wmake -j libso sixDoFRigidBodyBeamMotion
-wmake -j libso sixDoFRigidBodyBeamMotionState
+wmake -j libso sixDoFRigidBodyBeamMotion || exit 1
+wmake -j libso sixDoFRigidBodyBeamMotionState || exit 1
