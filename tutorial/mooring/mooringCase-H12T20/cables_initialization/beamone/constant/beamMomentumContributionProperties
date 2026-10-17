@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| moorFV: finite-volume beams for mooring and beam-fluid interaction          |
+| Web:         https://github.com/solids4foam/moorFV                          |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      beamMomentumContributionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+beamMomentumContributions
+(
+    // Seabed contact: penalty spring/damper and Coulomb friction acting on
+    // beam cells below z = groundZ
+    groundContact
+    {
+        beamMomentumContributionType groundContact;
+        groundContactCoeffs
+        {
+            groundZ        -0.5;    // seabed z-coordinate [m]
+            kNormal        1e3;     // normal spring stiffness
+            cNormal        1.0;     // normal damping
+            kTangential    1e3;     // tangential (stick) stiffness
+            muFriction     0.01;    // Coulomb friction coefficient
+        }
+    }
+
+    // Morison drag from the line's own velocity through still water
+    morisonDrag
+    {
+        beamMomentumContributionType morisonDrag;
+        morisonDragCoeffs
+        {
+            Cdn       1.6;      // normal drag coefficient
+            Cdt       0.05;     // tangential drag coefficient
+            rhoFluid  1000;     // fluid density [kg/m^3]
+        }
+    }
+);
+
+// ************************************************************************* //
