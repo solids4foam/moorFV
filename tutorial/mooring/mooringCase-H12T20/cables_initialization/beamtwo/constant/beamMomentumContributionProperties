@@ -44,6 +44,18 @@ beamMomentumContributions
             rhoFluid  1000;     // fluid density [kg/m^3]
         }
     }
+
+    // Morison added mass from the line's own acceleration through still water
+    morisonAddedMass
+    {
+        beamMomentumContributionType morisonAddedMass;
+        morisonAddedMassCoeffs
+        {
+            CMn       1.0;      // normal added-mass coefficient
+            CMt       0.0;      // tangential added-mass coefficient
+            rhoFluid  1000;     // fluid density [kg/m^3]
+        }
+    }
 );
 
 // ************************************************************************* //
