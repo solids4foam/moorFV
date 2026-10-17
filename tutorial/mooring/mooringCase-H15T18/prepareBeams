@@ -9,8 +9,8 @@
 #
 # Description
 #     Mesh and solve each mooring line in cables_initialization with
-#     beamFoam, then copy its final fields and constant files into
-#     mooredFloatingObject.
+#     beamFoam, then copy its reference fields, final fields and constant
+#     files into mooredFloatingObject.
 #
 #------------------------------------------------------------------------------
 
@@ -28,12 +28,17 @@ process_beam()
     local beam_dir="$base_dir/$beam"
     local case_dir="mooredFloatingObject"
 
-    echo "Initializing $beam"    
+    echo "Initializing $beam"
     (
         cd "$beam_dir" || exit
-        ./Allrun > log.beamMeshing && beamFoam > log.beamFoam
+        ./Allrun > log.beamMeshing 2>&1 && beamFoam > log.beamFoam 2>&1
     )
-    max_time_folder=$(find "$beam_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -E '^[0-9]+$' | sort -n | tail -1)
+    if [[ $? -ne 0 ]]; then
+        echo "Error: initialisation of $beam failed, check the log files in $beam_dir"
+        exit 1
+    fi
+
+    max_time_folder=$(foamListTimes -case "$beam_dir" -latestTime -noZero)
 
     if [[ -z "$max_time_folder" ]]; then
         echo "Error: No time folders found in $beam_dir, check beamFoam log file"
@@ -41,6 +46,8 @@ process_beam()
     fi
 
     mkdir -p "$case_dir/0.orig/$beam" "$case_dir/constant/$beam"
+    # Reference (initial) configuration, written to 0/ by setInitialPositionBeam
+    cp "$beam_dir/0/"ref* "$case_dir/0.orig/$beam" || exit 1
     cp -r "$beam_dir/$max_time_folder/"* "$case_dir/0.orig/$beam"
     cp -r "$beam_dir/constant/"* "$case_dir/constant/$beam"    
     sed -i 's/fixedDisplacement/fixedValue/g' "$case_dir/0.orig/$beam/W"
