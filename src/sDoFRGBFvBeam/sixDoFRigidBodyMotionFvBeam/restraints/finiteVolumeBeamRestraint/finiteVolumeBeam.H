@@ -71,9 +71,6 @@ class finiteVolumeBeam
         word attachmentPatch_;
         word anchorPatch_;
 
-        //- Owner of beam attachment kinematics
-        word beamAttachmentKinematics_;
-
         //- Joint between the beam end and the body: pin (the beam passes
         //  a force) or welded (the end face turns with the body, and the
         //  beam passes its end moment too)

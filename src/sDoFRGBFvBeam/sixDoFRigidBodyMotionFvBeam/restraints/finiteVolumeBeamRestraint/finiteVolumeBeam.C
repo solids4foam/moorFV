@@ -87,7 +87,6 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     refAttachmentPt_(),
     attachmentPatch_(),
     anchorPatch_(),
-    beamAttachmentKinematics_("prescribedByRigidBody"),
     joint_("pin"),
     patchID_(-1),
     anchorPatchID_(-1),
@@ -246,7 +245,6 @@ Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::finiteVolumeBeam
     state_.add("refAttachmentPt", refAttachmentPt_);
     state_.add("attachmentPatch", attachmentPatch_);
     state_.add("anchorPatch", anchorPatch_);
-    state_.add("beamAttachmentKinematics", beamAttachmentKinematics_);
     state_.add("joint", joint_);
     state_.add("patchID", patchID_);
     state_.add("anchorPatchID", anchorPatchID_);
@@ -353,122 +351,22 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
 
     volVectorField& W = beam.solutionW();
 
-    if (beamAttachmentKinematics_ == "prescribedByRigidBody")
+    // consider relaxing the displacement...
+    W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
+
+    // Welded: the end face also turns with the body, by the body's
+    // rotation since the start of the time step
+    if (joint_ == "welded")
     {
-        // consider relaxing the displacement...
-        W.boundaryFieldRef()[patchID_] == attachmentDisp + initialW_;
-
-        // Welded: the end face also turns with the body, by the body's
-        // rotation since the start of the time step
-        if (joint_ == "welded")
-        {
-            beam.setEndStepRotation
-            (
-                patchID_,
-                (motion.state().Q() & motion.state0().Q().T())
-            );
-        }
+        beam.setEndStepRotation
+        (
+            patchID_,
+            (motion.state().Q() & motion.state0().Q().T())
+        );
     }
-    else if (beamAttachmentKinematics_ == "solvedByBlockEigen")
-    {
-        Info<< "finiteVolumeBeam: attachment kinematics owned by BlockEigen"
-            << endl;
-    }
-    else
-    {
-        FatalErrorInFunction
-            << "Unknown beamAttachmentKinematics "
-            << beamAttachmentKinematics_ << nl
-            << "Valid options are prescribedByRigidBody and solvedByBlockEigen"
-            << abort(FatalError);
-    }
-
-    //---------------------------------------------------------------------
-    // Colm: include all rigid body data- not just mooring attachment points
-    //---------------------------------------------------------------------
-    RigidBodyStepData rbData;
-
-    const sixDoFRigidBodyMotionFvBeamState& state = motion.state();
-    const sixDoFRigidBodyMotionFvBeamState& state0 = motion.state0();
-    const sixDoFRigidBodyMotionFvBeam& constMotion = motion;
-
-    rbData.previous.displacement =
-        state0.centreOfRotation() - constMotion.initialCentreOfRotation();
-
-    rbData.current.displacement =
-        state.centreOfRotation() - constMotion.initialCentreOfRotation();
-
-    rbData.previous.orientation = state0.Q();
-    rbData.current.orientation = state.Q();
-
-    rbData.previous.velocity = state0.v();
-    rbData.current.velocity = state.v();
-
-    rbData.previous.angularMomentum = state0.pi();
-    rbData.current.angularMomentum = state.pi();
-
-    rbData.previous.acceleration = state0.a();
-    rbData.current.acceleration = state.a();
-
-    rbData.previous.torque = state0.tau();
-    rbData.current.torque = state.tau();
-
-    rbData.mass = motion.mass();
-    rbData.momentOfInertia = motion.momentOfInertia();
-    rbData.initialCentreOfRotation = constMotion.initialCentreOfRotation();
-    rbData.centreOfRotation = motion.centreOfRotation();
-    rbData.attachmentPoint = restraintPosition;
-    rbData.solveAttachmentKinematicsInBlockEigen =
-        beamAttachmentKinematics_ == "solvedByBlockEigen";
-
-    //    beamModels::coupledTotalLagNewtonRaphsonBeam& coupledBeam =
-    //    refCast<beamModels::coupledTotalLagNewtonRaphsonBeam>(beam);
-
-    // coupledBeam.setRigidBodyStepData(rbData);
-      
-    beam.setRigidBodyStepData(rbData);
- 
-//---------------------------------------------------------------------    
 
     // Call beamFoam- Colm
     beam.evolve();
-
-    const Switch blockEigenAuthoritativeMotion
-    (
-        sDoFRBMRCoeffs_.getOrDefault<Switch>
-        (
-            "blockEigenAuthoritativeMotion",
-            false
-        )
-    );
-
-    RigidBodySolution rigidBodySolution;
-    bool blockEigenMotionApplied = false;
-
-    if (blockEigenAuthoritativeMotion)
-    {
-        if (beam.getRigidBodySolution(rigidBodySolution))
-        {
-            motion.applyBlockEigenSolution(rigidBodySolution);
-            restraintPosition = motion.transform(refAttachmentPt_);
-            blockEigenMotionApplied = true;
-
-            Info<< "finiteVolumeBeam using authoritative BlockEigen "
-                << "rigid-body solution" << nl
-                << "    centreOfRotation = "
-                << motion.centreOfRotation() << nl
-                << "    velocity = " << motion.v() << nl
-                << "    acceleration = " << motion.state().a()
-                << endl;
-        }
-        else
-        {
-            WarningInFunction
-                << "blockEigenAuthoritativeMotion requested, but the beam "
-                << "model did not provide a valid rigid-body solution"
-                << endl;
-        }
-    }
 
     beam.updateTotalFields();
 
@@ -501,12 +399,6 @@ void Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::restrain
             beam.mesh().lookupObject<surfaceVectorField>("M");
 
         restraintMoment = -M.boundaryField()[patchID_][0];
-    }
-
-    if (blockEigenMotionApplied)
-    {
-        restraintForce = vector::zero;
-        restraintMoment = vector::zero;
     }
 
     if (forceFilePtr_.valid())
@@ -693,12 +585,26 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     sDoFRBMRCoeffs_.readEntry("refAttachmentPt", refAttachmentPt_);
     sDoFRBMRCoeffs_.readEntry("attachmentPatch", attachmentPatch_);
     sDoFRBMRCoeffs_.readEntry("anchorPatch", anchorPatch_);
-    beamAttachmentKinematics_ =
+
+    // The BlockEigen-owned attachment kinematics have been removed: stop
+    // rather than run an old case with different coupling
+    if
+    (
         sDoFRBMRCoeffs_.getOrDefault<word>
         (
             "beamAttachmentKinematics",
             "prescribedByRigidBody"
-        );
+        ) != "prescribedByRigidBody"
+     || sDoFRBMRCoeffs_.found("blockEigenAuthoritativeMotion")
+    )
+    {
+        FatalIOErrorInFunction(sDoFRBMRCoeffs_)
+            << "beamAttachmentKinematics solvedByBlockEigen and "
+            << "blockEigenAuthoritativeMotion have been removed. Use the "
+            << "FvBeamNewmark (partitioned) or beamFoamCoupled (monolithic) "
+            << "solver" << exit(FatalIOError);
+    }
+
     joint_ = sDoFRBMRCoeffs_.getOrDefault<word>("joint", "pin");
 
     if (joint_ != "pin" && joint_ != "welded")
@@ -706,13 +612,6 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
         FatalIOErrorInFunction(sDoFRBMRCoeffs_)
             << "Invalid joint " << joint_ << nl
             << "Valid options are pin and welded" << exit(FatalIOError);
-    }
-
-    if (joint_ == "welded" && beamAttachmentKinematics_ != "prescribedByRigidBody")
-    {
-        FatalIOErrorInFunction(sDoFRBMRCoeffs_)
-            << "A welded joint needs beamAttachmentKinematics "
-            << "prescribedByRigidBody" << exit(FatalIOError);
     }
 
     sDoFRBMRCoeffs_.readIfPresent("patchID", patchID_);
@@ -726,11 +625,6 @@ bool Foam::sixDoFRigidBodyMotionFvBeamRestraints::finiteVolumeBeam::read
     state_.readIfPresent("refAttachmentPt", refAttachmentPt_);
     state_.readIfPresent("attachmentPatch", attachmentPatch_);
     state_.readIfPresent("anchorPatch", anchorPatch_);
-    state_.readIfPresent
-    (
-        "beamAttachmentKinematics",
-        beamAttachmentKinematics_
-    );
     state_.readIfPresent("patchID", patchID_);
     state_.readIfPresent("anchorPatchID", anchorPatchID_);
     state_.readIfPresent("initialW", initialW_);

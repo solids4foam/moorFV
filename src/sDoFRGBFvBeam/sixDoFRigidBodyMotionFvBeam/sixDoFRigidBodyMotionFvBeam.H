@@ -54,7 +54,6 @@ SourceFiles
 #include "sixDoFRigidBodyMotionFvBeamRestraint.H"
 #include "sixDoFRigidBodyMotionFvBeamConstraint.H"
 #include "Tuple2.H"
-#include "RigidBodyCouplingData.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -312,12 +311,6 @@ public:
                 const vector& tauGlobal,
                 scalar deltaT,
                 scalar deltaT0
-            );
-
-            //- Replace the current motion state with a block Eigen solution
-            void applyBlockEigenSolution
-            (
-                const RigidBodySolution& rigidBodySolution
             );
 
             //- Report the status of the motion
