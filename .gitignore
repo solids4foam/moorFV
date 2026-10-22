@@ -118,6 +118,9 @@ doc/[Dd]oxygen/man
 # generated files in the main directory (e.g. ReleaseNotes-?.?.html)
 /*.html
 
+# tutorial test runs, from tutorial/Alltest
+/tutorialTest/
+
 # patch residue
 *.rej
 #vscode specific directory
