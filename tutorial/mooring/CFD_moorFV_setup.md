@@ -8,7 +8,7 @@ Copy the  `moorFV/beam___` directory to a new separate `beamDir/` directory outs
 
 ## Step 2:
 
-Edit `beamDir/` to have correct points, rotation, etc. Beam length, radius and number of segments are specified in the `beams` list of `beamDir/beam___/constant/beamProperties`. Seabed contact, Morison drag and Morison added mass are specified in `beamDir/beam___/constant/beamMomentumContributionProperties`. The initial rotation and tranlation are specified in `beamDir/beam___/Allrun`.
+Edit `beamDir/` to have correct points, rotation, etc. Beam length, radius and number of segments are specified in the `beams` list of `beamDir/beam___/constant/beamProperties`. Seabed contact, Morison drag and Morison added mass are specified in `beamDir/beam___/constant/beamMomentumContributionProperties`. The initial rotation and translation are specified in `beamDir/beam___/Allrun`.
 
 ## Step 3:
 
