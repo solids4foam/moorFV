@@ -8,15 +8,17 @@ Copy the  `moorFV/beam___` directory to a new separate `beamDir/` directory outs
 
 ## Step 2:
 
-Edit `beamDir/` to have correct points, rotation, etc. Beam length and radius are specified in `beamDir/beam___/constant/beamProperties`. The initial rotation and tranlation are specified in `beamDir/beam___/Allrun`.
+Edit `beamDir/` to have correct points, rotation, etc. Beam length, radius and number of segments are specified in the `beams` list of `beamDir/beam___/constant/beamProperties`. Seabed contact, Morison drag and Morison added mass are specified in `beamDir/beam___/constant/beamMomentumContributionProperties`. The initial rotation and translation are specified in `beamDir/beam___/Allrun`.
 
 ## Step 3:
 
-Run `beamDir/beam___/Allrun` scripts. This step generates the beams. They can be viewed in ParaView as a case.foam file will be generated as part of the Allrun script. Note that to view them properly on ParaView, **"Warp by Vector"** needs to be activated with the vector that the beams are **"warped"** by set as `pointW`.
+Run `beamDir/beam___/Allrun` scripts. This step generates the beams. Then run `beamFoam` in `beamDir/beam___` to let each line settle into its catenary. They can be viewed in ParaView as a case.foam file will be generated as part of the Allrun script. Note that to view them properly on ParaView, **"Warp by Vector"** needs to be activated with the vector that the beams are **"warped"** by set as `pointW`.
 
 ## Step 4:
 
-Copy `0/`, `constant/` and `system/` directories from `beamDir/beam___` into `CFD_simulation/0.orig/beam___`, `CFD_simulation/constant/beam___`, and `CFD_simulation/system/beam___` respectively.
+Copy the `0/ref*` fields and the latest time directory from `beamDir/beam___` into `CFD_simulation/0.orig/beam___`. The `ref*` fields hold the initial beam position and are only written to `0/` (by `setInitialPositionBeam`). Copy the `constant/` and `system/` directories into `CFD_simulation/constant/beam___` and `CFD_simulation/system/beam___`. `system/beam___/fvSchemes` must have a `d2dt2Schemes` entry (e.g. `default Euler;`).
+
+In the tutorial cases, `prepareBeams` does Steps 3 to 5 for every beam in `cables_initialization`. The `system/beam___` directories are already in `mooredFloatingObject`.
 
 ## Step 5:
 

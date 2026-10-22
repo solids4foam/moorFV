@@ -29,22 +29,6 @@ solvers
 
 relaxationFactors
 {
-    euqations
-    {
-        // U 0.99;
-    }
-    fields
-    {
-        // DW 0.5;
-      
-        // DTheta 0.1;
-        // DLambda 0.1;
-        
-        // Theta 0.5;
-        // Lambda 0.5;
-        
-        // stretchRatio 0.5;
-    }
 }
 
 
