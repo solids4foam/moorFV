@@ -1,0 +1,221 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# License
+#     This file is part of moorFV, licensed under the GNU General Public
+#     License <http://www.gnu.org/licenses/>.
+#
+# Script
+#     Alltest
+#
+# Description
+#     Quickly test the tutorials: copy them to ../tutorialTest, cut every run
+#     to a few time steps, make the large meshes coarser, run the parallel
+#     cases on 2 processors, and fail if a run fails or a log reports an
+#     error. Adapted from the solids4foam tutorials/Alltest script.
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit 1    # Run from this directory
+
+usage()
+{
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION]
+
+options:
+  -help         Print the usage
+
+Copy the tutorials to ../tutorialTest and run each of them for a few time
+steps. The OpenFOAM environment must be loaded and moorFV compiled.
+
+USAGE
+    exit 1
+}
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    *)
+        usage "Unknown option: '$1'"
+        ;;
+    esac
+    shift
+done
+
+nSteps=3                # Time steps (or iterations) of each run
+nProcs=2                # Processors of each parallel run
+testDir=../tutorialTest
+
+if [ -z "${WM_PROJECT_DIR:-}" ]
+then
+    echo "Load the OpenFOAM environment first" 1>&2
+    exit 1
+fi
+
+if [ -e "${testDir}" ]
+then
+    echo "Directory already exists: ${testDir}" 1>&2
+    echo "Please remove it" 1>&2
+    exit 1
+fi
+
+
+#
+# FUNCTIONS
+#
+
+# editFile <file> <sed arguments>
+# Edit a file in place, without relying on GNU sed -i
+editFile()
+{
+    local file="$1"
+    shift
+    sed "$@" "${file}" > "${file}.tmp" && mv "${file}.tmp" "${file}"
+}
+
+# coarsenBlockMesh <blockMeshDict> <factor>
+# Divide the number of cells of each block in each direction by factor
+coarsenBlockMesh()
+{
+    awk -v factor="$2" '
+        /^[ \t]*hex[ \t]*\(/ {
+            # The cell counts are the first "(i j k)" after the vertex list
+            i = index($0, ")")
+            head = substr($0, 1, i)
+            rest = substr($0, i + 1)
+            if (match(rest, /\([ \t]*[0-9]+[ \t]+[0-9]+[ \t]+[0-9]+[ \t]*\)/))
+            {
+                n = split(substr(rest, RSTART + 1, RLENGTH - 2), count, " ")
+                cells = "("
+                for (j = 1; j <= n; j++)
+                {
+                    c = int(count[j]/factor + 0.5)
+                    cells = cells (c < 1 ? 1 : c) (j < n ? " " : ")")
+                }
+                $0 = head substr(rest, 1, RSTART - 1) cells \
+                    substr(rest, RSTART + RLENGTH)
+            }
+        }
+        { print }
+    ' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+}
+
+# runTest <name> <directory> <command>
+# Run the command in the directory and check the logs written below it
+failed=""
+runTest()
+{
+    local name="$1" dir="$2" command="$3"
+    local start=${SECONDS} status=0 problems="" log logs solverLogs
+
+    echo "Running ${name}"
+    (cd "${dir}" && eval "${command}") > "${dir}/log.Alltest" 2>&1 || status=$?
+
+    logs=$(find "${dir}" -name 'log.*' -type f)
+    solverLogs=$(find "${dir}" -type f \( -name log.beamFoam \
+        -o -name log.pimpleFoam -o -name log.interFoam -o -name log.simpleFoam \))
+
+    if [ "${status}" -ne 0 ]
+    then
+        problems="${problems}    exit status ${status}, see ${dir}/log.Alltest\n"
+    fi
+    for log in $([ -n "${logs}" ] && grep -l -E \
+        "FOAM FATAL|FOAM aborting|Foam::error::printStack|Segmentation fault" \
+        ${logs})
+    do
+        problems="${problems}    error reported in ${log}\n"
+    done
+    if [ -z "${solverLogs}" ]
+    then
+        problems="${problems}    no solver log was written\n"
+    fi
+    for log in ${solverLogs}
+    do
+        grep -q "^End" "${log}" \
+            || problems="${problems}    solver did not finish: ${log}\n"
+    done
+
+    if [ -n "${problems}" ]
+    then
+        echo "    FAILED after $((SECONDS - start)) s"
+        printf '%b' "${problems}"
+        failed="${failed}    ${name}\n"
+    else
+        echo "    passed in $((SECONDS - start)) s"
+    fi
+}
+
+
+#
+# MAIN
+#
+
+# The moorFV libraries must load; this also catches undefined symbols
+foamHasLibrary -verbose \
+    libsixDoFRigidBodyBeamMotion libsixDoFRigidBodyBeamMotionState || exit 1
+
+echo "Copying the tutorials to ${testDir}"
+cp -a . "${testDir}" || exit 1
+cd "${testDir}" || exit 1
+
+echo "Stopping each run after ${nSteps} time steps"
+for file in $(find . -path '*/system/controlDict' -type f)
+do
+    editFile "${file}" \
+        -e "s/^stopAt[ \t].*;/stopAt          nextWrite;/" \
+        -e "s/^writeControl[ \t].*;/writeControl    timeStep;/" \
+        -e "s/^writeInterval[ \t].*;/writeInterval   ${nSteps};/"
+done
+
+# Each beam region has its own system/<beam>/decomposeParDict
+echo "Running the parallel cases on ${nProcs} processors"
+for file in $(find . -name decomposeParDict -type f)
+do
+    editFile "${file}" \
+        -e "s/^numberOfSubdomains[ \t].*;/numberOfSubdomains ${nProcs};/"
+done
+
+echo "Making the large meshes coarser"
+coarsenBlockMesh \
+    mooring/mooringCase-H12T20/mooredFloatingObject/system/blockMeshDict 5
+coarsenBlockMesh \
+    mooring/mooringCase-H15T18/mooredFloatingObject/system/blockMeshDict 5
+coarsenBlockMesh \
+    twoWayBeamFluidInteraction/flexibleVegetation/mimic3-H040T20-cd4/system/blockMeshDict 10
+
+echo
+alm=twoWayBeamFluidInteraction
+runTest "beamInChannel" "${alm}/beamInChannel" "./Allrun"
+runTest "beamInChannel/dragCalib" "${alm}/beamInChannel/dragCalib" "./Allrun"
+runTest "oscillatingBeam" "${alm}/oscillatingBeam" "./Allrun"
+for caseI in sideView-Re1 sideView-Re10 topView
+do
+    runTest "oscillatingBeam/dragCalib/${caseI}" \
+        "${alm}/oscillatingBeam/dragCalib/${caseI}" "./Allrun"
+done
+runTest "flexibleVegetation" "${alm}/flexibleVegetation" "./Allrun"
+
+# One mooring case in serial and one in parallel
+runTest "mooringCase-H12T20" "mooring/mooringCase-H12T20" \
+    "./prepareBeams && mooredFloatingObject/Allrun"
+runTest "mooringCase-H15T18 (parallel)" "mooring/mooringCase-H15T18" \
+    "./prepareBeams && mooredFloatingObject/Allrun.parallel"
+
+echo
+if [ -n "${failed}" ]
+then
+    echo "These tutorials failed:"
+    printf '%b' "${failed}"
+    echo
+    echo "The tests ran in ${testDir}, where the logs are."
+    exit 1
+fi
+
+echo "All tutorials passed."
+
+#------------------------------------------------------------------------------

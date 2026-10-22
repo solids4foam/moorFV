@@ -1,6 +1,7 @@
-# Build moorFV against the beamFoam commit pinned by the submodule. The weekly
-# run, and a manual run with beamfoam_main set, build against the latest
-# beamFoam main instead, to catch changes in beamFoam early
+# Build moorFV against the beamFoam commit pinned by the submodule, then run
+# every tutorial for a few time steps (tutorial/Alltest). The weekly run, and
+# a manual run with beamfoam_main set, use the latest beamFoam main instead,
+# to catch changes in beamFoam early
 name: Building moorFV
 
 on:
@@ -40,10 +41,10 @@ jobs:
       image: ${{ matrix.container-image.image }}
 
     steps:
-      - name: Install git on container
+      - name: Install git and python3 on container
         run: |
           apt update
-          apt install -y git
+          apt install -y git python3
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,3 +75,24 @@ jobs:
 
           cd "${GITHUB_WORKSPACE}"
           ./Allwmake || exit 1
+
+      - name: Run the tutorials for a few time steps
+        shell: bash -l {0}
+        env:
+          # The container runs as root
+          OMPI_ALLOW_RUN_AS_ROOT: 1
+          OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+        run: |
+          source ${{ matrix.container-image.source }}
+          ./tutorial/Alltest || exit 1
+
+      - name: Upload the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.container-image.name }}
+          path: |
+            src/beamFoam/**/log.Allwmake
+            tutorialTest/**/log.*
+          if-no-files-found: ignore
+          retention-days: 10

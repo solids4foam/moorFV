@@ -116,6 +116,16 @@ The tutorials are grouped by application:
 
 Each case should be run from its own directory using the local `Allrun` and `Allclean` scripts when available.
 
+To check that all the tutorials still run, use:
+
+```bash
+./tutorial/Alltest
+```
+
+It copies the tutorials to `tutorialTest/`, runs each of them for a few time
+steps on coarser meshes and 2 processors, and reports any that fail. CI runs
+it on every pull request.
+
 ## Citation
 
 If you use moorFV or the finite-volume mooring-line method in your work, please cite:
